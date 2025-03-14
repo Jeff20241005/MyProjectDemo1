@@ -1,0 +1,5 @@
+#pragma once
+
+inline const FString PathStaticMesh_Path = TEXT("/Script/Engine.StaticMesh'/Game/PathTracer/Meshes/SM_Cylinder_Corner.SM_Cylinder_Corner'");
+inline const FString PathMaterial_Path = TEXT("/Script/Engine.Material'/Game/PathTracer/Materials/Path/M_PT_Translucent.M_PT_Translucent'");
+
