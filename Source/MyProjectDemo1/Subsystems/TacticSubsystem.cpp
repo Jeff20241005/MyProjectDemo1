@@ -31,6 +31,16 @@ void UTacticSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+void UTacticSubsystem::ShowMove()
+{
+	{
+		FString
+			TempStr = FString::Printf(TEXT("Move"));
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+	}
+}
+
 void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 {
 	if (ETeamType::ETT_Player == BaseCharacter->GetTeamComp()->GetTeam())
@@ -48,7 +58,8 @@ void UTacticSubsystem::BeginDrawVisualFeedBack()
 		FVector projectedLoc;
 		//---角色移动范围---
 		FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-			MyPlayerController->LastClickLocation - CurrentControlCharacter->GetActorLocation(), 0.0f,
+			MyPlayerController->MouseCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
+			0.0f,
 			1000.0f) + CurrentControlCharacter->GetActorLocation();
 
 		if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), FinalLocation, projectedLoc, nullptr,
@@ -102,7 +113,7 @@ void UTacticSubsystem::VisualizePath(const TArray<FVector>& PathPoints)
 			PathPoints[i + 1],
 			FColor::Green,
 			false,
-			5.0f,
+			DebugLifeTime,
 			0,
 			3.0f
 		);
@@ -115,7 +126,7 @@ void UTacticSubsystem::VisualizePath(const TArray<FVector>& PathPoints)
 			12,
 			FColor::Yellow,
 			false,
-			5.0f
+			DebugLifeTime
 		);
 	}
 
@@ -139,7 +150,7 @@ void UTacticSubsystem::VisualizePath(const TArray<FVector>& PathPoints)
 
 			false,
 
-			5.0f
+			DebugLifeTime
 
 		);
 	}

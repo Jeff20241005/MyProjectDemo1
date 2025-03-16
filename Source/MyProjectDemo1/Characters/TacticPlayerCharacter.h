@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "PlayerCharacter.h"
-#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "TacticPlayerCharacter.generated.h"
 
 class UTacticInteractionComp;
@@ -20,7 +19,7 @@ class MYPROJECTDEMO1_API ATacticPlayerCharacter : public APlayerCharacter
 public:
 	// Sets default values for this character's properties
 	ATacticPlayerCharacter();
-	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -30,8 +29,5 @@ protected:
 
 	//UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	//UActorComponent_PathTracer* PathTracer;
-
-	void SetupCharacterDataFromBP();
-	UPROPERTY()
-	UTacticSubsystem* TacticSubsystem;
+	
 };

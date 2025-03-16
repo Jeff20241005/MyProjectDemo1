@@ -19,6 +19,9 @@ class UMaterialInstanceDynamic;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStateChange, ABaseCharacter*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterSkillStateChange, ABaseCharacter*, UBaseAbility*)
 
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent,ABaseCharacter*)
+
 /**
  * 
  */
@@ -29,6 +32,16 @@ class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 	virtual void Deinitialize() override;
 
 public:
+	//UFUNCTION()
+	//void ShowSkill();
+	UFUNCTION()
+	void ShowMove();
+
+	
+	FOnMouseEvent OnMyMouseBeginCursorOver;
+	FOnMouseEvent OnMyMouseEndCursorOver;
+
+	
 	FOnCharacterStateChange OnSwitchCharacterAction;
 	FOnCharacterStateChange OnRoundFinish;
 
@@ -44,6 +57,7 @@ public:
 	FTimerHandle VisualFeedBackTimeHandle;
 
 	TArray<FVector> MovePoints;
+	float DebugLifeTime=0.03f;
 
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
 	void BeginDrawVisualFeedBack();
@@ -56,7 +70,9 @@ public:
 	UPathTracerComponent* CreateUPathTracerComponent();
 	//void ClearPathVisualization();
 
-private:
+protected:
+
+	
 	// Path visualization properties
 	UPROPERTY()
 	TArray<USplineMeshComponent*> PathSplineMeshes;

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "BaseCharacter.generated.h"
 
 class UPathTracerComponent;
@@ -17,26 +18,31 @@ class UGameplayEffect;
 class UMyAbilityComp;
 class UBaseCharacterAttributeSet;
 class UInteractionComp;
+class ABaseCharacter;
 
 
 UCLASS()
 class MYPROJECTDEMO1_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
-
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UWidgetComponent* HealthWidgetComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UWidgetComponent* MoveRangeWidgetComp;
 public:
-	void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
-	                  ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
-	void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
-	
-	void BaseCharacterAIMoveTo(FVector EndLocation);
-
 	//选择相关//
 	void DrawRangeSize(float Radius_P);
 
-	void DrawMoveRange();
+	void DrawMoveRange(ABaseCharacter* BaseCharacter);
 	void CloseWidget();
-	float DrawAttackRange();
+
+	
+	void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
+	                  ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
+	void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
+
+	void BaseCharacterAIMoveTo(FVector EndLocation);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
@@ -53,15 +59,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTeamComp* GetTeamComp() const { return TeamComp; }
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* WidgetComponent_BattleMenu;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* RangeComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* HealthComponent;
 
 protected:
+	
 	//custom settings
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UMyAbilityComp* MyAbilityComp;
@@ -101,8 +101,8 @@ protected:
 	virtual void NotifyActorEndCursorOver() override;
 
 protected:
-	//todo 
-	bool bIsAttackRange = false;
+	UPROPERTY()
+	UTacticSubsystem* TacticSubsystem;
 
 	ABaseCharacter();
 	virtual void BeginPlay() override;

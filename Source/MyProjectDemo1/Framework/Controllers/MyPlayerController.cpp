@@ -5,6 +5,7 @@
 
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
+#include "Camera/CameraComponent.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
@@ -43,11 +44,7 @@ void AMyPlayerController::BeginPlay()
 
 	if (MySpectatorPawn)
 	{
-		//角色为空，则切换为观察者
-		if (GetPawn() == nullptr)
-		{
-			PossesSpawnedSpectatorPawn();
-		}
+		PossesSpawnedSpectatorPawn();
 
 		// 设置观察者Pawn的移动速度
 		if (UFloatingPawnMovement* Movement = Cast<UFloatingPawnMovement>(MySpectatorPawn->GetMovementComponent()))
@@ -70,6 +67,9 @@ void AMyPlayerController::BeginPlay()
 	{
 		SetViewTarget(DefaultPawn);
 	}
+
+	FTimerHandle TempHandle;
+	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::GetMouseLocation, 0.02f, true);
 }
 
 
@@ -79,6 +79,7 @@ void AMyPlayerController::SetupInputComponent()
 
 	// 绑定鼠标左键点击事件
 	InputComponent->BindAction("LeftMouseClick", IE_Pressed, this, &AMyPlayerController::OnLeftMouseButtonDown);
+	InputComponent->BindAction("RightMouseClick", IE_Pressed, this, &AMyPlayerController::OnRightMouseButtonDown);
 
 	// 绑定WASD移动
 	InputComponent->BindAxis("MoveForward", this, &AMyPlayerController::MoveForward);
@@ -86,6 +87,11 @@ void AMyPlayerController::SetupInputComponent()
 
 	// 添加鼠标滚轮绑定
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::ZoomCamera);
+}
+
+void AMyPlayerController::GetMouseLocation()
+{
+	PerformLineTrace(this, &ThisClass::MouseLocationTraceExecute);
 }
 
 void AMyPlayerController::OnLeftMouseButtonDown()
@@ -108,25 +114,25 @@ void AMyPlayerController::LeftMouseLineTraceExecute(FHitResult HitResult)
 	FVector AdjustedLocation = HitResult.Location; //+ FVector(0, 0, 20.0f);
 	LastClickLocation = AdjustedLocation;
 
-	if (MyGameMode)
+
+	if (CurrentControlPlayer)
 	{
-		switch (MyGameMode->CurrentControlMode)
+		CurrentControlPlayer->BaseCharacterAIMoveTo(AdjustedLocation);
+		PossesSpawnedSpectatorPawn();
+
+		SetViewTarget(CurrentControlPlayer);
+	}
+}
+
+void AMyPlayerController::OnRightMouseButtonDown()
+{
+	if (MyGameMode->CurrentControlMode == EControlMode::TacticalMode)
+	{
+		if (CurrentControlPlayer && CurrentControlPlayer->CameraComponent)
 		{
-		case EControlMode::TacticalMode:
-			break;
-
-		case EControlMode::FreeRoamMode:
-
-			// 调整击中点的高度，确保在地面上方一点
-
-			if (CurrentControlPlayer)
-			{
-				CurrentControlPlayer->BaseCharacterAIMoveTo(AdjustedLocation);
-				PossesSpawnedSpectatorPawn();
-
-				SetViewTarget(CurrentControlPlayer);
-			}
-			break;
+			MySpectatorPawn->SetActorLocation(CurrentControlPlayer->CameraComponent->GetComponentLocation());
+			MySpectatorPawn->SetActorRotation(GetControlRotation());
+			PossesSpawnedSpectatorPawn();
 		}
 	}
 }
@@ -151,7 +157,7 @@ void AMyPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 {
 	if (APawn* ControlledPawn = GetPawn())
 	{
-		if (Cast<ASpectatorPawn>(GetPawn()))
+		if (Cast<ASpectatorPawn>(ControlledPawn))
 		{
 			//FRotator ControlRotation = GetControlRotation();
 			FRotator DirectionWithOutZ(0, GetControlRotation().Yaw, GetControlRotation().Roll);
@@ -160,12 +166,16 @@ void AMyPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 			ControlledPawn->AddMovementInput(Direction, Value);
 			return;
 		}
-		// 创建移动旋转
-		FRotator MovementRotation(0.0f, 0.0f, 0.0f);
 
-		const FVector Direction = FRotationMatrix(MovementRotation).GetUnitAxis(Axis);
-		// 应用移动
-		ControlledPawn->AddMovementInput(Direction, Value);
+		//	if (MyGameMode->CurrentControlMode == EControlMode::FreeRoamMode)
+		{
+			// 创建移动旋转
+			FRotator MovementRotation(0.0f, 0.0f, 0.0f);
+
+			const FVector Direction = FRotationMatrix(MovementRotation).GetUnitAxis(Axis);
+			// 应用移动
+			ControlledPawn->AddMovementInput(Direction, Value);
+		}
 	}
 }
 
@@ -173,18 +183,23 @@ void AMyPlayerController::MoveForward(float Value)
 {
 	if (Value == 0.0f)return;
 
-	//	if (CurrentControlMode != EControlMode::FreeRoamMode || bLockView) return;
-	EnsurePlayerControl();
 	PlayerInputMovement(Value, EAxis::X);
+	if (MyGameMode->CurrentControlMode == EControlMode::TacticalMode) return;
+	EnsurePlayerControl();
 }
 
 void AMyPlayerController::MoveRight(float Value)
 {
 	if (Value == 0.0f)return;
 
-	//if (CurrentControlMode != EControlMode::FreeRoamMode || bLockView) return;
-	EnsurePlayerControl();
 	PlayerInputMovement(Value, EAxis::Y);
+	if (MyGameMode->CurrentControlMode == EControlMode::TacticalMode) return;
+	EnsurePlayerControl();
+}
+
+void AMyPlayerController::MouseLocationTraceExecute(FHitResult HitResult)
+{
+	MouseCursorOverLocation = HitResult.Location;
 }
 
 void AMyPlayerController::SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams)

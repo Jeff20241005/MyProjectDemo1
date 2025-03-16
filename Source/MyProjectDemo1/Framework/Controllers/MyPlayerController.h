@@ -27,7 +27,10 @@ class MYPROJECTDEMO1_API AMyPlayerController : public APlayerController
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	FVector LastClickLocation;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	FVector MouseCursorOverLocation;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* HoveredActor;
 
@@ -38,6 +41,8 @@ public:
 	//玩家选择的角色类
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	APlayerCharacter* CurrentControlPlayer;
+
+	void MouseLocationTraceExecute(FHitResult HitResult);
 
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
@@ -73,9 +78,11 @@ protected:
 
 	void LeftMouseLineTraceExecute(FHitResult HitResult);
 
+	void OnRightMouseButtonDown();
 	// 绑定输入事件
 	virtual void SetupInputComponent() override;
 
+	void GetMouseLocation();
 	virtual void BeginPlay() override;
 
 	AMyPlayerController();
@@ -91,7 +98,7 @@ protected:
 
 	// 确保玩家控制角色
 	void EnsurePlayerControl();
-	void PlayerInputMovement(float Value, EAxis::Type Axis);
+	virtual void PlayerInputMovement(float Value, EAxis::Type Axis);
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)

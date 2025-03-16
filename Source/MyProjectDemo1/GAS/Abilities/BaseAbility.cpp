@@ -30,5 +30,4 @@ void UBaseAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 							  bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	
 }

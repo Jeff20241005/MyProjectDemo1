@@ -40,12 +40,11 @@ public:
 	bool bFocusOnMouse;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	bool bIsRangeAttack;
-	//Tag，是首先指定的，是源头
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup")
-	float AttackRange = 300.0f;
+	float SkillAttackRange = 300.0f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(AllowPrivateAccess=true))
-	float SubAttackRange = 0.0f;
+	float RangedAttackRange = 0.0f;
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = JFSetting)

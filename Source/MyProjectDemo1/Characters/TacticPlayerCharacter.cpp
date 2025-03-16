@@ -5,10 +5,8 @@
 #include "Components/WidgetComponent.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
-// Sets default values
 ATacticPlayerCharacter::ATacticPlayerCharacter()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	
@@ -19,14 +17,6 @@ ATacticPlayerCharacter::ATacticPlayerCharacter()
 }
 
 
-
-void ATacticPlayerCharacter::SetupCharacterDataFromBP()
-{
-	static ConstructorHelpers::FObjectFinder<UUserWidget> MainMenuWidgetFinder(
-		TEXT("/Game/UI/WidgetBP_CharacterActionMenu"));
-}
-
-// Called when the game starts or when spawned
 void ATacticPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -39,27 +29,7 @@ void ATacticPlayerCharacter::BeginPlay()
 	}
 }
 
-// Called every frame
 void ATacticPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-/*test
-float ATacticPlayerCharacter::GetValueByName(FString Name)
-{
-	if (BaseCharacterAttributeSet)
-	{
-		FGameplayAttribute Attribute;
-		FName AttributeName = FName(*Name);
-		static FProperty* Property = FindFieldChecked<FProperty>(UBaseCharacterAttributeSet::StaticClass(),
-		                                                         AttributeName);
-		Attribute = FGameplayAttribute(Property);
-		if (Attribute.IsValid())
-		{
-			return Attribute.GetNumericValue(BaseCharacterAttributeSet);
-		}
-	}
-	return 0.0f;
-}
-*/

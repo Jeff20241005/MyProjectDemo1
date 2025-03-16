@@ -11,7 +11,17 @@ void AMyGameMode::BeginPlay()
 	Super::BeginPlay();
 	MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
 }
-
+void AMyGameMode::SwitchControlMode()
+{
+	if (CurrentControlMode == EControlMode::FreeRoamMode)
+	{
+		SetControlMode(EControlMode::TacticalMode);
+	}
+	else
+	{
+		SetControlMode(EControlMode::FreeRoamMode);
+	}
+}
 void AMyGameMode::SetControlMode(EControlMode NewMode)
 {
 	CurrentControlMode = NewMode;

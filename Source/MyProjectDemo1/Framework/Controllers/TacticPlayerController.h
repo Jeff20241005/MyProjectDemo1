@@ -33,6 +33,7 @@ protected:
 	void BeginPlay() override;
 	void SetupInputComponent() override;
 
+	virtual void PlayerInputMovement(float Value, EAxis::Type Axis) override;
 	virtual void OnLeftMouseButtonDown() override;
 	
 	UPROPERTY()

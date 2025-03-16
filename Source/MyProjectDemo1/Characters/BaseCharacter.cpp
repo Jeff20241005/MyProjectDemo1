@@ -11,6 +11,7 @@
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 
 void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResult& HitInfo,
@@ -22,8 +23,6 @@ void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResu
 void ABaseCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 {
 	Super::NotifyActorOnClicked(ButtonPressed);
-
-
 	// 当鼠标开始悬停在物品上时
 	if (InteractionComp)
 	{
@@ -79,19 +78,32 @@ ABaseCharacter::ABaseCharacter()
 	//GetMesh()->SetNotifyRigidBodyCollision(true);
 	//GetMesh()->SetGenerateOverlapEvents(true);
 
-	//战斗相关UMG//
-	WidgetComponent_BattleMenu = CreateComponent<UWidgetComponent>();
-	//WidgetComponent_BattleMenu->SetupAttachment(GetRootComponent());
+	HealthWidgetComp = CreateComponent<UWidgetComponent>();
+	HealthWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HealthWidgetComp->SetVisibility(false);
 
-	HealthComponent = CreateComponent<UWidgetComponent>();
-	HealthComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HealthComponent->SetVisibility(false);
+	
+	MoveRangeWidgetComp = CreateComponent<UWidgetComponent>();
+	MoveRangeWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MoveRangeWidgetComp->SetVisibility(false);
+	MoveRangeWidgetComp->SetRelativeLocation(FVector(0, 0, -85));
+	MoveRangeWidgetComp->SetRelativeRotation(FRotator(90, 0, 0));
+	
+}
 
-	RangeComponent = CreateComponent<UWidgetComponent>();
-	RangeComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	RangeComponent->SetVisibility(false);
-	RangeComponent->SetRelativeLocation(FVector(0, 0, -85));
-	RangeComponent->SetRelativeRotation(FRotator(90, 0, 0));
+void ABaseCharacter::DrawRangeSize(float Radius_P)
+{
+	MoveRangeWidgetComp->SetDrawSize(FVector2D(Radius_P));
+	MoveRangeWidgetComp->SetVisibility(true);
+}
+void ABaseCharacter::DrawMoveRange(ABaseCharacter* BaseCharacter)
+{
+	DrawRangeSize(BaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange());
+}
+
+void ABaseCharacter::CloseWidget()
+{
+	MoveRangeWidgetComp->SetVisibility(false);
 }
 
 void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
@@ -114,15 +126,22 @@ void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 			return;
 		}
 	}
+
 	if (BaseAIController)
 	{
 		// 获取角色的移动范围
 		float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
 
-		// 传递移动范围参数
-		//BaseAIController->MoveToLocationWithPathFinding(EndLocation);
-
-		BaseAIController->MoveToLocationWithPathFinding(EndLocation, false, MoveRange);
+		AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		switch (MyGameMode->CurrentControlMode)
+		{
+		case EControlMode::FreeRoamMode:
+			BaseAIController->MoveToLocationWithPathFinding(EndLocation);
+			break;
+		case EControlMode::TacticalMode:
+			BaseAIController->MoveToLocationWithPathFinding(EndLocation, false, MoveRange);
+			break;
+		}
 	}
 }
 
@@ -130,8 +149,9 @@ void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// 初始化AbilitySystem
+	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+
 	if (MyAbilityComp)
 	{
 		MyAbilityComp->InitStats(
@@ -189,18 +209,6 @@ void ABaseCharacter::NotifyActorBeginCursorOver()
 {
 	Super::NotifyActorBeginCursorOver();
 
-	//todo
-	if (!InteractionComp->bIsSelected)
-	{
-		HealthComponent->SetVisibility(true);
-		if (!InteractionComp->bIsMoved && !bIsAttackRange)
-		{
-			//---显示移动范围等
-			DrawMoveRange();
-		}
-	}
-
-
 	// 当鼠标开始悬停在角色上时
 	if (InteractionComp)
 	{
@@ -212,24 +220,16 @@ void ABaseCharacter::NotifyActorBeginCursorOver()
 	{
 		MyPlayerController->HoveredActor = this;
 	}
+
+	if (TacticSubsystem->OnMyMouseBeginCursorOver.IsBound())
+	{
+		TacticSubsystem->OnMyMouseBeginCursorOver.Broadcast(this);
+	}
 }
 
 void ABaseCharacter::NotifyActorEndCursorOver()
 {
 	Super::NotifyActorEndCursorOver();
-
-	//todo
-	if (!InteractionComp->bIsSelected)
-	{
-		HealthComponent->SetVisibility(false);
-		if (!InteractionComp->bIsMoved && !bIsAttackRange)
-		{
-			//---显示移动范围等
-			CloseWidget();
-		}
-	}
-
-
 	// 当鼠标离开角色时
 	if (InteractionComp)
 	{
@@ -241,30 +241,9 @@ void ABaseCharacter::NotifyActorEndCursorOver()
 	{
 		MyPlayerController->HoveredActor = nullptr;
 	}
-}
 
-
-void ABaseCharacter::DrawRangeSize(float Radius_P)
-{
-	RangeComponent->SetDrawSize(FVector2D(Radius_P));
-	RangeComponent->SetVisibility(true);
-}
-
-float ABaseCharacter::DrawAttackRange()
-{
-	float AttackRange = BaseCharacterAttributeSet->GetAttackRange();
-	DrawRangeSize(AttackRange);
-	bIsAttackRange = true;
-
-	return AttackRange;
-}
-
-void ABaseCharacter::DrawMoveRange()
-{
-	DrawRangeSize(BaseCharacterAttributeSet->GetMoveRange());
-}
-
-void ABaseCharacter::CloseWidget()
-{
-	RangeComponent->SetVisibility(false);
+	if (TacticSubsystem->OnMyMouseEndCursorOver.IsBound())
+	{
+		TacticSubsystem->OnMyMouseEndCursorOver.Broadcast(this);
+	}
 }

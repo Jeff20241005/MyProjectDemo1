@@ -32,10 +32,10 @@ for (auto Spec : GetActivatableAbilities())
  */
 void UMyAbilityComp::BeginPlay()
 {
+	Super::BeginPlay();
+	
 	AutoGiveAbilitiesAndEffectsAtStart();
 	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
-	Super::BeginPlay();
-
 	TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
 }
 
@@ -104,7 +104,7 @@ void UMyAbilityComp::SelectSkillAbility(UBaseAbility* BaseAbility)
 
 void UMyAbilityComp::BeginSpawnAttackRange()
 {
-	FoundTargets = ScanTargets(Owner_BaseCharacter->GetActorLocation(), CurrentSelectAbility->AttackRange,
+	FoundTargets = ScanTargets(Owner_BaseCharacter->GetActorLocation(), CurrentSelectAbility->SkillAttackRange,
 	                           CurrentSelectAbility->SkillRangeType);
 }
 

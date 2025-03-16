@@ -28,9 +28,11 @@ public:
 	EControlMode CurrentControlMode=EControlMode::FreeRoamMode;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	AMyPlayerController* MyPlayerController;
+	void SwitchControlMode();
 
-	virtual void BeginPlay() override;
 	// 切换控制模式
 	UFUNCTION(BlueprintCallable, Category = "Control Mode")
 	void SetControlMode(EControlMode NewMode);
+protected:
+	virtual void BeginPlay() override;
 };

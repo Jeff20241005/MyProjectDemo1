@@ -3,6 +3,7 @@
 
 #include "TacticPlayerController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Characters/PlayerCharacter.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/Other/PathTracerComponent.h"
@@ -37,6 +38,12 @@ void ATacticPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(RightMouseButtonAction, ETriggerEvent::Triggered, this,
 		                                   &AMainPlayerController::OnRightMouseButtonDown);
 		                                   */
+}
+
+void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
+{
+	Super::PlayerInputMovement(Value, Axis);
+
 }
 
 /*

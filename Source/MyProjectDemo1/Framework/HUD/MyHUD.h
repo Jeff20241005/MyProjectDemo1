@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "MyProjectDemo1/UMG/MainUI.h"
 #include "MyHUD.generated.h"
 
 /**
@@ -14,11 +15,22 @@ class MYPROJECTDEMO1_API AMyHUD : public AHUD
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
-	TMap<UClass*, UUserWidget*> SingleObjectMap;
-
+public:
 	//全局只有一个Widget。避免打开多个UMG
 	template <class T>
 	T* GetSingleObjectWidgetClass(TSubclassOf<UUserWidget> WidgetClass);
-};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	TSubclassOf<UMainUI> MainUIClass;
+	UPROPERTY()
+	UMainUI* MainUI;
 
+protected:
+	template <class T>
+	void MakeUserWidget(T*& ObjectPtr, TSubclassOf<T> UIClass);
+	
+	virtual void BeginPlay() override;
+	
+	UPROPERTY()
+	TMap<UClass*, UUserWidget*> SingleObjectMap;
+};
