@@ -21,36 +21,16 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
-
 	OnSkillSelection.AddUObject(this, &ThisClass::SelectedSkill);
+	//	ShowVisualFeedback_Move();
 
-	// 确保在游戏世界有效时才获取控制器
-	if (GetWorld())
-	{
-		MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
-		
-		// 只有在控制器有效时才调用
-		if (MyPlayerController)
-		{
-			ShowSkillVisualFeedBack();
-		}
-	}
+	
 }
 
 void UTacticSubsystem::Deinitialize()
 {
 	// Clean up path visualization components
 	Super::Deinitialize();
-}
-
-void UTacticSubsystem::ShowMove()
-{
-	{
-		FString
-			TempStr = FString::Printf(TEXT("Move"));
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-	}
 }
 
 void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
@@ -61,33 +41,21 @@ void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 	}
 }
 
-void UTacticSubsystem::BeginDrawVisualFeedBack()
+void UTacticSubsystem::ShowMove()
 {
-
-	// 检查必要的指针是否有效
-	if (!CurrentControlCharacter || !MyPlayerController)
-	{ 
-		// 如果定时器仍在运行但对象无效，停止定时器
-		if (GetWorld() && GetWorld()->GetTimerManager().IsTimerActive(VisualFeedBackTimeHandle))
-		{
-			GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-		}
-		return; 
-	}
-
-		
 	FVector projectedLoc;
+	AMyPlayerController* MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
+
 	//---角色移动范围---
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
 		MyPlayerController->MouseHoverdCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
 		0.0f,
 		1000.0f) + CurrentControlCharacter->GetActorLocation();
-	
+
 	if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), FinalLocation, projectedLoc, nullptr,
 	                                                     UNavigationQueryFilter::StaticClass(),
 	                                                     FVector(1000, 1000, 1000)))
 	{
-		
 		UNavigationPath* NaviValue = UNavigationSystemV1::FindPathToLocationSynchronously(
 			GetWorld(), CurrentControlCharacter->GetActorLocation(), projectedLoc);
 
@@ -95,32 +63,26 @@ void UTacticSubsystem::BeginDrawVisualFeedBack()
 		{
 			MovePoints = NaviValue->PathPoints;
 
-			MyPlayerController.
-			// Visualize the path using spline meshes
-			DebugVisual(MovePoints);
+			//MyPlayerController->PathTracerComponent->DrawPath(MovePoints);
+
+			DebugVisual_Move(MovePoints);
 		}
 	}
 }
 
-void UTacticSubsystem::ShowSkillVisualFeedBack()
+void UTacticSubsystem::ShowVisualFeedback_Move()
 {
-	// 确保先清除之前的定时器
+	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 	if (GetWorld())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-		
-		// 确保MyPlayerController有效
-		if (!MyPlayerController)
-		{
-			MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
-		}
-		
-		// 只有在必要的指针有效时才设置定时器
-		if (MyPlayerController)
-		{
-			GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, this, &ThisClass::BeginDrawVisualFeedBack, 0.07, true);
-		}
+		GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, this, &ThisClass::ShowMove,
+		                                       0.07, true, 0.1f);
 	}
+}
+
+void UTacticSubsystem::HideVisualFeedback_Move()
+{
+	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 }
 
 void UTacticSubsystem::RoundFinish(ABaseCharacter* BaseCharacter)
@@ -132,24 +94,23 @@ void UTacticSubsystem::SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility
 {
 }
 
-void UTacticSubsystem::DebugVisual(const TArray<FVector>& PathPoints)
+void UTacticSubsystem::DebugVisual_Move(const TArray<FVector>& PathPoints)
 {
 	// 检查必要的指针和条件
-	if (PathPoints.Num() < 2 || !CurrentControlCharacter || !MyPlayerController || !GetWorld()) 
+	if (PathPoints.Num() < 2 || !CurrentControlCharacter || !GetWorld())
 		return;
-	FString TempStr = FString::Printf(TEXT("No specific class specified at "));
-	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(3, 3));
-	UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+
 	// 如果有范围限制，绘制实际移动目标
 	float RangeToMove = CurrentControlCharacter->GetBaseCharacterAttributeSet()->GetMoveRange();
-	
+	AMyPlayerController* MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
+
 	AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (MyGameMode && MyGameMode->IsTacticMode())
 	{
 		if (RangeToMove > 0.0f)
 			// Draw the target point
 			DrawDebugSphere(GetWorld(), MyPlayerController->MouseHoverdCursorOverLocation, 20.0f, 12,
-							FColor::Blue, false, DebugLifeTime);
+			                FColor::Blue, false, DebugLifeTime);
 
 		// Draw a circle to represent the movement range (instead of a sphere)
 		const int32 NumSegments = 32;
@@ -231,4 +192,3 @@ UPathTracerComponent* UTacticSubsystem::CreateUPathTracerComponent()
 
 	return SplineMesh;
 }
-

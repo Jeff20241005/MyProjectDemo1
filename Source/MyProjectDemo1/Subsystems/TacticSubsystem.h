@@ -21,7 +21,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStateChange, ABaseCharacter*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterSkillStateChange, ABaseCharacter*, UBaseAbility*)
 
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent,ABaseCharacter*)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
 
 /**
  * 
@@ -29,20 +29,15 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent,ABaseCharacter*)
 UCLASS()
 class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 {
+	void debug();
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
 public:
-	//UFUNCTION()
-	//void ShowSkill();
-	UFUNCTION()
-	void ShowMove();
-
-	
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
 
-	
+
 	FOnCharacterStateChange OnSwitchCharacterAction;
 	FOnCharacterStateChange OnRoundFinish;
 
@@ -58,39 +53,40 @@ public:
 	FTimerHandle VisualFeedBackTimeHandle;
 
 	TArray<FVector> MovePoints;
-	float DebugLifeTime=0.1f;
-	UPROPERTY()
-	AMyPlayerController* MyPlayerController;
+	float DebugLifeTime = 0.1f;
 
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
-	void BeginDrawVisualFeedBack();
-	void ShowSkillVisualFeedBack();
-	void RoundFinish(ABaseCharacter* BaseCharacter);
-	void SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
-	
-	// Path visualization functions
-	void DebugVisual(const TArray<FVector>& PathPoints);
+
+UFUNCTION()
+	void ShowVisualFeedback_Move();
+	void HideVisualFeedback_Move();
+
+
+	// debug
+	void DebugVisual_Move(const TArray<FVector>& PathPoints);
+
 	UPathTracerComponent* CreateUPathTracerComponent();
-	//void ClearPathVisualization();
 
 protected:
+	void RoundFinish(ABaseCharacter* BaseCharacter);
+	void SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
+	UFUNCTION()
+	void ShowMove();
 
-	
 	// Path visualization properties
 	UPROPERTY()
 	TArray<USplineMeshComponent*> PathSplineMeshes;
-	
+
 	UPROPERTY()
 	UMaterialInstanceDynamic* PathMaterial;
-	
+
 	UPROPERTY()
 	UStaticMesh* PathMesh;
-	
+
 	// Path visualization settings
 	FVector2D PathScale = FVector2D(10.0f, 10.0f);
 	FLinearColor PathColor = FLinearColor(1.0f, 0.f, 0.f, 1.0f);
 	float PathOpacity = 0.8f;
-
 
 
 	GENERATED_BODY()

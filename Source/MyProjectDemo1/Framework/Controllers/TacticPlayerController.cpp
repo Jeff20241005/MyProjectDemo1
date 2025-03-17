@@ -43,13 +43,6 @@ void ATacticPlayerController::FreeViewportChange()
 {
 	if (MyGameMode->IsTacticMode() && !bIsFreeViewport)
 	{
-		{
-			FString
-				TempStr = FString::Printf(TEXT("Nice"));
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
-
 		if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->CameraComponent)
 		{
 			MySpectatorPawn->SetActorLocation(CurrentMouseClickPlayer->CameraComponent->GetComponentLocation());
