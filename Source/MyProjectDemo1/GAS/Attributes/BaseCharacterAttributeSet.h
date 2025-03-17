@@ -75,7 +75,6 @@ public:
 	FGameplayAttributeData Defence;
 	ATTRIBUTE_ACCESSORS(ThisClass, Defence)
 
-	
 	UPROPERTY(EditAnywhere, Category = "Base")
 	FGameplayAttributeData AttackRange;
 	ATTRIBUTE_ACCESSORS(ThisClass, AttackRange)

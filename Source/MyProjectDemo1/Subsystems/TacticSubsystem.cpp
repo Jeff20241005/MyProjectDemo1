@@ -11,11 +11,36 @@
 #include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
 #include "MyProjectDemo1/Components/PathTracerComponent.h"
 #include "MyProjectDemo1/FilePaths/TacticPaths.h"
+#include "MyProjectDemo1/Framework/GameStates/MyGameState.h"
+#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
+#include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
+
+
+void UTacticSubsystem::PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
+{
+	GetTacticGameState();
+	
+	if (BaseCharacter && BaseAbility)
+	{
+		TArray<ABaseCharacter*> PotentialTargets = GetTacticGameState()->GetTargetCharacters(
+			BaseCharacter,
+			BaseAbility->SkillAttackRange,
+			BaseAbility->bTargetEnemies,
+			BaseAbility->bIncludeSelf,
+			BaseAbility->bTargetAllTeams,
+			BaseAbility->bInfiniteRange
+		);
+	}
+}
+
+ATacticGameState* UTacticSubsystem::GetTacticGameState()
+{
+	return Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
+}
 
 
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -25,6 +50,7 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
 	OnPostSkillSelected.AddUObject(this, &ThisClass::SelectedSkill);
+	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
 }
 
 void UTacticSubsystem::Deinitialize()
@@ -46,7 +72,7 @@ void UTacticSubsystem::ShowMove()
 	FVector projectedLoc;
 	//---角色移动范围---
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		GetMyPlayerController()->MouseHoverdCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
+		GetTacticPlayerController()->MouseHoverdCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
 		0.0f,
 		1000.0f) + CurrentControlCharacter->GetActorLocation();
 

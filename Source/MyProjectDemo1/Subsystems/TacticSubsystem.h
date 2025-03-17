@@ -6,6 +6,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TacticSubsystem.generated.h"
 
+class ATacticPlayerController;
+class AMyGameState;
 class AMyPlayerController;
 class AShowVisualFeedbackActor;
 class UWidgetComponent;
@@ -29,6 +31,7 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
 UCLASS()
 class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 {
+	void PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -42,7 +45,7 @@ public:
 	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
 
-	//选择技能前，鼠标放上去显示的
+	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
 	FOnCharacterSkillStateChange OnPreSkillSelection;
 	//正在选择，显示Visual FeedBack等
 	FOnCharacterSkillStateChange OnPostSkillSelected;
@@ -71,19 +74,14 @@ protected:
 	AShowVisualFeedbackActor* ShowVisualFeedbackActor;
 	TSubclassOf<AShowVisualFeedbackActor> VisualFeedbackActorClass;
 	AShowVisualFeedbackActor* GetShowVisualFeedbackActor();
-	
 
-	AMyPlayerController* GetMyPlayerController()
+
+	ATacticPlayerController* GetTacticPlayerController()
 	{
-		if (!MyPlayerController)
-		{
-			MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
-		}
-		return MyPlayerController;
+		return GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
 	}
-
-	UPROPERTY()
-	AMyPlayerController* MyPlayerController;
+	
+	ATacticGameState* GetTacticGameState();
 
 	void RoundFinish(ABaseCharacter* BaseCharacter);
 	void SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);

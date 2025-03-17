@@ -121,3 +121,78 @@ bool ATacticGameState::AreAllPlayersDefeated() const
 	}
 	return true;
 }
+
+TArray<ABaseCharacter*> ATacticGameState::GetTargetCharacters(
+	const ABaseCharacter* SourceCharacter,
+	float MaxRange,
+	bool bTargetEnemies,
+	bool bIncludeSelf,
+	bool bTargetAllTeams,
+	bool bInfiniteRange) const
+{
+	TArray<ABaseCharacter*> TargetCharacters;
+	
+	if (!SourceCharacter)
+		return TargetCharacters;
+	
+	// 如果只选择自己
+	if (!bTargetEnemies && bIncludeSelf && !bTargetAllTeams)
+	{
+		TargetCharacters.Add(const_cast<ABaseCharacter*>(SourceCharacter));
+		return TargetCharacters;
+	}
+	
+	// 遍历所有角色
+	for (ABaseCharacter* PotentialTarget : AllCharactersInOrder)
+	{
+		// 跳过无效目标
+		if (!PotentialTarget || PotentialTarget->GetBaseCharacterAttributeSet()->GetHealth() <= 0)
+			continue;
+			
+		// 处理自身
+		if (PotentialTarget == SourceCharacter)
+		{
+			if (bIncludeSelf)
+				TargetCharacters.Add(PotentialTarget);
+			continue;
+		}
+		
+		// 检查团队关系
+		bool bIsValidTeamTarget = false;
+		
+		if (bTargetAllTeams)
+		{
+			// 选择所有团队
+			bIsValidTeamTarget = true;
+		}
+		else if (bTargetEnemies)
+		{
+			// 选择敌对目标
+			bIsValidTeamTarget = SourceCharacter->GetTeamComp()->IsHostileTo(PotentialTarget);
+		}
+		else
+		{
+			// 选择友方目标
+			bIsValidTeamTarget = SourceCharacter->GetTeamComp()->IsFriendlyTo(PotentialTarget);
+		}
+		
+		if (!bIsValidTeamTarget)
+			continue;
+			
+		// 检查距离
+		if (!bInfiniteRange)
+		{
+			float Distance = FVector::Distance(
+				SourceCharacter->GetActorLocation(),
+				PotentialTarget->GetActorLocation());
+				
+			if (Distance > MaxRange)
+				continue;
+		}
+		
+		// 添加有效目标
+		TargetCharacters.Add(PotentialTarget);
+	}
+	
+	return TargetCharacters;
+}
