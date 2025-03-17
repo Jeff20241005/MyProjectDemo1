@@ -7,7 +7,7 @@
 #include "CharacterActionUI.generated.h"
 
 class UTacticSubsystem;
-class UActionButton;
+class UActionButtonUI;
 /**
  * 
  */
@@ -18,11 +18,14 @@ class MYPROJECTDEMO1_API UCharacterActionUI : public UUserWidget
 	
 public:
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
-	UActionButton* ActionButton_Attack;
+	UActionButtonUI* ActionButton_Attack;
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
-	UActionButton* ActionButton_Skill;
+	UActionButtonUI* ActionButton_Skill;
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
-	UActionButton* ActionButton_Move;
+	UActionButtonUI* ActionButton_Move;
+	
+	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
+	UActionButtonUI* ActionButton_SwitchGameModeTest;
 protected:
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;

@@ -22,17 +22,27 @@ UCLASS()
 class MYPROJECTDEMO1_API AMyGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	
+
 public:
+	UFUNCTION()
+	void SwitchControlMode();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control Mode")
-	EControlMode CurrentControlMode=EControlMode::FreeRoamMode;
+	EControlMode CurrentControlMode = EControlMode::FreeRoamMode;
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsFreeRoamMode() { return CurrentControlMode == EControlMode::FreeRoamMode; }
+
+	UFUNCTION(BlueprintCallable)
+	bool IsTacticMode() { return CurrentControlMode == EControlMode::TacticalMode; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	AMyPlayerController* MyPlayerController;
-	void SwitchControlMode();
+
 
 	// 切换控制模式
 	UFUNCTION(BlueprintCallable, Category = "Control Mode")
 	void SetControlMode(EControlMode NewMode);
+
 protected:
 	virtual void BeginPlay() override;
 };

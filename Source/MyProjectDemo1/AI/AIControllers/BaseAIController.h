@@ -33,6 +33,7 @@ protected:
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
 	virtual void Tick(float DeltaTime) override;
+	float DebugLifeTime=1.5f;
 };
 
 //记得包含头文件在C++文件

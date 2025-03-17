@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "ActionButton.generated.h"
+#include "ActionButtonUI.generated.h"
 
 class UTextBlock;
 class UButton;
@@ -12,7 +12,7 @@ class UButton;
  * 
  */
 UCLASS()
-class MYPROJECTDEMO1_API UActionButton : public UUserWidget
+class MYPROJECTDEMO1_API UActionButtonUI : public UUserWidget
 {
 	GENERATED_BODY()
 public:

@@ -2,8 +2,12 @@
 
 
 #include "TacticPlayerController.h"
+
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpectatorPawn.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/Other/PathTracerComponent.h"
@@ -12,8 +16,6 @@ ATacticPlayerController::ATacticPlayerController()
 {
 	//NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
 	//SetupInputKeys();
-
-	PathTracerComponent = CreateComponent<UPathTracerComponent>();
 }
 
 void ATacticPlayerController::BeginPlay()
@@ -25,25 +27,37 @@ void ATacticPlayerController::BeginPlay()
 	TacticSubsystem->OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
 	//UEnhancedInputLocalPlayerSubsystem* Subsystem = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
 	//if (Subsystem)Subsystem->AddMappingContext(DefaultMappingContext,0);
-}
 
-
-void ATacticPlayerController::SetupInputComponent()
-{
-	Super::SetupInputComponent();
-	/*
-		UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent);
-		EnhancedInputComponent->BindAction(LeftMouseButtonAction, ETriggerEvent::Triggered, this,
-		                                   &AMainPlayerController::OnLeftMouseButtonDown);
-		EnhancedInputComponent->BindAction(RightMouseButtonAction, ETriggerEvent::Triggered, this,
-		                                   &AMainPlayerController::OnRightMouseButtonDown);
-		                                   */
+	OnFreeViewport.AddUObject(this, &ThisClass::FreeViewportChange);
+	OnCharacterFocus.AddUObject(this, &ThisClass::CharacterFocus);
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
+
 {
 	Super::PlayerInputMovement(Value, Axis);
+}
 
+
+void ATacticPlayerController::FreeViewportChange()
+{
+	if (MyGameMode->IsTacticMode() && !bIsFreeViewport)
+	{
+		{
+			FString
+				TempStr = FString::Printf(TEXT("Nice"));
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
+
+		if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->CameraComponent)
+		{
+			MySpectatorPawn->SetActorLocation(CurrentMouseClickPlayer->CameraComponent->GetComponentLocation());
+			MySpectatorPawn->SetActorRotation(GetControlRotation());
+			PossesSpawnedSpectatorPawn();
+		}
+		bIsFreeViewport = true;
+	}
 }
 
 /*
@@ -72,6 +86,24 @@ void ATacticPlayerController::SwitchCharacterAction(ABaseCharacter* BaseCharacte
 	SetViewTarget(BaseCharacter);
 }
 
+void ATacticPlayerController::CharacterFocus()
+{
+	if (TacticSubsystem->OnSwitchCharacterAction.IsBound() && CurrentMouseClickPlayer)
+	{
+		TacticSubsystem->OnSwitchCharacterAction.Broadcast(CurrentMouseClickPlayer);
+		bIsFreeViewport = false;
+	}
+}
+
+void ATacticPlayerController::OnTabClick()
+{
+	Super::OnTabClick();
+	if (OnCharacterFocus.IsBound())
+	{
+		OnCharacterFocus.Broadcast();
+	}
+}
+
 
 void ATacticPlayerController::OnLeftMouseButtonDown()
 {
@@ -81,4 +113,8 @@ void ATacticPlayerController::OnLeftMouseButtonDown()
 
 void ATacticPlayerController::OnRightMouseButtonDown()
 {
+	if (OnFreeViewport.IsBound())
+	{
+		OnFreeViewport.Broadcast();
+	}
 }

@@ -13,7 +13,7 @@ void APlayerCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 {
 	Super::NotifyActorOnClicked(ButtonPressed);
 
-	MyPlayerController->CurrentControlPlayer = this;
+	MyPlayerController->CurrentMouseClickPlayer = this;
 	// 切换到玩家控制
 	MyPlayerController->Possess(this);
 }

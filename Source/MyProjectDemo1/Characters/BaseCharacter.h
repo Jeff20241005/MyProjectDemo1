@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "BaseCharacter.generated.h"
 
@@ -30,6 +31,7 @@ protected:
 	UWidgetComponent* HealthWidgetComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UWidgetComponent* MoveRangeWidgetComp;
+
 public:
 	//选择相关//
 	void DrawRangeSize(float Radius_P);
@@ -60,6 +62,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTeamComp* GetTeamComp() const { return TeamComp; }
 
+	// 移动消耗的GameplayEffect，可以在蓝图中设置
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Effects")
+	TSubclassOf<UGameplayEffect> MoveActionCostEffect;
+
 protected:
 	
 	//custom settings
@@ -70,7 +76,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UInteractionComp* InteractionComp;
 
-
+UPROPERTY()
+	AMyGameMode* MyGameMode;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UTeamComp* TeamComp;
 
@@ -109,6 +116,7 @@ protected:
 
 	template <class Comp>
 	Comp* CreateComponent();
+
 };
 
 template <typename Comp>

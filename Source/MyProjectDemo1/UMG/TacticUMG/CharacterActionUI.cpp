@@ -4,8 +4,10 @@
 #include "CharacterActionUI.h"
 
 #include "Components/Button.h"
+#include "Kismet/GameplayStatics.h"
+#include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
-#include "MyProjectDemo1/UMG/ActionButton.h"
+#include "MyProjectDemo1/UMG/ActionButtonUI.h"
 
 void UCharacterActionUI::NativeConstruct()
 {
@@ -16,4 +18,7 @@ void UCharacterActionUI::NativeConstruct()
 	ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::ShowMove);
 	//ActionButton_Attack->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
 	//ActionButton_Skill->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
+
+	AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode,&AMyGameMode::SwitchControlMode);
 }

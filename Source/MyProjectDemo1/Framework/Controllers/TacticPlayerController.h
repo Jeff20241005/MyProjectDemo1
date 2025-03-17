@@ -11,18 +11,28 @@ class UTacticSubsystem;
 class ATacticGameState;
 class ABaseCharacter; // Forward declaration instead of including the header
 
+DECLARE_MULTICAST_DELEGATE(FViewportStateChange)
+
 /**
  * 
  */
 UCLASS()
 class MYPROJECTDEMO1_API ATacticPlayerController : public AMyPlayerController
 {
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UPathTracerComponent* PathTracerComponent;
 protected:
-	//---鼠标右键摁下函数
-	void OnRightMouseButtonDown();
+	void CharacterFocus();
+	 virtual void OnTabClick() override;
+	virtual void OnRightMouseButtonDown() override;
+	UFUNCTION()
+	void FreeViewportChange();
+	
+	FViewportStateChange OnFreeViewport;
+	FViewportStateChange OnCharacterFocus;
+	bool bIsFreeViewport = false;
+
+public:
+	
+protected:
 	template <class Comp>
 	Comp* CreateComponent();
 
@@ -30,18 +40,18 @@ protected:
 	void Tick(float DeltaSeconds) override;
 
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
+	
 	void BeginPlay() override;
-	void SetupInputComponent() override;
 
 	virtual void PlayerInputMovement(float Value, EAxis::Type Axis) override;
 	virtual void OnLeftMouseButtonDown() override;
-	
+
 	UPROPERTY()
 	ATacticGameState* TacticGameState;
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
 
-	
+
 	GENERATED_BODY()
 };
 

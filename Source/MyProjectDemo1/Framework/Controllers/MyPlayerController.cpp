@@ -23,11 +23,17 @@ AMyPlayerController::AMyPlayerController()
 
 	// 确保Controller每帧都会Tick
 	PrimaryActorTick.bCanEverTick = true;
+
+	PathTracerComponent = CreateDefaultSubobject<UPathTracerComponent>(TEXT("PathTracerComponent"));
 }
 
 void AMyPlayerController::PossesSpawnedSpectatorPawn()
 {
 	Possess(MySpectatorPawn);
+	if (CurrentMouseClickPlayer)
+	{
+		SetViewTarget(CurrentMouseClickPlayer);
+	}
 }
 
 void AMyPlayerController::BeginPlay()
@@ -80,6 +86,7 @@ void AMyPlayerController::SetupInputComponent()
 	// 绑定鼠标左键点击事件
 	InputComponent->BindAction("LeftMouseClick", IE_Pressed, this, &AMyPlayerController::OnLeftMouseButtonDown);
 	InputComponent->BindAction("RightMouseClick", IE_Pressed, this, &AMyPlayerController::OnRightMouseButtonDown);
+	InputComponent->BindAction("TabClick", IE_Pressed, this, &AMyPlayerController::OnTabClick);
 
 	// 绑定WASD移动
 	InputComponent->BindAxis("MoveForward", this, &AMyPlayerController::MoveForward);
@@ -115,41 +122,35 @@ void AMyPlayerController::LeftMouseLineTraceExecute(FHitResult HitResult)
 	LastClickLocation = AdjustedLocation;
 
 
-	if (CurrentControlPlayer)
+	if (CurrentMouseClickPlayer)
 	{
-		CurrentControlPlayer->BaseCharacterAIMoveTo(AdjustedLocation);
+		CurrentMouseClickPlayer->BaseCharacterAIMoveTo(AdjustedLocation);
 		PossesSpawnedSpectatorPawn();
-
-		SetViewTarget(CurrentControlPlayer);
 	}
 }
 
+
 void AMyPlayerController::OnRightMouseButtonDown()
 {
-	if (MyGameMode->CurrentControlMode == EControlMode::TacticalMode)
-	{
-		if (CurrentControlPlayer && CurrentControlPlayer->CameraComponent)
-		{
-			MySpectatorPawn->SetActorLocation(CurrentControlPlayer->CameraComponent->GetComponentLocation());
-			MySpectatorPawn->SetActorRotation(GetControlRotation());
-			PossesSpawnedSpectatorPawn();
-		}
-	}
+}
+
+void AMyPlayerController::OnTabClick()
+{
 }
 
 
 void AMyPlayerController::EnsurePlayerControl()
 {
-	if (CurrentControlPlayer && CurrentControlPlayer->GetController() != this)
+	if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->GetController() != this)
 	{
 		// 停止AI移动
-		if (ABaseAIController* AIController = CurrentControlPlayer->BaseAIController)
+		if (ABaseAIController* AIController = CurrentMouseClickPlayer->BaseAIController)
 		{
 			AIController->StopMovement();
 			AIController->UnPossess();
 		}
 		// 切换到玩家控制
-		Possess(CurrentControlPlayer);
+		Possess(CurrentMouseClickPlayer);
 	}
 }
 
@@ -184,7 +185,7 @@ void AMyPlayerController::MoveForward(float Value)
 	if (Value == 0.0f)return;
 
 	PlayerInputMovement(Value, EAxis::X);
-	if (MyGameMode->CurrentControlMode == EControlMode::TacticalMode) return;
+	if (MyGameMode->IsTacticMode()) return;
 	EnsurePlayerControl();
 }
 
@@ -193,20 +194,20 @@ void AMyPlayerController::MoveRight(float Value)
 	if (Value == 0.0f)return;
 
 	PlayerInputMovement(Value, EAxis::Y);
-	if (MyGameMode->CurrentControlMode == EControlMode::TacticalMode) return;
+	if (MyGameMode->IsTacticMode()) return;
 	EnsurePlayerControl();
 }
 
 void AMyPlayerController::MouseLocationTraceExecute(FHitResult HitResult)
 {
-	MouseCursorOverLocation = HitResult.Location;
+	MouseHoverdCursorOverLocation = HitResult.Location;
 }
 
 void AMyPlayerController::SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams)
 {
-	if (CurrentSpringArmLength != 0 && CurrentControlPlayer && CurrentControlPlayer->SpringArmComponent)
+	if (CurrentSpringArmLength != 0 && CurrentMouseClickPlayer && CurrentMouseClickPlayer->SpringArmComponent)
 	{
-		CurrentControlPlayer->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
+		CurrentMouseClickPlayer->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
 	}
 
 	// 添加平滑过渡
@@ -220,11 +221,11 @@ void AMyPlayerController::ZoomCamera(float Value)
 {
 	if (Value == 0.0f) return;
 
-	if (CurrentControlPlayer && CurrentControlPlayer->SpringArmComponent)
+	if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->SpringArmComponent)
 	{
 		if (CurrentSpringArmLength == 0)
 		{
-			CurrentSpringArmLength = CurrentControlPlayer->SpringArmComponent->TargetArmLength;
+			CurrentSpringArmLength = CurrentMouseClickPlayer->SpringArmComponent->TargetArmLength;
 		}
 		// 获取当前臂长并计算新的臂长
 		CurrentSpringArmLength = FMath::Clamp(
@@ -233,6 +234,6 @@ void AMyPlayerController::ZoomCamera(float Value)
 			MaxCameraDistance
 		);
 		// 设置新的臂长
-		CurrentControlPlayer->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
+		CurrentMouseClickPlayer->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
 	}
 }

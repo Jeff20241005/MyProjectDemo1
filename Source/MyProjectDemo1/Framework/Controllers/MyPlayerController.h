@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "MyPlayerController.generated.h"
 
+class UPathTracerComponent;
 class AMyGameMode;
 class UInteractionComp;
 class ABaseCharacter;
@@ -27,10 +28,10 @@ class MYPROJECTDEMO1_API AMyPlayerController : public APlayerController
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	FVector LastClickLocation;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	FVector MouseCursorOverLocation;
-	
+	FVector MouseHoverdCursorOverLocation;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* HoveredActor;
 
@@ -40,7 +41,10 @@ public:
 
 	//玩家选择的角色类
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
-	APlayerCharacter* CurrentControlPlayer;
+	APlayerCharacter* CurrentMouseClickPlayer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPathTracerComponent* PathTracerComponent;
 
 	void MouseLocationTraceExecute(FHitResult HitResult);
 
@@ -49,14 +53,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void PossesSpawnedSpectatorPawn();
-	
+
 protected:
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float CurrentSpringArmLength = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float TraceDistance = 100000;
-	
+
 	// 摄像机缩放相关
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float MinCameraDistance = 300.0f;
@@ -78,7 +81,8 @@ protected:
 
 	void LeftMouseLineTraceExecute(FHitResult HitResult);
 
-	void OnRightMouseButtonDown();
+	virtual void OnRightMouseButtonDown();
+	virtual void OnTabClick();
 	// 绑定输入事件
 	virtual void SetupInputComponent() override;
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
 #include "MyProjectDemo1/Other/PathTracerComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TacticSubsystem.generated.h"
@@ -57,7 +58,9 @@ public:
 	FTimerHandle VisualFeedBackTimeHandle;
 
 	TArray<FVector> MovePoints;
-	float DebugLifeTime=0.03f;
+	float DebugLifeTime=0.1f;
+	UPROPERTY()
+	AMyPlayerController* MyPlayerController;
 
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
 	void BeginDrawVisualFeedBack();
@@ -66,7 +69,7 @@ public:
 	void SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
 	
 	// Path visualization functions
-	void VisualizePath(const TArray<FVector>& PathPoints);
+	void DebugVisual(const TArray<FVector>& PathPoints);
 	UPathTracerComponent* CreateUPathTracerComponent();
 	//void ClearPathVisualization();
 

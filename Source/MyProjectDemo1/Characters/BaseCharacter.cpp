@@ -11,6 +11,7 @@
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 
@@ -82,13 +83,12 @@ ABaseCharacter::ABaseCharacter()
 	HealthWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HealthWidgetComp->SetVisibility(false);
 
-	
+
 	MoveRangeWidgetComp = CreateComponent<UWidgetComponent>();
 	MoveRangeWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MoveRangeWidgetComp->SetVisibility(false);
 	MoveRangeWidgetComp->SetRelativeLocation(FVector(0, 0, -85));
 	MoveRangeWidgetComp->SetRelativeRotation(FRotator(90, 0, 0));
-	
 }
 
 void ABaseCharacter::DrawRangeSize(float Radius_P)
@@ -96,6 +96,7 @@ void ABaseCharacter::DrawRangeSize(float Radius_P)
 	MoveRangeWidgetComp->SetDrawSize(FVector2D(Radius_P));
 	MoveRangeWidgetComp->SetVisibility(true);
 }
+
 void ABaseCharacter::DrawMoveRange(ABaseCharacter* BaseCharacter)
 {
 	DrawRangeSize(BaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange());
@@ -132,14 +133,19 @@ void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 		// 获取角色的移动范围
 		float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
 
-		AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 		switch (MyGameMode->CurrentControlMode)
 		{
 		case EControlMode::FreeRoamMode:
 			BaseAIController->MoveToLocationWithPathFinding(EndLocation);
 			break;
 		case EControlMode::TacticalMode:
-			BaseAIController->MoveToLocationWithPathFinding(EndLocation, false, MoveRange);
+			float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
+			if (MyAbilityComp && CurrentActionValues >= 1)
+			{
+				BaseAIController->MoveToLocationWithPathFinding(EndLocation, false, MoveRange);
+				// 修改ActionValues属性值
+				BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
+			}
 			break;
 		}
 	}
@@ -151,6 +157,7 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	// 初始化AbilitySystem
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	if (MyAbilityComp)
 	{

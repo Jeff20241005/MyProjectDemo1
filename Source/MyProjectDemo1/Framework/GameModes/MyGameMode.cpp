@@ -13,7 +13,7 @@ void AMyGameMode::BeginPlay()
 }
 void AMyGameMode::SwitchControlMode()
 {
-	if (CurrentControlMode == EControlMode::FreeRoamMode)
+	if (IsFreeRoamMode())
 	{
 		SetControlMode(EControlMode::TacticalMode);
 	}

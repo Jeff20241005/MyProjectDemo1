@@ -104,7 +104,7 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	// 配置移动请求
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalLocation(TargetLocation/*ProjectedLocation.Location*/);
-	MoveRequest.SetAcceptanceRadius(5.0f);
+	MoveRequest.SetAcceptanceRadius(5.0f); //todo AIMoveTo Bug / ShowVisualFeedback (it might cause)
 	MoveRequest.SetUsePathfinding(true);
 	MoveRequest.SetAllowPartialPath(true);
 
@@ -112,20 +112,21 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	FNavPathSharedPtr NavPath;
 	MoveTo(MoveRequest, &NavPath);
 
+
 	// 可视化 --Debug
 	if (NavPath.IsValid())
 	{
 		// 绘制原始目标点和投影点
-		DrawDebugSphere(GetWorld(), MouseClickLocation, 20.0f, 12, FColor::Red, false, 5.0f);
-		DrawDebugSphere(GetWorld(), TargetLocation, 20.0f, 12, FColor::Green, false, 5.0f);
+		DrawDebugSphere(GetWorld(), MouseClickLocation, 20.0f, 12, FColor::Red, false, DebugLifeTime);
+		DrawDebugSphere(GetWorld(), TargetLocation, 20.0f, 12, FColor::Green, false, DebugLifeTime);
 
 		// 如果有范围限制，绘制实际移动目标
 		if (!IsFreeToMove && RangeToMove > 0.0f)
 		{
 			// Draw the target point
-			DrawDebugSphere(GetWorld(), TargetLocation, 20.0f, 12, FColor::Blue, false, 5.0f);
+			DrawDebugSphere(GetWorld(), TargetLocation, 20.0f, 12, FColor::Blue, false, DebugLifeTime);
 			// Draw line from current location to target
-			//DrawDebugLine(GetWorld(), CurrentLocation, TargetLocation, FColor::Cyan, false, 5.0f);
+			//DrawDebugLine(GetWorld(), CurrentLocation, TargetLocation, FColor::Cyan, false, DebugLifeTime);
 
 			// Draw a circle to represent the movement range (instead of a sphere)
 			const int32 NumSegments = 32;
@@ -144,7 +145,7 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 					CurrentPoint,
 					FColor::Yellow,
 					false,
-					5.0f,
+					DebugLifeTime,
 					0,
 					2.0f
 				);
@@ -152,7 +153,6 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 				PrevPoint = CurrentPoint;
 			}
 		}
-
 	}
 }
 
