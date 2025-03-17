@@ -10,7 +10,6 @@
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
-#include "MyProjectDemo1/Other/PathTracerComponent.h"
 
 ATacticPlayerController::ATacticPlayerController()
 {

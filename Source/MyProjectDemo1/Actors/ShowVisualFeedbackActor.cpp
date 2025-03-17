@@ -3,14 +3,15 @@
 
 #include "ShowVisualFeedbackActor.h"
 
-#include "Components/WidgetComponent.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Components/PathTracerComponent.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
 
 AShowVisualFeedbackActor::AShowVisualFeedbackActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	PathTracerComponent = CreateComponent<UPathTracerComponent>();
 }
 
 
@@ -30,6 +31,7 @@ void AShowVisualFeedbackActor::OnMouseCursorOver()
 
 void AShowVisualFeedbackActor::BeginPlay()
 {
+
 	Super::BeginPlay();
 }
 

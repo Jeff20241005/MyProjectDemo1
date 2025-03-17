@@ -43,9 +43,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	APlayerCharacter* CurrentMouseClickPlayer;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UPathTracerComponent* PathTracerComponent;
-
 	void MouseLocationTraceExecute(FHitResult HitResult);
 
 	virtual void SetViewTarget(class AActor* NewViewTarget,

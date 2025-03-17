@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "MyProjectDemo1/UMG/MainUI.h"
 #include "MyHUD.generated.h"
 
+class UMainUI;
 /**
  * 
  */
@@ -14,7 +14,6 @@ UCLASS()
 class MYPROJECTDEMO1_API AMyHUD : public AHUD
 {
 	GENERATED_BODY()
-
 public:
 	//全局只有一个Widget。避免打开多个UMG
 	template <class T>
@@ -25,12 +24,13 @@ public:
 	UPROPERTY()
 	UMainUI* MainUI;
 
+
 protected:
 	template <class T>
 	void MakeUserWidget(T*& ObjectPtr, TSubclassOf<T> UIClass);
 	
 	virtual void BeginPlay() override;
-	
+
 	UPROPERTY()
 	TMap<UClass*, UUserWidget*> SingleObjectMap;
 };

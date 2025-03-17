@@ -8,12 +8,15 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
-#include "MyProjectDemo1/Other/PathTracerComponent.h"
 #include "NavFilters/NavigationQueryFilter.h"
+#include "MyProjectDemo1/Components/PathTracerComponent.h"
+#include "MyProjectDemo1/FilePaths/TacticPaths.h"
+
 
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -21,10 +24,7 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
-	OnSkillSelection.AddUObject(this, &ThisClass::SelectedSkill);
-	//	ShowVisualFeedback_Move();
-
-	
+	OnPostSkillSelected.AddUObject(this, &ThisClass::SelectedSkill);
 }
 
 void UTacticSubsystem::Deinitialize()
@@ -44,11 +44,9 @@ void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 void UTacticSubsystem::ShowMove()
 {
 	FVector projectedLoc;
-	AMyPlayerController* MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
-
 	//---角色移动范围---
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		MyPlayerController->MouseHoverdCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
+		GetMyPlayerController()->MouseHoverdCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
 		0.0f,
 		1000.0f) + CurrentControlCharacter->GetActorLocation();
 
@@ -62,10 +60,7 @@ void UTacticSubsystem::ShowMove()
 		if (NaviValue != nullptr)
 		{
 			MovePoints = NaviValue->PathPoints;
-
-			//MyPlayerController->PathTracerComponent->DrawPath(MovePoints);
-
-			DebugVisual_Move(MovePoints);
+			GetShowVisualFeedbackActor()->GetPathTracerComponent()->DrawPath(MovePoints);
 		}
 	}
 }
@@ -85,6 +80,20 @@ void UTacticSubsystem::HideVisualFeedback_Move()
 	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 }
 
+UTacticSubsystem::UTacticSubsystem()
+{
+	FindMyClass(VisualFeedbackActorClass, *VisualFeedbackActor_Path);
+}
+
+AShowVisualFeedbackActor* UTacticSubsystem::GetShowVisualFeedbackActor()
+{
+	if (!ShowVisualFeedbackActor)
+	{
+		ShowVisualFeedbackActor = GetWorld()->SpawnActor<AShowVisualFeedbackActor>(VisualFeedbackActorClass);
+	}
+	return ShowVisualFeedbackActor;
+}
+
 void UTacticSubsystem::RoundFinish(ABaseCharacter* BaseCharacter)
 {
 	// Clear path visualization when round finishes
@@ -92,103 +101,5 @@ void UTacticSubsystem::RoundFinish(ABaseCharacter* BaseCharacter)
 
 void UTacticSubsystem::SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
 {
-}
-
-void UTacticSubsystem::DebugVisual_Move(const TArray<FVector>& PathPoints)
-{
-	// 检查必要的指针和条件
-	if (PathPoints.Num() < 2 || !CurrentControlCharacter || !GetWorld())
-		return;
-
-	// 如果有范围限制，绘制实际移动目标
-	float RangeToMove = CurrentControlCharacter->GetBaseCharacterAttributeSet()->GetMoveRange();
-	AMyPlayerController* MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
-
-	AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-	if (MyGameMode && MyGameMode->IsTacticMode())
-	{
-		if (RangeToMove > 0.0f)
-			// Draw the target point
-			DrawDebugSphere(GetWorld(), MyPlayerController->MouseHoverdCursorOverLocation, 20.0f, 12,
-			                FColor::Blue, false, DebugLifeTime);
-
-		// Draw a circle to represent the movement range (instead of a sphere)
-		const int32 NumSegments = 32;
-		const float AngleStep = 2.0f * PI / NumSegments;
-		FVector CurrentLocation = CurrentControlCharacter->GetActorLocation();
-		FVector PrevPoint = CurrentLocation + FVector(RangeToMove, 0.0f, 0.0f);
-
-		for (int32 i = 1; i <= NumSegments; i++)
-		{
-			const float Angle = AngleStep * i;
-			const FVector CurrentPoint = CurrentLocation +
-				FVector(RangeToMove * FMath::Cos(Angle), RangeToMove * FMath::Sin(Angle), 0.0f);
-
-			DrawDebugLine(
-				GetWorld(),
-				PrevPoint,
-				CurrentPoint,
-				FColor::Yellow,
-				false,
-				DebugLifeTime,
-				0,
-				2.0f
-			);
-
-			PrevPoint = CurrentPoint;
-		}
-	}
-
-	// 绘制路径
-	for (int32 i = 0; i < PathPoints.Num() - 1; i++)
-	{
-		DrawDebugLine(
-			GetWorld(),
-			PathPoints[i],
-			PathPoints[i + 1],
-			FColor::Green,
-			false,
-			DebugLifeTime,
-			0,
-			3.0f
-		);
-
-		DrawDebugSphere(
-			GetWorld(),
-			PathPoints[i],
-			20.0f,
-			12,
-			FColor::Yellow,
-			false,
-			DebugLifeTime
-		);
-	}
-
-	// Draw the last point
-	if (PathPoints.Num() > 0)
-	{
-		DrawDebugSphere(
-			GetWorld(),
-			PathPoints.Last(),
-			20.0f,
-			12,
-			FColor::Red,
-			false,
-			DebugLifeTime
-		);
-	}
-}
-
-UPathTracerComponent* UTacticSubsystem::CreateUPathTracerComponent()
-{
-	if (!PathMesh || !PathMaterial) return nullptr;
-
-	// Create a new spline mesh component
-	UPathTracerComponent* SplineMesh = NewObject<UPathTracerComponent>(GetWorld());
-	if (!SplineMesh) return nullptr;
-
-	// Register the component
-	SplineMesh->RegisterComponent();
-
-	return SplineMesh;
+	//选择技能后，
 }

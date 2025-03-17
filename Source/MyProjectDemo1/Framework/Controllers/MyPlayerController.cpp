@@ -24,7 +24,6 @@ AMyPlayerController::AMyPlayerController()
 	// 确保Controller每帧都会Tick
 	PrimaryActorTick.bCanEverTick = true;
 
-	PathTracerComponent = CreateDefaultSubobject<UPathTracerComponent>(TEXT("PathTracerComponent"));
 }
 
 void AMyPlayerController::PossesSpawnedSpectatorPawn()

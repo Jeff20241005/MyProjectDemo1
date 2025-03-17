@@ -40,8 +40,9 @@ void AMyHUD::MakeUserWidget(T*& ObjectPtr, TSubclassOf<T> UIClass)
 	}
 }
 
+
 void AMyHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	MakeUserWidget(MainUI,MainUIClass);
+	MakeUserWidget(MainUI, MainUIClass);
 }

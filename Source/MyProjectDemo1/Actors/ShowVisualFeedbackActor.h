@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "ShowVisualFeedbackActor.generated.h"
 
+class UPathTracerComponent;
+class ABaseCharacter;
 class UWidgetComponent;
 
 UCLASS()
@@ -20,11 +21,16 @@ public:
 	void OnMouseCursorOver();
 
 	float DrawAttackRange(ABaseCharacter* BaseCharacter);
+	UFUNCTION(BlueprintCallable)
+	UPathTracerComponent* GetPathTracerComponent() const { return PathTracerComponent; }
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPathTracerComponent* PathTracerComponent;
+
 	template <class Comp>
 	Comp* CreateComponent();
-	
+
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 };

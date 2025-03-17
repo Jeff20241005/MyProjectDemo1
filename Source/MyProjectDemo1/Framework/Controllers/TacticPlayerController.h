@@ -6,7 +6,6 @@
 #include "MyPlayerController.h"
 #include "TacticPlayerController.generated.h"
 
-class UPathTracerComponent;
 class UTacticSubsystem;
 class ATacticGameState;
 class ABaseCharacter; // Forward declaration instead of including the header

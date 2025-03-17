@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
-#include "MyProjectDemo1/Other/PathTracerComponent.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TacticSubsystem.generated.h"
 
+class AMyPlayerController;
+class AShowVisualFeedbackActor;
 class UWidgetComponent;
 class ATacticGameState;
 class ABaseCharacter;
@@ -29,20 +29,23 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
 UCLASS()
 class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 {
-	void debug();
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
 public:
+	//全局的，查看某一个角色的信息的时候，显示移动范围。
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
 
-
+	//切换到另一个角色行动时
 	FOnCharacterStateChange OnSwitchCharacterAction;
+	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
 
+	//选择技能前，鼠标放上去显示的
+	FOnCharacterSkillStateChange OnPreSkillSelection;
 	//正在选择，显示Visual FeedBack等
-	FOnCharacterSkillStateChange OnSkillSelection;
+	FOnCharacterSkillStateChange OnPostSkillSelected;
 	//技能释放了
 	FOnCharacterSkillStateChange OnSkillRelease;
 	//技能取消选择了
@@ -55,21 +58,37 @@ public:
 	TArray<FVector> MovePoints;
 	float DebugLifeTime = 0.1f;
 
+
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
 
-UFUNCTION()
+	UFUNCTION()
 	void ShowVisualFeedback_Move();
 	void HideVisualFeedback_Move();
 
-
-	// debug
-	void DebugVisual_Move(const TArray<FVector>& PathPoints);
-
-	UPathTracerComponent* CreateUPathTracerComponent();
-
 protected:
+	UTacticSubsystem();
+	UPROPERTY()
+	AShowVisualFeedbackActor* ShowVisualFeedbackActor;
+	TSubclassOf<AShowVisualFeedbackActor> VisualFeedbackActorClass;
+	AShowVisualFeedbackActor* GetShowVisualFeedbackActor();
+	
+
+	AMyPlayerController* GetMyPlayerController()
+	{
+		if (!MyPlayerController)
+		{
+			MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
+		}
+		return MyPlayerController;
+	}
+
+	UPROPERTY()
+	AMyPlayerController* MyPlayerController;
+
 	void RoundFinish(ABaseCharacter* BaseCharacter);
 	void SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
+
+
 	UFUNCTION()
 	void ShowMove();
 
@@ -91,3 +110,18 @@ protected:
 
 	GENERATED_BODY()
 };
+
+template <typename T>
+void FindMyClass(TSubclassOf<T>& YourSubClass, const TCHAR* Path)
+{
+	if (ConstructorHelpers::FClassFinder<T> ClassFinder(Path); ClassFinder.Succeeded())
+	{
+		YourSubClass = ClassFinder.Class;
+	}
+	else
+	{
+		FString TempStr = FString::Printf(TEXT("Not Found! : %s"), Path);
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(3, 3));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+	}
+}
