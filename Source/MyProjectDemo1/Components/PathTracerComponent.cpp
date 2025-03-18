@@ -49,18 +49,18 @@ void UPathTracerComponent::SetupParameters()
 void UPathTracerComponent::MoveMarkers()
 {
 	FRotator TempRotator;
-	
+
 	if (IsValid(TargetPointMarker))
 	{
 		TargetPointMarker->SetWorldLocation(GetLastPathPoint());
 		TempRotator = FRotator::ZeroRotator;
-		
+
 		if (PathPoints.Num() > 1)
 		{
-			TempRotator = UKismetMathLibrary::FindLookAtRotation(PathPoints[PathPoints.Num()-2],GetLastPathPoint());
-			TempRotator = FRotator(0,TempRotator.Yaw + 90.0f,0);
+			TempRotator = UKismetMathLibrary::FindLookAtRotation(PathPoints[PathPoints.Num() - 2], GetLastPathPoint());
+			TempRotator = FRotator(0, TempRotator.Yaw + 90.0f, 0);
 		}
-		
+
 		TargetPointMarker->SetWorldRotation(TempRotator);
 	}
 
@@ -68,20 +68,29 @@ void UPathTracerComponent::MoveMarkers()
 	{
 		CharacterMarker->SetWorldLocation(PathPoints[0]);
 		TempRotator = FRotator::ZeroRotator;
-		
+
 		if (PathPoints.Num() > 1)
 		{
-			TempRotator = UKismetMathLibrary::FindLookAtRotation(PathPoints[0],PathPoints[1]);
-			TempRotator = FRotator(0,TempRotator.Yaw + 90.0f,0);
+			TempRotator = UKismetMathLibrary::FindLookAtRotation(PathPoints[0], PathPoints[1]);
+			TempRotator = FRotator(0, TempRotator.Yaw + 90.0f, 0);
 		}
-		
+
 		CharacterMarker->SetWorldRotation(TempRotator);
 	}
 }
 
 void UPathTracerComponent::ResetSegments()
 {
-	for (USplineMeshComponent* SplineMesh : SplineMeshes) SplineMesh->SetVisibility(false);
+	if (!SplineMeshes.IsEmpty())
+	{
+		for (USplineMeshComponent* SplineMesh : SplineMeshes)
+		{
+			if (SplineMesh)
+			{
+				SplineMesh->SetVisibility(false);
+			}
+		}
+	}
 	MainMeshAmount = SplineMeshAmount = DynamicMeshAmount = 0;
 	OffsetUV = 0;
 }
@@ -91,14 +100,14 @@ void UPathTracerComponent::GenerateRoundCornersPath()
 	int32 lastIndex = PathPoints.Num() - 1;
 	int32 curIndex;
 
-	for (int i = 0 ; i < lastIndex ; i++)
+	for (int i = 0; i < lastIndex; i++)
 	{
 		curIndex = i;
-	
+
 		FVector curPoint = PathPoints[curIndex];
-		FVector nextPoint = PathPoints[curIndex+1];
-		FVector nextNextPoint  = PathPoints[curIndex+((curIndex == lastIndex)? 2 : 1)];
-		
+		FVector nextPoint = PathPoints[curIndex + 1];
+		FVector nextNextPoint = PathPoints[curIndex + ((curIndex == lastIndex) ? 2 : 1)];
+
 		FVector tempFVector = nextPoint - curPoint;
 		UKismetMathLibrary::Vector_Normalize(tempFVector);
 		FVector curSegment = tempFVector;
@@ -106,14 +115,16 @@ void UPathTracerComponent::GenerateRoundCornersPath()
 		tempFVector = nextNextPoint - nextPoint;
 		UKismetMathLibrary::Vector_Normalize(tempFVector);
 		FVector nextSegment = tempFVector;
-		
+
 		float curSegmentLength = curSegment.Length();
 		float nextSegmentLength = nextSegment.Length();
 
-		FVector SegmentsStart = curPoint + (curSegment * (curIndex == 0? 0 : CalculateIndent(curSegmentLength)));
-		FVector SegmentsEnd = curPoint + (curSegment *(curSegmentLength - (curIndex == lastIndex? 0 : CalculateIndent(curSegmentLength))));
-		SetupPathSegments(SegmentsStart,SegmentsEnd,true,curSegment,curSegment);
-		
+		FVector SegmentsStart = curPoint + (curSegment * (curIndex == 0 ? 0 : CalculateIndent(curSegmentLength)));
+		FVector SegmentsEnd = curPoint + (curSegment * (curSegmentLength - (curIndex == lastIndex
+			                                                                    ? 0
+			                                                                    : CalculateIndent(curSegmentLength))));
+		SetupPathSegments(SegmentsStart, SegmentsEnd, true, curSegment, curSegment);
+
 		if (curIndex != lastIndex)
 		{
 			SegmentsStart = nextPoint + (nextSegment * CalculateIndent(nextSegmentLength));
@@ -121,9 +132,8 @@ void UPathTracerComponent::GenerateRoundCornersPath()
 			FVector SegmentStartTangent = nextSegment * SegmentIndent * TangentsLength * -1;
 			FVector SegmentEndTangent = curSegment * SegmentIndent * TangentsLength * -1;
 
-			SetupPathSegments(SegmentsStart,SegmentsEnd,false,SegmentStartTangent,SegmentEndTangent);
+			SetupPathSegments(SegmentsStart, SegmentsEnd, false, SegmentStartTangent, SegmentEndTangent);
 		}
-		
 	}
 }
 
@@ -133,13 +143,14 @@ void UPathTracerComponent::SetupMaterials()
 	{
 		if (!IsValid(PathMeshComponent)) return;
 		PathMeshComponent->SetStaticMesh(PathMesh);
-		PathMeshComponent->SetMaterial(0,PathMaterial);
+		PathMeshComponent->SetMaterial(0, PathMaterial);
 		PathDynamicMaterial = PathMeshComponent->CreateDynamicMaterialInstance(0);
 
-		PathDynamicMaterial->SetVectorParameterValue(DynamicMaterial_NameOfColor,DynamicMaterialColor);
-		PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy,DynamicMaterialOpacitgy);
+		PathDynamicMaterial->SetVectorParameterValue(DynamicMaterial_NameOfColor, DynamicMaterialColor);
+		PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy, DynamicMaterialOpacitgy);
 	}
 }
+
 /*
 void UActorComponent_PathTracer::SetupMarkers()
 {
@@ -164,7 +175,7 @@ void UActorComponent_PathTracer::SetupMarkers()
 		{
 			//CharacterMarker = CreateDefaultSubobject<UChildActorComponent>(TEXT("CharacterMarker"));
 			CharacterMarker = NewObject<UChildActorComponent>();
-			CharacterMarker->SetChildActorClass(CharacterMarkerClass);
+			CharacterMarker->SetCactorClass(CharacterMarkerClass);
 			CharacterMarker->RegisterComponentWithWorld(GetWorld());
 			//CharacterMarker->CreateChildActor();
 		}
@@ -177,14 +188,15 @@ void UActorComponent_PathTracer::SetupMarkers()
 */
 float UPathTracerComponent::CalculateIndent(float Length_p)
 {
-	return (Length_p<SegmentIndent * 2.0f) ? Length_p * 0.5f : SegmentIndent;
+	return (Length_p < SegmentIndent * 2.0f) ? Length_p * 0.5f : SegmentIndent;
 }
 
-void UPathTracerComponent::SetupPathSegments(FVector Start_P, FVector End_P, bool IsSegmentStraight_P, FVector StartTangent_P, FVector EndTangent_P)
+void UPathTracerComponent::SetupPathSegments(FVector Start_P, FVector End_P, bool IsSegmentStraight_P,
+                                             FVector StartTangent_P, FVector EndTangent_P)
 {
-	if (bChangePathType) SetSegmentsDotted(Start_P,End_P,IsSegmentStraight_P,StartTangent_P,EndTangent_P);
+	if (bChangePathType) SetSegmentsDotted(Start_P, End_P, IsSegmentStraight_P, StartTangent_P, EndTangent_P);
 	USplineMeshComponent* tempSplineMesh;
-	if (SplineMeshes.Num()>SplineMeshAmount)
+	if (SplineMeshes.Num() > SplineMeshAmount)
 	{
 		SplineMeshAmount++;
 		tempSplineMesh = SplineMeshes[SplineMeshAmount - 1];
@@ -195,84 +207,84 @@ void UPathTracerComponent::SetupPathSegments(FVector Start_P, FVector End_P, boo
 		//tempSplineMesh = CreateDefaultSubobject<USplineMeshComponent>(TEXT("SplineMesh"));
 		tempSplineMesh = NewObject<USplineMeshComponent>();
 		tempSplineMesh->RegisterComponentWithWorld(GetWorld());
-		
+
 		SplineMeshes.Add(tempSplineMesh);
 		SplineMeshAmount++;
-		SetupSplineMesh(tempSplineMesh,IsSegmentStraight_P);
+		SetupSplineMesh(tempSplineMesh, IsSegmentStraight_P);
 	}
 
 	tempSplineMesh->SetVisibility(true);
-	tempSplineMesh->SetStartAndEnd(Start_P,StartTangent_P,End_P,EndTangent_P,true);
+	tempSplineMesh->SetStartAndEnd(Start_P, StartTangent_P, End_P, EndTangent_P, true);
 }
 
-void UPathTracerComponent::SetSegmentsDotted(FVector Start_P, FVector End_P, bool IsSegmentStraight_P, FVector StartTangent_P, FVector EndTangent_P)
+void UPathTracerComponent::SetSegmentsDotted(FVector Start_P, FVector End_P, bool IsSegmentStraight_P,
+                                             FVector StartTangent_P, FVector EndTangent_P)
 {
 	PathDynamicMaterial = GetDottedMaterialInstance();
 
 
-
-	
 	float segmentLength;
-	
+
 	if (IsSegmentStraight_P)
 	{
-		segmentLength = FVector(Start_P-End_P).Length();
+		segmentLength = FVector(Start_P - End_P).Length();
 	}
 	else
 	{
-			if (!IsValid(SupporterSpline))
-        	{
-        		//---Instead of AddSplineComponent----------------------------------------
-        		//SupporterSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
-        		SupporterSpline = NewObject<USplineComponent>();
-        		//SupporterSpline->RegisterComponentWithWorld(GetWorld());
-        	}
-		
-		SupporterSpline->SetLocationAtSplinePoint(0,Start_P,ESplineCoordinateSpace::Local,false);
-		SupporterSpline->SetLocationAtSplinePoint(1,End_P,ESplineCoordinateSpace::Local,false);
-		SupporterSpline->SetLocationAtSplinePoint(0,StartTangent_P,ESplineCoordinateSpace::Local,false);
-		SupporterSpline->SetLocationAtSplinePoint(1,EndTangent_P,ESplineCoordinateSpace::Local,false);
+		if (!IsValid(SupporterSpline))
+		{
+			//---Instead of AddSplineComponent----------------------------------------
+			//SupporterSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
+			SupporterSpline = NewObject<USplineComponent>();
+			//SupporterSpline->RegisterComponentWithWorld(GetWorld());
+		}
+
+		SupporterSpline->SetLocationAtSplinePoint(0, Start_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->SetLocationAtSplinePoint(1, End_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->SetLocationAtSplinePoint(0, StartTangent_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->SetLocationAtSplinePoint(1, EndTangent_P, ESplineCoordinateSpace::Local, false);
 		segmentLength = SupporterSpline->GetSplineLength();
 	}
 
-	PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfScaleUV,segmentLength / DashLineFrequency);
-	PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOffset,OffsetUV);
+	PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfScaleUV, segmentLength / DashLineFrequency);
+	PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOffset, OffsetUV);
 
 	double clampValue;
-	UKismetMathLibrary::FMod(segmentLength,DashLineFrequency,clampValue);
-	OffsetUV += UKismetMathLibrary::MapRangeClamped(clampValue,0,DashLineFrequency,0,1);
+	UKismetMathLibrary::FMod(segmentLength, DashLineFrequency, clampValue);
+	OffsetUV += UKismetMathLibrary::MapRangeClamped(clampValue, 0, DashLineFrequency, 0, 1);
 }
 
 UMaterialInstanceDynamic* UPathTracerComponent::GetDottedMaterialInstance()
 {
-	if (DottedLineDynamicMaterials.Num()>DynamicMeshAmount)
+	if (DottedLineDynamicMaterials.Num() > DynamicMeshAmount)
 	{
 		DynamicMeshAmount++;
-		return DottedLineDynamicMaterials[DynamicMeshAmount-1];
+		return DottedLineDynamicMaterials[DynamicMeshAmount - 1];
 	}
 
-	 //if (DotterDynamicMaterial) DotterDynamicMaterial = CreateDefaultSubobject<UMaterialInstanceDynamic>(TEXT("DynamicMaterial"));
+	//if (DotterDynamicMaterial) DotterDynamicMaterial = CreateDefaultSubobject<UMaterialInstanceDynamic>(TEXT("DynamicMaterial"));
 
-	UMaterialInstanceDynamic* tempMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(),DotterDynamicMaterial);
+	UMaterialInstanceDynamic* tempMaterialInstance = UKismetMaterialLibrary::CreateDynamicMaterialInstance(
+		GetWorld(), DotterDynamicMaterial);
 	DottedLineDynamicMaterials.Add(tempMaterialInstance);
 	DynamicMeshAmount++;
 
-	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy,DotterOpacity);
-	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfGapSize,DotterGapSize);
-	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfAnimSpeed,DotterAnimSpeed);
-	tempMaterialInstance->SetVectorParameterValue(DynamicMaterial_NameOfColor,DynamicMaterialColor);
-	
+	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy, DotterOpacity);
+	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfGapSize, DotterGapSize);
+	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfAnimSpeed, DotterAnimSpeed);
+	tempMaterialInstance->SetVectorParameterValue(DynamicMaterial_NameOfColor, DynamicMaterialColor);
+
 	return tempMaterialInstance;
 }
 
 
-void UPathTracerComponent::SetupSplineMesh(USplineMeshComponent* SplineMeshComp_P,bool IsSegmentStraight_P)
+void UPathTracerComponent::SetupSplineMesh(USplineMeshComponent* SplineMeshComp_P, bool IsSegmentStraight_P)
 {
 	SplineMeshComp_P->SetMobility(EComponentMobility::Movable);
 	SplineMeshComp_P->SetStaticMesh(IsSegmentStraight_P ? DefaultSplineMesh : CornerSplineMesh);
 	SplineMeshComp_P->SetStartScale(PathScale);
 	SplineMeshComp_P->SetEndScale(PathScale);
-	SplineMeshComp_P->SetMaterial(0,PathDynamicMaterial);
+	SplineMeshComp_P->SetMaterial(0, PathDynamicMaterial);
 }
 
 void UPathTracerComponent::InitSetup()

@@ -48,7 +48,9 @@ public:
 		bool bIncludeSelf = false,
 		bool bTargetAllTeams = false,
 		bool bInfiniteRange = false) const;
-
+	//todo 
+	
+	
 	////
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utility")
 	TArray<ABaseCharacter*> GetAllCharactersInOrder() const { return AllCharactersInOrder; }

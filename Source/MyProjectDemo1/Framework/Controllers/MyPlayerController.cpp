@@ -183,8 +183,8 @@ void AMyPlayerController::MoveForward(float Value)
 {
 	if (Value == 0.0f)return;
 
-	PlayerInputMovement(Value, EAxis::X);
 	if (MyGameMode->IsTacticMode()) return;
+	PlayerInputMovement(Value, EAxis::X);
 	EnsurePlayerControl();
 }
 
