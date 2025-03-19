@@ -8,9 +8,10 @@
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
 
+
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-								   const FGameplayAbilityActivationInfo ActivationInfo,
-								   const FGameplayEventData* TriggerEventData)
+                                   const FGameplayAbilityActivationInfo ActivationInfo,
+                                   const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	BaseCharacterOwner = Cast<ABaseCharacter>(ActorInfo->OwnerActor);

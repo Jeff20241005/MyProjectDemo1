@@ -23,15 +23,14 @@ AMyPlayerController::AMyPlayerController()
 
 	// 确保Controller每帧都会Tick
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 void AMyPlayerController::PossesSpawnedSpectatorPawn()
 {
 	Possess(MySpectatorPawn);
-	if (CurrentMouseClickPlayer)
+	if (FreeRoamCurrentControlPlayer)
 	{
-		SetViewTarget(CurrentMouseClickPlayer);
+		SetViewTarget(FreeRoamCurrentControlPlayer);
 	}
 }
 
@@ -119,13 +118,17 @@ void AMyPlayerController::LeftMouseLineTraceExecute(FHitResult HitResult)
 
 	FVector AdjustedLocation = HitResult.Location; //+ FVector(0, 0, 20.0f);
 	LastClickLocation = AdjustedLocation;
-
-
-	if (CurrentMouseClickPlayer)
+	
+	/*//  如果是FreeRoamMode，角色当前被PlayerController控制，需要切换到AI控制
+	if ( MyGameMode->IsFreeRoamMode())
 	{
-		CurrentMouseClickPlayer->BaseCharacterAIMoveTo(AdjustedLocation);
+		// 暂时取消玩家控制
+		UnPossess();
+		FreeRoamCurrentControlPlayer->BaseAIController->Possess(FreeRoamCurrentControlPlayer);
+		FreeRoamCurrentControlPlayer->BaseCharacterAIMoveTo(AdjustedLocation);
 		PossesSpawnedSpectatorPawn();
 	}
+	*/
 }
 
 
@@ -140,16 +143,16 @@ void AMyPlayerController::OnTabClick()
 
 void AMyPlayerController::EnsurePlayerControl()
 {
-	if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->GetController() != this)
+	if (FreeRoamCurrentControlPlayer && FreeRoamCurrentControlPlayer->GetController() != this)
 	{
 		// 停止AI移动
-		if (ABaseAIController* AIController = CurrentMouseClickPlayer->BaseAIController)
+		if (ABaseAIController* AIController = FreeRoamCurrentControlPlayer->BaseAIController)
 		{
 			AIController->StopMovement();
 			AIController->UnPossess();
 		}
 		// 切换到玩家控制
-		Possess(CurrentMouseClickPlayer);
+		Possess(FreeRoamCurrentControlPlayer);
 	}
 }
 
@@ -167,7 +170,6 @@ void AMyPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 			return;
 		}
 
-		//	if (MyGameMode->CurrentControlMode == EControlMode::FreeRoamMode)
 		{
 			// 创建移动旋转
 			FRotator MovementRotation(0.0f, 0.0f, 0.0f);
@@ -182,7 +184,6 @@ void AMyPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 void AMyPlayerController::MoveForward(float Value)
 {
 	if (Value == 0.0f)return;
-
 	if (MyGameMode->IsTacticMode()) return;
 	PlayerInputMovement(Value, EAxis::X);
 	EnsurePlayerControl();
@@ -191,22 +192,21 @@ void AMyPlayerController::MoveForward(float Value)
 void AMyPlayerController::MoveRight(float Value)
 {
 	if (Value == 0.0f)return;
-
-	PlayerInputMovement(Value, EAxis::Y);
 	if (MyGameMode->IsTacticMode()) return;
+	PlayerInputMovement(Value, EAxis::Y);
 	EnsurePlayerControl();
 }
 
 void AMyPlayerController::MouseLocationTraceExecute(FHitResult HitResult)
 {
-	MouseHoverdCursorOverLocation = HitResult.Location;
+	MouseHoveredCursorOverLocation = HitResult.Location;
 }
 
 void AMyPlayerController::SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams)
 {
-	if (CurrentSpringArmLength != 0 && CurrentMouseClickPlayer && CurrentMouseClickPlayer->SpringArmComponent)
+	if (CurrentSpringArmLength != 0 && CurrentFocusCharacter && CurrentFocusCharacter->SpringArmComponent)
 	{
-		CurrentMouseClickPlayer->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
+		CurrentFocusCharacter->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
 	}
 
 	// 添加平滑过渡
@@ -220,11 +220,11 @@ void AMyPlayerController::ZoomCamera(float Value)
 {
 	if (Value == 0.0f) return;
 
-	if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->SpringArmComponent)
+	if (CurrentFocusCharacter && CurrentFocusCharacter->SpringArmComponent)
 	{
 		if (CurrentSpringArmLength == 0)
 		{
-			CurrentSpringArmLength = CurrentMouseClickPlayer->SpringArmComponent->TargetArmLength;
+			CurrentSpringArmLength = CurrentFocusCharacter->SpringArmComponent->TargetArmLength;
 		}
 		// 获取当前臂长并计算新的臂长
 		CurrentSpringArmLength = FMath::Clamp(
@@ -233,6 +233,6 @@ void AMyPlayerController::ZoomCamera(float Value)
 			MaxCameraDistance
 		);
 		// 设置新的臂长
-		CurrentMouseClickPlayer->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
+		CurrentFocusCharacter->SpringArmComponent->TargetArmLength = CurrentSpringArmLength;
 	}
 }

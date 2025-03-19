@@ -81,12 +81,13 @@ void UPathTracerComponent::MoveMarkers()
 
 void UPathTracerComponent::ResetSegments()
 {
-	if (!SplineMeshes.IsEmpty())
+	if (!SplineMeshes.IsEmpty() && SplineMeshes.IsValidIndex(0))
 	{
 		for (USplineMeshComponent* SplineMesh : SplineMeshes)
 		{
-			if (SplineMesh)
+			if (IsValid(SplineMesh))
 			{
+				//SplineMesh->GetVisibleFlag()
 				SplineMesh->SetVisibility(false);
 			}
 		}

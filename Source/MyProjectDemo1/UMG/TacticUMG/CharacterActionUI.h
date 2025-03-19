@@ -26,6 +26,9 @@ public:
 	
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_SwitchGameModeTest;
+	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
+	UActionButtonUI* ActionButton_SwitchCharacter;
+
 protected:
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;

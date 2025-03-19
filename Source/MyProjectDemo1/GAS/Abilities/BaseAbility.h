@@ -25,6 +25,8 @@ UCLASS()
 class MYPROJECTDEMO1_API UBaseAbility : public UGameplayAbility
 {
 public:
+
+	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
 	                             const FGameplayEventData* TriggerEventData) override;
@@ -36,31 +38,30 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(AllowPrivateAccess=true))
 	TEnumAsByte<EAttackRangeType> SkillRangeType = EAR_Circle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup)
 	bool bFocusOnMouse;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup)
 	bool bIsRangeAttack;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(AllowPrivateAccess=true, ToolTip="技能选择范围。"))
+	float TargetSelectionRange = 300.0f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
+		AllowPrivateAccess=true,
+		ToolTip="这是第二次远程技能的范围。",
+		EditCondition = "bFocusOnMouse && bIsRangeAttack",
+		EditConditionHides
+	))
+	float SecondaryRangedRange = 0.0f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup")
-	float SkillAttackRange = 300.0f;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(AllowPrivateAccess=true, ToolTip="这是第二次远程技能的范围。"))
-	float RangedAttackRange = 0.0f;
-
-	// 目标选择相关属性
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip="是否以敌人为目标"))
-	bool bTargetEnemies = true;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip="是否包含自身作为目标"))
 	bool bIncludeSelf = false;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip="是否选择所有团队的角色"))
-	bool bTargetAllTeams = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip="是否无视距离限制"))
 	bool bInfiniteRange = false;
 
 protected:
-	UPROPERTY(BlueprintReadOnly, Category = JFSetting)
+	UPROPERTY(BlueprintReadOnly, Category = AbilitySetup)
 	ABaseCharacter* BaseCharacterOwner;
 
 	GENERATED_BODY()

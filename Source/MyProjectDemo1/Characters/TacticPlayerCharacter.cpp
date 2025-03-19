@@ -21,12 +21,6 @@ void ATacticPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
-	
-	//todo test delete
-	if (TacticSubsystem->OnSwitchCharacterAction.IsBound())
-	{
-		TacticSubsystem->OnSwitchCharacterAction.Broadcast(this);
-	}
 }
 
 void ATacticPlayerCharacter::Tick(float DeltaTime)

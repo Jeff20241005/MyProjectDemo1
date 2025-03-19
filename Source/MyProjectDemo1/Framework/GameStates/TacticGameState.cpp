@@ -2,33 +2,28 @@
 
 
 #include "TacticGameState.h"
-
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
-void ATacticGameState::SortCharactersByActionValues()
+
+void ATacticGameState::BeginPlay()
 {
+	Super::BeginPlay();
+	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+}
+
+ABaseCharacter* ATacticGameState::SortCharactersByActionValues()
+{
+	if (AllCharactersInOrder.IsEmpty()) return nullptr;
 	AllCharactersInOrder.Sort([](const ABaseCharacter& A, const ABaseCharacter& B) -> bool
 	{
-		const float ValueA = A.GetBaseCharacterAttributeSet() ? A.GetBaseCharacterAttributeSet()->GetActionValues() : 0.0f;
-		const float ValueB = B.GetBaseCharacterAttributeSet() ? B.GetBaseCharacterAttributeSet()->GetActionValues() : 0.0f;
+		const float ValueA = A.GetBaseCharacterAttributeSet()->GetActionValues();
+		const float ValueB = B.GetBaseCharacterAttributeSet()->GetActionValues();
 		return ValueA > ValueB;
 	});
-
+	return AllCharactersInOrder[0];
 	// debug field
-	/*
-	for (const ABaseCharacter* BaseChar : ActionOrder)
-	{
-		if (BaseChar)
-		{
-			float ActionValuesTemp = BaseChar->BaseCharacterAttributeSet->GetActionValues();
-			FString DebugMsg = FString::Printf(TEXT("Character: %s, ActionValuesTemp: %.1f"),
-											   *BaseChar->GetName(), ActionValuesTemp);
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, DebugMsg);
-		}
-	}
-	*/
 }
 
 
@@ -36,7 +31,6 @@ void ATacticGameState::AddCharacterToTeamByType(ABaseCharacter* Character)
 {
 	if (!Character)
 		return;
-
 	// 根据角色的团队类型添加到相应队伍
 	switch (Character->GetTeamComp()->GetTeam())
 	{
@@ -64,7 +58,7 @@ TArray<ABaseCharacter*> ATacticGameState::GetAllHostileCharacters(const ABaseCha
 		return TArray<ABaseCharacter*>();
 
 	TArray<ABaseCharacter*> HostileCharacters;
-	
+
 	// 筛选敌对角色
 	for (ABaseCharacter* OtherCharacter : AllCharactersInOrder)
 	{
@@ -122,77 +116,14 @@ bool ATacticGameState::AreAllPlayersDefeated() const
 	return true;
 }
 
-TArray<ABaseCharacter*> ATacticGameState::GetTargetCharacters(
-	const ABaseCharacter* SourceCharacter,
-	float MaxRange,
-	bool bTargetEnemies,
-	bool bIncludeSelf,
-	bool bTargetAllTeams,
-	bool bInfiniteRange) const
+void ATacticGameState::RemoveCharacterFromTeamByType(ABaseCharacter* Character)
 {
-	TArray<ABaseCharacter*> TargetCharacters;
-	
-	if (!SourceCharacter)
-		return TargetCharacters;
-	
-	// 如果只选择自己
-	if (!bTargetEnemies && bIncludeSelf && !bTargetAllTeams)
-	{
-		TargetCharacters.Add(const_cast<ABaseCharacter*>(SourceCharacter));
-		return TargetCharacters;
-	}
-	
-	// 遍历所有角色
-	for (ABaseCharacter* PotentialTarget : AllCharactersInOrder)
-	{
-		// 跳过无效目标
-		if (!PotentialTarget || PotentialTarget->GetBaseCharacterAttributeSet()->GetHealth() <= 0)
-			continue;
-			
-		// 处理自身
-		if (PotentialTarget == SourceCharacter)
-		{
-			if (bIncludeSelf)
-				TargetCharacters.Add(PotentialTarget);
-			continue;
-		}
-		
-		// 检查团队关系
-		bool bIsValidTeamTarget = false;
-		
-		if (bTargetAllTeams)
-		{
-			// 选择所有团队
-			bIsValidTeamTarget = true;
-		}
-		else if (bTargetEnemies)
-		{
-			// 选择敌对目标
-			bIsValidTeamTarget = SourceCharacter->GetTeamComp()->IsHostileTo(PotentialTarget);
-		}
-		else
-		{
-			// 选择友方目标
-			bIsValidTeamTarget = SourceCharacter->GetTeamComp()->IsFriendlyTo(PotentialTarget);
-		}
-		
-		if (!bIsValidTeamTarget)
-			continue;
-			
-		// 检查距离
-		if (!bInfiniteRange)
-		{
-			float Distance = FVector::Distance(
-				SourceCharacter->GetActorLocation(),
-				PotentialTarget->GetActorLocation());
-				
-			if (Distance > MaxRange)
-				continue;
-		}
-		
-		// 添加有效目标
-		TargetCharacters.Add(PotentialTarget);
-	}
-	
-	return TargetCharacters;
+	if (!Character)
+		return;
+
+	// 从所有队伍中移除该角色
+	PlayerTeam.Remove(Character);
+	EnemyTeam.Remove(Character);
+	NeutralTeam.Remove(Character);
+	AllCharactersInOrder.Remove(Character);
 }

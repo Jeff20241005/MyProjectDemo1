@@ -7,3 +7,5 @@ inline const FString PathMaterial_Path = TEXT(
 //inline const FString VisualFeedbackActor_Path = TEXT("/Script/Engine.Blueprint'/Game/A1_zhStuffs/Blueprints/VisualFeedback/BP_VisualFeedbackActor.BP_VisualFeedbackActor'");
 inline const FString VisualFeedbackActor_Path = TEXT(
 	"/Game/A1_zhStuffs/Blueprints/VisualFeedback/BP_VisualFeedbackActor");
+
+inline const FString Charm_Path = TEXT("CharmTest");

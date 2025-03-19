@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "MyGameMode.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "TacticGameMode.generated.h"
 
+class ATacticGameState;
 class ABaseCharacter;
 class ATacticPlayerController;
 
@@ -52,10 +52,8 @@ public:
 	FOnCharacterStateChange OnCharacterDeath;
 	
 	void InitPlayerCharacters();
-	void InitAICharacters();
 	void SetTacticStateEnum(ETacticState TacticState);
 
-	void CharacterActionQueue();
 	ETacticState CurrentBattleState;
 
 private:

@@ -4,6 +4,7 @@
 #include "NPCCharacter.h"
 
 #include "MyProjectDemo1/AI/AIControllers/NPCAIController.h"
+#include "MyProjectDemo1/Components/TeamComp.h"
 
 
 ANPCCharacter::ANPCCharacter()
@@ -16,6 +17,7 @@ ANPCCharacter::ANPCCharacter()
 void ANPCCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	TeamComp->SetTeam(ETeamType::ETT_Neutral);
 }
 
 void ANPCCharacter::Tick(float DeltaTime)

@@ -6,8 +6,6 @@
 #include "BaseCharacter.h"
 #include "PlayerCharacter.generated.h"
 
-class UCameraComponent;
-class USpringArmComponent;
 
 UCLASS()
 class MYPROJECTDEMO1_API APlayerCharacter : public ABaseCharacter
@@ -17,11 +15,6 @@ class MYPROJECTDEMO1_API APlayerCharacter : public ABaseCharacter
 public:
 	virtual void NotifyActorOnClicked(FKey ButtonPressed = EKeys::LeftMouseButton) override;
 	APlayerCharacter();
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	USpringArmComponent* SpringArmComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
-	UCameraComponent* CameraComponent;
 
 	
 protected:

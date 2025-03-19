@@ -32,18 +32,38 @@ UCLASS()
 class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 {
 	void PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
+	void Move(ABaseCharacter* BaseCharacter);
+	void CancelMove(ABaseCharacter* BaseCharacter);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
 public:
+	void PreMoveBroadCast();
+	
+	UFUNCTION()
+	void TestFunc_SwitchCharacter_RanOutOfAction();
+	
+	// 预先准备移动： 显示角色移动路径，让bCanMove为True
+	FOnCharacterStateChange OnPreMove;
+	// 执行移动： 检测bCanMove，然后bCanMove为False
+	FOnCharacterStateChange OnMove;
+	// 取消移动： bCanMove为False，然后取消划线
+	FOnCharacterStateChange OnCancelMove;
+
+
+	
 	//全局的，查看某一个角色的信息的时候，显示移动范围。
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
 
+	
 	//切换到另一个角色行动时
 	FOnCharacterStateChange OnSwitchCharacterAction;
 	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
+	
+	
+	
 
 	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
 	FOnCharacterSkillStateChange OnPreSkillSelection;
@@ -55,20 +75,27 @@ public:
 	FOnCharacterSkillStateChange OnSkillSelectionCancelled;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	ABaseCharacter* CurrentControlCharacter;
+	ABaseCharacter* CurrentControlPlayer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
+	ABaseCharacter* CurrentActionCharacter;
+	
 	FTimerHandle VisualFeedBackTimeHandle;
 
 	TArray<FVector> MovePoints;
 	float DebugLifeTime = 0.1f;
+	
+	
 
 
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
 
 	UFUNCTION()
-	void ShowVisualFeedback_Move();
+	void CharacterPreMove(ABaseCharacter* InBaseCharacter);
 	void HideVisualFeedback_Move();
 
 protected:
+	bool bCanMove=false;
+	
 	UTacticSubsystem();
 	UPROPERTY()
 	AShowVisualFeedbackActor* ShowVisualFeedbackActor;

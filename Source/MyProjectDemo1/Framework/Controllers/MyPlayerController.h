@@ -30,7 +30,7 @@ public:
 	FVector LastClickLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	FVector MouseHoverdCursorOverLocation;
+	FVector MouseHoveredCursorOverLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* HoveredActor;
@@ -41,8 +41,11 @@ public:
 
 	//玩家选择的角色类
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
-	APlayerCharacter* CurrentMouseClickPlayer;
+	ABaseCharacter* CurrentFocusCharacter;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
+	APlayerCharacter* FreeRoamCurrentControlPlayer;
+	
 	void MouseLocationTraceExecute(FHitResult HitResult);
 
 	virtual void SetViewTarget(class AActor* NewViewTarget,

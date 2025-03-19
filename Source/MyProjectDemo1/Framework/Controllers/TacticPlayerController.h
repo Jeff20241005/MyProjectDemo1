@@ -27,6 +27,7 @@ protected:
 	
 	FViewportStateChange OnFreeViewport;
 	FViewportStateChange OnCharacterFocus;
+	
 	bool bIsFreeViewport = false;
 
 public:

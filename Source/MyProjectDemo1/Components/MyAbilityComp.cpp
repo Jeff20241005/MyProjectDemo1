@@ -15,28 +15,12 @@ UMyAbilityComp::UMyAbilityComp()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-/* todo put it in buttonbase
-for (auto Spec : GetActivatableAbilities())
-	{
-		if (UBaseAbility* Ability = Cast<UBaseAbility>(Spec.Ability))
-		{
-			if (UButtonBase* SkillWidget = CreateWidget<UButtonBase>(GetWorld(), DefaultSkillClass))
-			{
-				//---也能输入技能图像
-				SkillWidget->SetupButton(Ability->AbilityName.ToString());
-				SkillWidget->SetupButtonOnClick(WidgetOwner, Ability);
-				SkillListBox->AddChild(SkillWidget);
-			}
-		}
-	}
- */
 void UMyAbilityComp::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	AutoGiveAbilitiesAndEffectsAtStart();
 	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
-	TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	AutoGiveAbilitiesAndEffectsAtStart();
 }
 
 
@@ -93,77 +77,4 @@ void UMyAbilityComp::AutoGiveAbilitiesAndEffectsAtStart()
 		}
 	}
 	bAbilitiesInitialized = true;
-}
-
-void UMyAbilityComp::SelectSkillAbility(UBaseAbility* BaseAbility)
-{
-	CurrentSelectAbility = BaseAbility;
-	BeginSpawnAttackRange();
-	
-}
-
-void UMyAbilityComp::BeginSpawnAttackRange()
-{
-	FoundTargets = ScanTargets(Owner_BaseCharacter->GetActorLocation(), CurrentSelectAbility->SkillAttackRange,
-	                           CurrentSelectAbility->SkillRangeType);
-}
-
-void UMyAbilityComp::CancelSpawnAttackRange()
-{
-	/*for (auto TargetsRef : FoundTargets)
-	{
-		TargetsRef->UpdateCharacterMarkingBrightness();
-		TargetsRef->UpdateCharacterMarkingColor();
-		TargetsRef->DisplayHealthWidget(false);
-		TargetsRef->UpdateIsMark(false);
-		TargetsRef->CloseWidget();
-	}*/
-}
-
-
-TArray<ABaseCharacter*> UMyAbilityComp::ScanTargets(FVector TargetLocation/*todo pass MousePosition or ActorLocation*/,
-                                                    float InRange,
-                                                    TEnumAsByte<EAttackRangeType> InEAttackRange)
-{
-	TArray<ABaseCharacter*> Targets;
-	TArray<FHitResult> HitResults;
-	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
-	FVector StartLocation = TargetLocation + FVector(0, 0, 2000);
-	FVector EndLocation = TargetLocation + FVector(0, 0, -85);
-
-	FCollisionQueryParams CollisionParams;
-	CollisionParams.AddIgnoredActor(Owner_BaseCharacter);
-
-	//
-	FCollisionShape CollisionShape;
-	switch (InEAttackRange)
-	{
-	case EAR_Circle:
-		FCollisionShape::MakeSphere(InRange / 2);
-		break;
-	case EAR_Box:
-		FVector BoxExtent(InRange, InRange, 1.0f);
-		CollisionShape = FCollisionShape::MakeBox(BoxExtent);
-		break;
-	case EAR_Segment:
-		break;
-	default: ;
-	}
-
-	if (GetWorld()->SweepMultiByObjectType(HitResults, StartLocation, EndLocation, FQuat::Identity, ObjectParams,
-	                                       CollisionShape, CollisionParams))
-	{
-		for (TIndexedContainerIterator<TArray<FHitResult>, TArray<FHitResult>::ElementType, TArray<
-			                               FHitResult>::SizeType> It = HitResults.CreateIterator(); It; It++)
-		{
-			if (ABaseCharacter* HitTargetBaseCharacter = Cast<ABaseCharacter>(It->GetActor()))
-			{
-				Targets.AddUnique(HitTargetBaseCharacter);
-			}
-		}
-		//---锁定最近的敌人---------------------------
-	}
-
-	return Targets;
 }

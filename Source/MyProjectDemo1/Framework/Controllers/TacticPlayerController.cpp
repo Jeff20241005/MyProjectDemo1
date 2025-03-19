@@ -42,9 +42,9 @@ void ATacticPlayerController::FreeViewportChange()
 {
 	if (MyGameMode->IsTacticMode() && !bIsFreeViewport)
 	{
-		if (CurrentMouseClickPlayer && CurrentMouseClickPlayer->CameraComponent)
+		if (CurrentFocusCharacter && CurrentFocusCharacter->CameraComponent)
 		{
-			MySpectatorPawn->SetActorLocation(CurrentMouseClickPlayer->CameraComponent->GetComponentLocation());
+			MySpectatorPawn->SetActorLocation(CurrentFocusCharacter->CameraComponent->GetComponentLocation());
 			MySpectatorPawn->SetActorRotation(GetControlRotation());
 			PossesSpawnedSpectatorPawn();
 		}
@@ -68,6 +68,7 @@ void ATacticPlayerController::SetupInputKeys()
 	if (RightButtonActionObject.Object) RightMouseButtonAction = RightButtonActionObject.Object;
 }
 */
+
 void ATacticPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -75,16 +76,13 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 
 void ATacticPlayerController::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 {
+	CurrentFocusCharacter = BaseCharacter;
 	SetViewTarget(BaseCharacter);
 }
 
 void ATacticPlayerController::CharacterFocus()
 {
-	if (TacticSubsystem->OnSwitchCharacterAction.IsBound() && CurrentMouseClickPlayer)
-	{
-		TacticSubsystem->OnSwitchCharacterAction.Broadcast(CurrentMouseClickPlayer);
-		bIsFreeViewport = false;
-	}
+	bIsFreeViewport = false;
 }
 
 void ATacticPlayerController::OnTabClick()
@@ -100,6 +98,12 @@ void ATacticPlayerController::OnTabClick()
 void ATacticPlayerController::OnLeftMouseButtonDown()
 {
 	Super::OnLeftMouseButtonDown();
+
+	if (!CurrentFocusCharacter) return;
+	if ( APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CurrentFocusCharacter))
+	{
+		//todo		
+	}
 }
 
 

@@ -3,13 +3,10 @@
 
 #include "AIBaseCharacter.h"
 
-#include "MyProjectDemo1/Components/TeamComp.h"
-
 
 AAIBaseCharacter::AAIBaseCharacter(): ABaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	TeamComp->SetTeam(ETeamType::ETT_Neutral);
 }
 
 void AAIBaseCharacter::BeginPlay()

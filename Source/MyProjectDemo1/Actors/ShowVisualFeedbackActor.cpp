@@ -31,7 +31,6 @@ void AShowVisualFeedbackActor::OnMouseCursorOver()
 
 void AShowVisualFeedbackActor::BeginPlay()
 {
-
 	Super::BeginPlay();
 }
 
@@ -39,7 +38,6 @@ void AShowVisualFeedbackActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
 
 float AShowVisualFeedbackActor::DrawAttackRange(ABaseCharacter* BaseCharacter)
 {

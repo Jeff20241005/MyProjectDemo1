@@ -39,12 +39,8 @@ public:
 	UBaseAbility* CurrentSelectAbility;
 
 	UFUNCTION(BlueprintCallable)
-	void CancelSpawnAttackRange();
-	UFUNCTION(BlueprintCallable)
 	void AutoGiveAbilitiesAndEffectsAtStart();
-	UFUNCTION(BlueprintCallable)
-	void SelectSkillAbility(UBaseAbility* BaseAbility);
-	void BeginSpawnAttackRange();
+
 	bool bAbilitiesInitialized = false;
 
 
@@ -53,8 +49,6 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	ABaseCharacter* Owner_BaseCharacter;
-	UPROPERTY()
-	ATacticGameState* TacticGameState;
 
 	UMyAbilityComp();
 	virtual void BeginPlay() override;
@@ -67,10 +61,6 @@ protected:
 
 	//UI Stuff
 public:
-	TArray<ABaseCharacter*> ScanTargets(FVector TargetLocation, float InRange,
-	                                    TEnumAsByte<EAttackRangeType> InEAttackRange);
-
-
 	TArray<ABaseCharacter*> FoundTargets;
 
 	UPROPERTY()

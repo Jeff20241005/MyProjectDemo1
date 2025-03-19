@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
-#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "BaseCharacter.generated.h"
 
+class UCameraComponent;
+class USpringArmComponent;
+class UTacticSubsystem;
+class AMyGameMode;
 class UPathTracerComponent;
 class UTeamComp;
 class UWidgetComponent;
@@ -26,6 +28,7 @@ UCLASS()
 class MYPROJECTDEMO1_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UWidgetComponent* HealthWidgetComp;
@@ -39,7 +42,7 @@ public:
 	void DrawMoveRange(ABaseCharacter* BaseCharacter);
 	void CloseWidget();
 
-	
+
 	void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
 	                  ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
 	void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
@@ -62,12 +65,20 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTeamComp* GetTeamComp() const { return TeamComp; }
 
+	UPROPERTY()
+	ATacticGameState* TacticGameState;
+
 	// 移动消耗的GameplayEffect，可以在蓝图中设置
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Effects")
 	TSubclassOf<UGameplayEffect> MoveActionCostEffect;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	USpringArmComponent* SpringArmComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
+	UCameraComponent* CameraComponent;
 protected:
-	
+
+
 	//custom settings
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UMyAbilityComp* MyAbilityComp;
@@ -76,7 +87,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UInteractionComp* InteractionComp;
 
-UPROPERTY()
+	UPROPERTY()
 	AMyGameMode* MyGameMode;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UTeamComp* TeamComp;
@@ -116,7 +127,6 @@ protected:
 
 	template <class Comp>
 	Comp* CreateComponent();
-
 };
 
 template <typename Comp>

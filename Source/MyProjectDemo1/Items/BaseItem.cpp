@@ -57,7 +57,6 @@ ABaseItem::ABaseItem()
 void ABaseItem::NotifyActorOnClicked(FKey ButtonPressed)
 {
 	Super::NotifyActorOnClicked(ButtonPressed);
-	// 当鼠标开始悬停在物品上时
 	if (InteractionComp)
 	{
 		InteractionComp->OnClickedActor();

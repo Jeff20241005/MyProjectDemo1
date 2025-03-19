@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "MyGameState.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "TacticGameState.generated.h"
 
+class UTeamComp;
 class ABaseCharacter;
 /**
  * 存储所有玩家都需要知道的游戏状态
@@ -14,15 +16,11 @@ UCLASS()
 class MYPROJECTDEMO1_API ATacticGameState : public AMyGameState
 {
 public:
-	
 	//任意角色行动值改变时，在Attribute里自动调用了此函数
 	UFUNCTION(BlueprintCallable, Category = "Utility")
-	void SortCharactersByActionValues();
+	ABaseCharacter* SortCharactersByActionValues();
 
-	// 根据角色的团队类型自动添加到相应队伍
-	UFUNCTION(BlueprintCallable, Category = "Utility")
-	void AddCharacterToTeamByType(ABaseCharacter* Character);
-
+	
 	// 获取对特定角色敌对的所有角色
 	UFUNCTION(BlueprintCallable, Category = "Utility")
 	TArray<ABaseCharacter*> GetAllHostileCharacters(const ABaseCharacter* Character) const;
@@ -38,19 +36,8 @@ public:
 	// 检查是否所有玩家角色都已被击败
 	UFUNCTION(BlueprintCallable, Category = "Utility")
 	bool AreAllPlayersDefeated() const;
+	
 
-	// 获取符合条件的目标角色
-	UFUNCTION(BlueprintCallable, Category = "Utility")
-	TArray<ABaseCharacter*> GetTargetCharacters(
-		const ABaseCharacter* SourceCharacter,
-		float MaxRange,
-		bool bTargetEnemies = true,
-		bool bIncludeSelf = false,
-		bool bTargetAllTeams = false,
-		bool bInfiniteRange = false) const;
-	//todo 
-	
-	
 	////
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utility")
 	TArray<ABaseCharacter*> GetAllCharactersInOrder() const { return AllCharactersInOrder; }
@@ -64,6 +51,14 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utility")
 	TArray<ABaseCharacter*> GetNeutralTeam() const { return NeutralTeam; }
 
+private:
+	friend UTeamComp;
+	UFUNCTION(BlueprintCallable, Category = "Utility")
+	void RemoveCharacterFromTeamByType(ABaseCharacter* Character);
+	// 根据角色的团队类型自动添加到相应队伍
+	UFUNCTION(BlueprintCallable, Category = "Utility")
+	void AddCharacterToTeamByType(ABaseCharacter* Character);
+
 protected:
 	UPROPERTY()
 	TArray<ABaseCharacter*> EnemyTeam;
@@ -74,5 +69,11 @@ protected:
 	// 行动顺序
 	UPROPERTY()
 	TArray<ABaseCharacter*> AllCharactersInOrder;
+	UPROPERTY()
+	UTacticSubsystem* TacticSubsystem;
+
+	virtual void BeginPlay() override;
 	GENERATED_BODY()
 };
+
+

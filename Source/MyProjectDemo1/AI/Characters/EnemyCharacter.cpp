@@ -18,14 +18,13 @@ AEnemyCharacter::AEnemyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	AIControllerClass = AEnemyAIController::StaticClass();
-	
-	// 设置为敌人团队
-	TeamComp->SetTeam(ETeamType::ETT_Enemy);
 }
 
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	// 设置为敌人团队
+	TeamComp->SetTeam(ETeamType::ETT_Enemy);
 }
 
 void AEnemyCharacter::Tick(float DeltaTime)

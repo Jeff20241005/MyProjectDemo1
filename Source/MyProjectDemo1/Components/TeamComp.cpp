@@ -3,84 +3,104 @@
 
 #include "TeamComp.h"
 
+#include "MyAbilityComp.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/FilePaths/TacticPaths.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
 
-UTeamComp::UTeamComp()
+UTeamComp::UTeamComp(): Owner_BaseCharacter(nullptr), OriginalTeam()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	// 默认设置为无团队
 	TeamType = ETeamType::ETT_None;
-	// ...
 }
 
 
 void UTeamComp::BeginPlay()
 {
 	Super::BeginPlay();
-	TacticGameState = Cast<ATacticGameState>(GetWorld()->GetGameState());
 	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
-
-	// ...
+	TacticGameState = Owner_BaseCharacter->TacticGameState;
 }
 
 
 void UTeamComp::SetTeam(ETeamType NewTeam)
 {
+	// 先从原队伍移除
+	TacticGameState->RemoveCharacterFromTeamByType(Owner_BaseCharacter);
 	TeamType = NewTeam;
+	// 添加到新队伍
+	TacticGameState->AddCharacterToTeamByType(Owner_BaseCharacter);
 
 	// 可以在这里添加团队变更时的逻辑
-	// 例如更新角色外观、通知GameState等
+	// 例如更新角色外观、等
 
 	// 如果使用AIController，可以更新其团队设置
 
 	{
-		// 如果你的AIController有团队设置，可以在这里同步
+		// 如果AIController有团队设置，可以在这里同步
 		// BaseAIController->SetTeam(NewTeam);
+
+		//如果player被魅惑，变成敌方，那么就要实现一些变成敌方的逻辑
 	}
 }
 
 bool UTeamComp::IsHostileTo(const ABaseCharacter* Other) const
 {
-	if (!Other)
+	if (!Other || !Owner_BaseCharacter)
 		return false;
 
-	// 基本敌对规则：
-	// 1. 玩家团队与敌人团队互相敌对
-	// 2. 中立团队不与任何团队敌对
-	// 3. 同一团队的角色不互相敌对
+	// 检查魅惑状态
+	FGameplayTag CharmTag = FGameplayTag::RequestGameplayTag(FName(*Charm_Path));
+	if (Owner_BaseCharacter->GetMyAbilityComp()->HasMatchingGameplayTag(CharmTag))
+	{
+		return true; // 所有人对被魅惑的角色都敌对
+	}
 
-	if (TeamType == Other->GetTeamComp()->TeamType)
-		return false; // 同一团队不互相敌对
+	ETeamType OtherTeam = Other->GetTeamComp()->GetTeam();
 
-	if (TeamType == ETeamType::ETT_Neutral || Other->GetTeamComp()->TeamType == ETeamType::ETT_Neutral)
-		return false; // 中立团队不与任何团队敌对
-
-	if ((TeamType == ETeamType::ETT_Player && Other->GetTeamComp()->TeamType == ETeamType::ETT_Enemy) ||
-		(TeamType == ETeamType::ETT_Enemy && Other->GetTeamComp()->TeamType == ETeamType::ETT_Player))
-		return true; // 玩家和敌人互相敌对
-
-	return false; // 默认不敌对
+	// 基本敌对规则
+	switch (TeamType)
+	{
+	case ETeamType::ETT_Player:
+		return OtherTeam == ETeamType::ETT_Enemy || OtherTeam == ETeamType::ETT_Neutral; // P->E, P->N
+	case ETeamType::ETT_Enemy:
+		return OtherTeam == ETeamType::ETT_Player || OtherTeam == ETeamType::ETT_Neutral; // E->P, E->N
+	case ETeamType::ETT_Neutral:
+		return OtherTeam == ETeamType::ETT_Enemy; // N->E
+	default:
+		return false;
+	}
 }
 
 bool UTeamComp::IsFriendlyTo(const ABaseCharacter* Other) const
 {
-	if (!Other)
+	if (!Other || !Owner_BaseCharacter)
 		return false;
 
-	// 友好规则：
-	// 1. 同一团队的角色互相友好
-	// 2. 中立团队对所有团队友好
+	// 检查魅惑状态
+	FGameplayTag CharmTag = FGameplayTag::RequestGameplayTag(FName(*Charm_Path));
+	if (Owner_BaseCharacter->GetMyAbilityComp()->HasMatchingGameplayTag(CharmTag))
+	{
+		return false; // 所有人对被魅惑的角色都不友好
+	}
 
-	if (TeamType == Other->GetTeamComp()->TeamType)
-		return true; // 同一团队互相友好
+	ETeamType OtherTeam = Other->GetTeamComp()->GetTeam();
 
-	if (TeamType == ETeamType::ETT_Neutral || Other->GetTeamComp()->TeamType == ETeamType::ETT_Neutral)
-		return true; // 中立团队对所有团队友好
-
-	return false; // 默认不友好
+	// 基本友好规则
+	switch (TeamType)
+	{
+	case ETeamType::ETT_Player:
+		return OtherTeam == ETeamType::ETT_Player || OtherTeam == ETeamType::ETT_Neutral; // P->P, P->N
+	case ETeamType::ETT_Enemy:
+		return OtherTeam == ETeamType::ETT_Enemy; // E->E
+	case ETeamType::ETT_Neutral:
+		return OtherTeam == ETeamType::ETT_Player || OtherTeam == ETeamType::ETT_Neutral; // N->P, N->N
+	default:
+		return false;
+	}
 }
 
 ABaseCharacter* UTeamComp::GetNearestHostileCharacter() const
@@ -96,7 +116,7 @@ ABaseCharacter* UTeamComp::GetNearestHostileCharacter() const
 	{
 		if (Hostile)
 		{
-			float Distance = FVector::Dist(Owner_BaseCharacter-> GetActorLocation(), Hostile->GetActorLocation());
+			float Distance = FVector::Dist(Owner_BaseCharacter->GetActorLocation(), Hostile->GetActorLocation());
 			if (Distance < MinDistance)
 			{
 				MinDistance = Distance;
@@ -135,7 +155,7 @@ ABaseCharacter* UTeamComp::GetNearestFriendlyCharacter() const
 	return NearestFriendly;
 }
 
-bool UTeamComp::CanAttackTarget(const ABaseCharacter* Target) const
+bool UTeamComp::CanAttackTarget_ByAttackRange(const ABaseCharacter* Target) const
 {
 	if (!Target || !Owner_BaseCharacter->GetBaseCharacterAttributeSet())
 		return false;
@@ -173,4 +193,35 @@ TArray<ABaseCharacter*> UTeamComp::GetHostileCharactersInAttackRange() const
 	}
 
 	return HostilesInRange;
+}
+
+void UTeamComp::Charm()
+{
+	if (!Owner_BaseCharacter)
+		return;
+
+	// 保存原始队伍类型
+	OriginalTeam = TeamType;
+	
+	// 根据原始队伍类型设置新队伍
+	switch (TeamType)
+	{
+	case ETeamType::ETT_Enemy:
+		SetTeam(ETeamType::ETT_Neutral); //E->N
+		break;
+	case ETeamType::ETT_Neutral:
+	case ETeamType::ETT_Player:
+		SetTeam(ETeamType::ETT_Enemy); //N->E //P->E
+		break;
+	default:
+		break;
+	}
+}
+
+void UTeamComp::UnCharm()
+{
+	if (!Owner_BaseCharacter)
+		return;
+	// 恢复原始队伍
+	SetTeam(OriginalTeam);
 }

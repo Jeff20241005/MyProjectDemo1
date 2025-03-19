@@ -23,8 +23,8 @@ UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MYPROJECTDEMO1_API UTeamComp : public UActorComponent
 {
 	GENERATED_BODY()
-public:
 
+public:
 	UFUNCTION(BlueprintCallable, Category = "Team")
 	void SetTeam(ETeamType NewTeam);
 
@@ -56,20 +56,30 @@ public:
 
 	// 检查是否可以攻击目标角色（基于距离和敌对关系）
 	UFUNCTION(BlueprintCallable, Category = "Team")
-	bool CanAttackTarget(const ABaseCharacter* Target) const;
+	bool CanAttackTarget_ByAttackRange(const ABaseCharacter* Target) const;
 
 	// 获取在攻击范围内的敌对角色
 	UFUNCTION(BlueprintCallable, Category = "Team")
 	TArray<ABaseCharacter*> GetHostileCharactersInAttackRange() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Team")
+	void Charm();
+
+	UFUNCTION(BlueprintCallable, Category = "Team")
+	void UnCharm();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
 	ETeamType TeamType;
 	UPROPERTY()
 	ABaseCharacter* Owner_BaseCharacter;
+
+	UTeamComp();
 	UPROPERTY()
 	ATacticGameState* TacticGameState;
 
-	UTeamComp();
 	virtual void BeginPlay() override;
+
+private:
+	ETeamType OriginalTeam;
 };

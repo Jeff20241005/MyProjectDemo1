@@ -2,8 +2,10 @@
 
 #include "BaseCharacter.h"
 #include "AbilitySystemComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
@@ -13,6 +15,7 @@
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
+#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 
 
 void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResult& HitInfo,
@@ -24,7 +27,6 @@ void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResu
 void ABaseCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 {
 	Super::NotifyActorOnClicked(ButtonPressed);
-	// 当鼠标开始悬停在物品上时
 	if (InteractionComp)
 	{
 		InteractionComp->OnClickedActor();
@@ -40,6 +42,7 @@ ABaseCharacter::ABaseCharacter()
 	BaseCharacterAttributeSet = CreateComponent<UBaseCharacterAttributeSet>();
 	InteractionComp = CreateComponent<UInteractionComp>();
 	TeamComp = CreateComponent<UTeamComp>();
+
 	// 设置骨骼网格体的碰撞
 	if (GetMesh())
 	{
@@ -73,6 +76,28 @@ ABaseCharacter::ABaseCharacter()
 	AIControllerClass = ABaseAIController::StaticClass();
 	// 设置自动AI控制
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+
+	SpringArmComponent = CreateComponent<USpringArmComponent>();
+	SpringArmComponent->bUsePawnControlRotation = false;
+	SpringArmComponent->bDoCollisionTest = false;
+	SpringArmComponent->TargetArmLength = 1000;
+
+	// 禁用所有旋转继承
+	SpringArmComponent->bInheritPitch = false;
+	SpringArmComponent->bInheritYaw = false;
+	SpringArmComponent->bInheritRoll = false;
+
+	// 设置固定的旋转角度（俯视角）
+	SpringArmComponent->SetRelativeRotation(FRotator(-45.0f, 0.0f, 0.0f));
+
+	// 确保角色旋转不会影响摄像机
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	CameraComponent = CreateComponent<UCameraComponent>();
+	CameraComponent->SetupAttachment(SpringArmComponent);
 
 	//todo 去ProjectSetting设置
 	//GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Overlap);
@@ -109,30 +134,9 @@ void ABaseCharacter::CloseWidget()
 
 void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 {
-	// 1. 如果角色当前被PlayerController控制，需要切换到AI控制
-	if (Cast<AMyPlayerController>(GetController()))
-	{
-		// 暂时取消玩家控制
-		MyPlayerController->UnPossess();
-
-		// 使用缓存的AIController
-		if (BaseAIController)
-		{
-			BaseAIController->Possess(this);
-		}
-		else
-		{
-			FString TempStr = TEXT("No cached AIController found!");
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr);
-			return;
-		}
-	}
-
 	if (BaseAIController)
 	{
 		// 获取角色的移动范围
-		float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
-
 		switch (MyGameMode->CurrentControlMode)
 		{
 		case EControlMode::FreeRoamMode:
@@ -142,6 +146,7 @@ void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 			float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
 			if (MyAbilityComp && CurrentActionValues >= 1)
 			{
+				float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
 				BaseAIController->MoveToLocationWithPathFinding(EndLocation, false, MoveRange);
 				// 修改ActionValues属性值
 				BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
@@ -154,7 +159,9 @@ void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 
 void ABaseCharacter::BeginPlay()
 {
+	TacticGameState = Cast<ATacticGameState>(GetWorld()->GetGameState());
 	Super::BeginPlay();
+
 	// 初始化AbilitySystem
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 	MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));

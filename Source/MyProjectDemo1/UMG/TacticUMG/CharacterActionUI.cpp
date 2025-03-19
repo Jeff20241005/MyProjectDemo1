@@ -9,6 +9,21 @@
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/ActionButtonUI.h"
 
+/* todo put it in buttonbase
+for (auto Spec : GetActivatableAbilities())
+	{
+		if (UBaseAbility* Ability = Cast<UBaseAbility>(Spec.Ability))
+		{
+			if (UButtonBase* SkillWidget = CreateWidget<UButtonBase>(GetWorld(), DefaultSkillClass))
+			{
+				//---也能输入技能图像
+				SkillWidget->SetupButton(Ability->AbilityName.ToString());
+				SkillWidget->SetupButtonOnClick(WidgetOwner, Ability);
+				SkillListBox->AddChild(SkillWidget);
+			}
+		}
+	}
+ */
 void UCharacterActionUI::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -16,9 +31,9 @@ void UCharacterActionUI::NativeConstruct()
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 
 	//todo better or not to put show move / BeginDrawVisualFeedBack in userwidgets
-	ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::ShowVisualFeedback_Move);
+//todo 	ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
 	// we may move the tactic "real" move function, to ability base
-	//todo add a bcanmove subsystem, then click to let character move, remove the function inside of ai controller
+	
 	//ActionButton_Move->Button->OnClicked.AddDynamic(this, &ThisClass::SetCurrent);
 	
 	//ActionButton_Attack->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
@@ -26,4 +41,6 @@ void UCharacterActionUI::NativeConstruct()
 
 	AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode,&AMyGameMode::SwitchControlMode);
+	
+	ActionButton_SwitchCharacter->Button->OnClicked.AddDynamic(TacticSubsystem,&UTacticSubsystem::TestFunc_SwitchCharacter_RanOutOfAction);
 }

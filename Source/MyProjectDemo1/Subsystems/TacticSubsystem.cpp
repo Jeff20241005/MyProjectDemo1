@@ -9,32 +9,66 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
+#include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
 #include "MyProjectDemo1/Components/PathTracerComponent.h"
 #include "MyProjectDemo1/FilePaths/TacticPaths.h"
+#include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "MyProjectDemo1/Framework/GameStates/MyGameState.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 
+void UTacticSubsystem::TestFunc_SwitchCharacter_RanOutOfAction()
+{
+	//todo test
+	auto test = GetTacticGameState()->SortCharactersByActionValues();
+	if (OnSwitchCharacterAction.IsBound() && test)
+	{
+		OnSwitchCharacterAction.Broadcast(test);
+	}
+
+	//直接设置ActionValue，代表执行完毕Action。
+	test->GetBaseCharacterAttributeSet()->SetActionValues(0);
+}
 
 void UTacticSubsystem::PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
 {
-	GetTacticGameState();
-	
-	if (BaseCharacter && BaseAbility)
+	//todo !!!
+	/*if (BaseCharacter && BaseAbility)
 	{
 		TArray<ABaseCharacter*> PotentialTargets = GetTacticGameState()->GetTargetCharacters(
-			BaseCharacter,
-			BaseAbility->SkillAttackRange,
-			BaseAbility->bTargetEnemies,
-			BaseAbility->bIncludeSelf,
-			BaseAbility->bTargetAllTeams,
-			BaseAbility->bInfiniteRange
+		
 		);
+	}*/
+}
+
+void UTacticSubsystem::Move(ABaseCharacter* BaseCharacter)
+{
+	if (bCanMove)
+	{
+/*		if (MyGameMode->())
+		{
+			// 暂时取消玩家控制
+			CurrentActionCharacter->BaseAIController->Possess(CurrentActionCharacter);
+			
+			CurrentActionCharacter->BaseCharacterAIMoveTo(AdjustedLocation);
+			PossesSpawnedSpectatorPawn();
+		}*/
 	}
+	
+	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
+	bCanMove=false;
+}
+
+void UTacticSubsystem::CancelMove(ABaseCharacter* BaseCharacter)
+{
+	
+	
+	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
+	bCanMove=false;
 }
 
 ATacticGameState* UTacticSubsystem::GetTacticGameState()
@@ -51,6 +85,10 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
 	OnPostSkillSelected.AddUObject(this, &ThisClass::SelectedSkill);
 	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
+
+	OnPreMove.AddUObject(this, &ThisClass::CharacterPreMove);
+	OnMove.AddUObject(this, &ThisClass::Move);
+	OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
 }
 
 void UTacticSubsystem::Deinitialize()
@@ -59,29 +97,47 @@ void UTacticSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+void UTacticSubsystem::PreMoveBroadCast()
+{
+	OnPreMove.Broadcast(CurrentActionCharacter);
+}
+
 void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 {
-	if (ETeamType::ETT_Player == BaseCharacter->GetTeamComp()->GetTeam())
+	CurrentActionCharacter = BaseCharacter;
+
+	if (BaseCharacter->GetTeamComp()->IsPlayerTeam())
 	{
-		CurrentControlCharacter = BaseCharacter;
+		CurrentControlPlayer = BaseCharacter;
 	}
 }
 
 void UTacticSubsystem::ShowMove()
 {
+	if (!CurrentControlPlayer)
+	{
+		{
+			FString
+				TempStr = FString::Printf(TEXT("!CurrentControlCharacter"));
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
+		return;
+	}
+
 	FVector projectedLoc;
 	//---角色移动范围---
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		GetTacticPlayerController()->MouseHoverdCursorOverLocation - CurrentControlCharacter->GetActorLocation(),
+		GetTacticPlayerController()->MouseHoveredCursorOverLocation - CurrentControlPlayer->GetActorLocation(),
 		0.0f,
-		1000.0f) + CurrentControlCharacter->GetActorLocation();
+		1000.0f) + CurrentControlPlayer->GetActorLocation();
 
 	if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), FinalLocation, projectedLoc, nullptr,
 	                                                     UNavigationQueryFilter::StaticClass(),
 	                                                     FVector(1000, 1000, 1000)))
 	{
 		UNavigationPath* NaviValue = UNavigationSystemV1::FindPathToLocationSynchronously(
-			GetWorld(), CurrentControlCharacter->GetActorLocation(), projectedLoc);
+			GetWorld(), CurrentControlPlayer->GetActorLocation(), projectedLoc);
 
 		if (NaviValue != nullptr)
 		{
@@ -91,8 +147,9 @@ void UTacticSubsystem::ShowMove()
 	}
 }
 
-void UTacticSubsystem::ShowVisualFeedback_Move()
+void UTacticSubsystem::CharacterPreMove(ABaseCharacter* InBaseCharacter)
 {
+	bCanMove = true;
 	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 	if (GetWorld())
 	{

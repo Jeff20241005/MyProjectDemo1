@@ -103,7 +103,6 @@ void UBaseCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& At
 
 	if (Attribute == GetActionValuesAttribute())
 	{
-		
 	}
 }
 
@@ -117,14 +116,6 @@ void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& A
 		if (ATacticGameState* TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld())))
 		{
 			TacticGameState->SortCharactersByActionValues();
-			{
-				FString
-					TempStr = FString::Printf(TEXT("ActionValue: %f"),GetActionValues());
-				if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true,
-				                                              FVector2D(2, 2));
-				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-			}
-
 		}
 	}
 }
