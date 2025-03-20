@@ -14,8 +14,9 @@ class AMyPlayerController;
 UENUM(BlueprintType)
 enum class EControlMode : uint8
 {
-	FreeRoamMode, // 自由移动模式
-	TacticalMode // 战棋模式
+	FreeRoamMode, // 自由移动模式()
+	TacticalMode, // 战棋模式
+	LevelMode // 关卡模式
 };
 
 UCLASS()
@@ -24,20 +25,17 @@ class MYPROJECTDEMO1_API AMyGameMode : public AGameMode
 	GENERATED_BODY()
 
 public:
+	
 	UFUNCTION()
 	void SwitchControlMode();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control Mode")
 	EControlMode CurrentControlMode = EControlMode::FreeRoamMode;
-	
+
 	UFUNCTION(BlueprintCallable)
 	bool IsFreeRoamMode() { return CurrentControlMode == EControlMode::FreeRoamMode; }
 
 	UFUNCTION(BlueprintCallable)
 	bool IsTacticMode() { return CurrentControlMode == EControlMode::TacticalMode; }
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	AMyPlayerController* MyPlayerController;
-
 
 	// 切换控制模式
 	UFUNCTION(BlueprintCallable, Category = "Control Mode")

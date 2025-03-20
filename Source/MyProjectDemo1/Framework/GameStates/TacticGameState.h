@@ -69,9 +69,7 @@ protected:
 	// 行动顺序
 	UPROPERTY()
 	TArray<ABaseCharacter*> AllCharactersInOrder;
-	UPROPERTY()
-	UTacticSubsystem* TacticSubsystem;
-
+	
 	virtual void BeginPlay() override;
 	GENERATED_BODY()
 };

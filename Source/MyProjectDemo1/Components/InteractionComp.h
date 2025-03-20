@@ -15,15 +15,19 @@ class MYPROJECTDEMO1_API UInteractionComp : public UActorComponent
 public:
 	UInteractionComp();
 
-	virtual void HoveredActor();
-	virtual void UnHoveredActor();
-	virtual void OnClickedActor();
+	void HoveredActor();
+	void UnHoveredActor();
+	void OnClickedActor();
 
-	void SetDepth(bool SetDepth);
+	void SetAsSkillTarget();
+	void UnSetAsSkillTarget();
 
-	bool bIsSelected = false;
-	bool bIsMoved = false;
+	void SetDepth(bool InIsSetDepth);
+
+
 protected:
+	bool bIsSelected = false;
+	
 	virtual void BeginPlay() override;
 
 

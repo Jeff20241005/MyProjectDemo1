@@ -10,7 +10,6 @@
 void ATacticGameState::BeginPlay()
 {
 	Super::BeginPlay();
-	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 }
 
 ABaseCharacter* ATacticGameState::SortCharactersByActionValues()

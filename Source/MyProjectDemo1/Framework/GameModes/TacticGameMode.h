@@ -58,7 +58,5 @@ public:
 
 private:
 	UPROPERTY()
-	ATacticGameState* TacticGameState;
-	UPROPERTY()
 	ATacticPlayerController* TacticPlayerController;		//---获取玩家控制器
 };

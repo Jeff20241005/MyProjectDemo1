@@ -8,25 +8,54 @@
 
 class UPathTracerComponent;
 class ABaseCharacter;
-class UWidgetComponent;
+class UStaticMeshComponent;
 
 UCLASS()
 class MYPROJECTDEMO1_API AShowVisualFeedbackActor : public AActor
 {
+private:
 	GENERATED_BODY()
 
 public:
-	AShowVisualFeedbackActor();
-
 	void OnMouseCursorOver();
 
 	float DrawAttackRange(ABaseCharacter* BaseCharacter);
 	UFUNCTION(BlueprintCallable)
 	UPathTracerComponent* GetPathTracerComponent() const { return PathTracerComponent; }
 
+	UFUNCTION(BlueprintCallable, meta=(ToolTip="鼠标引导模式下，以角色为中心的技能释放位置调整半径（单位：厘米），在此范围内可自由移动技能施放点"))
+	UStaticMeshComponent* GetSkillPlacementRadiusStaticMeshComponent() const
+	{
+		return SkillPlacementRadiusStaticMeshComponent;
+	}
+
+
+	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
+	UStaticMeshComponent* GetBoxStaticMeshComponent() const { return BoxStaticMeshComponent; }
+
+	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
+	UStaticMeshComponent* GetBoxStaticMeshComponentForSector() const { return BoxStaticMeshComponentForSector; }
+
+	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
+	UStaticMeshComponent* GetSphereStaticMeshComponent() const { return SphereStaticMeshComponent; }
+
+	//todo，之后想办法生成一个扇形的Collision
 protected:
+	AShowVisualFeedbackActor();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UPathTracerComponent* PathTracerComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UStaticMeshComponent* SkillPlacementRadiusStaticMeshComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
+	UStaticMeshComponent* SphereStaticMeshComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UStaticMeshComponent* BoxStaticMeshComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UStaticMeshComponent* BoxStaticMeshComponentForSector;
+
 
 	template <class Comp>
 	Comp* CreateComponent();

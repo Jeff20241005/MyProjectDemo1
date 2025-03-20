@@ -11,6 +11,7 @@
 #include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
@@ -49,31 +50,62 @@ void UTacticSubsystem::Move(ABaseCharacter* BaseCharacter)
 {
 	if (bCanMove)
 	{
-/*		if (MyGameMode->())
+		UBaseCharacterAttributeSet* BaseCharacterAttributeSet = BaseCharacter->GetBaseCharacterAttributeSet();
+		float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
+		if (BaseCharacter->GetMyAbilityComp() && CurrentActionValues >= 1)
 		{
-			// 暂时取消玩家控制
-			CurrentActionCharacter->BaseAIController->Possess(CurrentActionCharacter);
-			
-			CurrentActionCharacter->BaseCharacterAIMoveTo(AdjustedLocation);
-			PossesSpawnedSpectatorPawn();
-		}*/
+			float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
+			BaseCharacter->BaseAIController->MoveToLocationWithPathFinding(
+				GetTacticPlayerController()->LastClickLocation, false, MoveRange);
+			// 修改ActionValues属性值
+			BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
+		}
 	}
-	
+
 	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-	bCanMove=false;
+	bCanMove = false;
 }
 
 void UTacticSubsystem::CancelMove(ABaseCharacter* BaseCharacter)
 {
-	
-	
 	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-	bCanMove=false;
+	bCanMove = false;
 }
 
 ATacticGameState* UTacticSubsystem::GetTacticGameState()
 {
-	return Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	if (TacticGameState)
+	{
+		TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	}
+	return TacticGameState;
+}
+
+void UTacticSubsystem::SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility,
+                                    TArray<ABaseCharacter*> PotentialTargets)
+{
+	TArray<ABaseCharacter*> TempPotentialTargets;
+	// 调用 GetPotentialTargets 并传递参数
+	BaseAbility->GetPotentialTargets(
+		GetShowVisualFeedbackActor(),
+		GetTacticPlayerController()->LastClickLocation,
+		TempPotentialTargets,
+		BaseCharacter);
+
+	for (ABaseCharacter*
+	     TempPotentialTarget : TempPotentialTargets)
+	{
+		//todo cut these to BaseAbility class in Activation function 
+		/*FGameplayEffectSpecHandle SpecHandle = BaseCharacter->GetMyAbilityComp()->MakeOutgoingSpec(
+			UEffectBase::StaticClass(), 1, BaseCharacter->GetMyAbilityComp()->MakeEffectContext()
+		);
+
+		if (SpecHandle.IsValid())
+		{
+			SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("TODO")), NewHealth);
+			BaseCharacter->GetMyAbilityComp()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}*/
+	}
 }
 
 
@@ -83,8 +115,9 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
-	OnPostSkillSelected.AddUObject(this, &ThisClass::SelectedSkill);
 	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
+	OnPostSkillSelected.AddUObject(this, &ThisClass::PostSkillSelected);
+	OnSkillRelease.AddUObject(this, &ThisClass::SkillRelease);
 
 	OnPreMove.AddUObject(this, &ThisClass::CharacterPreMove);
 	OnMove.AddUObject(this, &ThisClass::Move);
@@ -128,7 +161,7 @@ void UTacticSubsystem::ShowMove()
 	FVector projectedLoc;
 	//---角色移动范围---
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		GetTacticPlayerController()->MouseHoveredCursorOverLocation - CurrentControlPlayer->GetActorLocation(),
+		GetTacticPlayerController()->MouseHoveringCursorOverLocation - CurrentControlPlayer->GetActorLocation(),
 		0.0f,
 		1000.0f) + CurrentControlPlayer->GetActorLocation();
 
@@ -182,7 +215,65 @@ void UTacticSubsystem::RoundFinish(ABaseCharacter* BaseCharacter)
 	// Clear path visualization when round finishes
 }
 
-void UTacticSubsystem::SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
+void UTacticSubsystem::PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
 {
-	//选择技能后，
+	// 保存参数到成员变量
+
+	GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle,
+	                                       [&]()
+	                                       {
+		                                       if (BaseCharacter && BaseAbility)
+		                                       {
+			                                       TArray<ABaseCharacter*> PotentialTargets;
+			                                       FVector MouseLocation = GetTacticPlayerController()->
+				                                       MouseHoveringCursorOverLocation;
+
+			                                       // 调用 GetPotentialTargets 并传递参数
+			                                       bIsInRange = BaseAbility->GetPotentialTargets(
+				                                       GetShowVisualFeedbackActor(),
+				                                       MouseLocation,
+				                                       PotentialTargets,
+				                                       BaseCharacter);
+
+			                                       // 处理目标列表...
+			                                       // 例如高亮显示可选目标
+			                                       for (ABaseCharacter*
+			                                            CharactersInOrder : GetTacticGameState()->
+			                                            GetAllCharactersInOrder())
+			                                       {
+				                                       if (!PotentialTargets.Contains(CharactersInOrder))
+				                                       {
+					                                       CharactersInOrder->GetInteractionComp()->
+					                                                          UnSetAsSkillTarget();
+				                                       }
+			                                       }
+			                                       for (ABaseCharacter* Target : PotentialTargets)
+			                                       {
+				                                       if (Target && Target->GetInteractionComp())
+				                                       {
+					                                       Target->GetInteractionComp()->SetAsSkillTarget();
+				                                       }
+			                                       }
+		                                       }
+	                                       },
+	                                       0.02f, true);
+}
+
+// 添加一个函数来清除定时器和高亮
+void UTacticSubsystem::CancelSelectedSkill()
+{
+	GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
+
+	/*// 清除所有目标的高亮
+	if (ATacticGameState* GameState = GetTacticGameState())
+	{
+		TArray<ABaseCharacter*> AllCharacters = GameState->GetAllCharactersInOrder();
+		for (ABaseCharacter* Character : AllCharacters)
+		{
+			if (Character && Character->GetInteractionComp())
+			{
+				Character->GetInteractionComp()->EndOfHighlightAsTarget();
+			}
+		}
+	}*/
 }

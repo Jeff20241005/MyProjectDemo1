@@ -4,13 +4,16 @@
 #include "MyGameMode.h"
 
 #include "GameFramework/SpectatorPawn.h"
+#include "MyProjectDemo1/Framework/Controllers/FreeRoamPlayerController.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 
 void AMyGameMode::BeginPlay()
 {
 	Super::BeginPlay();
-	MyPlayerController = GetWorld()->GetFirstPlayerController<AMyPlayerController>();
+	SetControlMode(EControlMode::TacticalMode);
 }
+
 void AMyGameMode::SwitchControlMode()
 {
 	if (IsFreeRoamMode())
@@ -22,20 +25,32 @@ void AMyGameMode::SwitchControlMode()
 		SetControlMode(EControlMode::FreeRoamMode);
 	}
 }
+
 void AMyGameMode::SetControlMode(EControlMode NewMode)
 {
-	CurrentControlMode = NewMode;
+	if (!HasAuthority()) return; // 确保服务端执行
 
-	// 不需要切换Controller，只需要改变输入处理方式
-	switch (CurrentControlMode)
+	// 清理旧控制器（关键改进点）
+	if (APlayerController* OldController = GetWorld()->GetFirstPlayerController())
+	{
+		OldController->UnPossess(); // 解除Pawn控制
+		OldController->Destroy(); // 彻底销毁旧控制器
+	}
+
+	APlayerController* NewController = nullptr;
+	switch (NewMode)
 	{
 	case EControlMode::FreeRoamMode:
-		// 启用WASD输入
+		NewController = GetWorld()->SpawnActor<AFreeRoamPlayerController>();
 		break;
 
 	case EControlMode::TacticalMode:
-		MyPlayerController->PossesSpawnedSpectatorPawn();
-	// 禁用WASD输入
+		NewController = GetWorld()->SpawnActor<ATacticPlayerController>();
+		break;
+
+	case EControlMode::LevelMode:
+		//NewController = GetWorld()->SpawnActor<ALevelModePlayerController>();
 		break;
 	}
+	CurrentControlMode = NewMode;
 }

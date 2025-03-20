@@ -11,63 +11,54 @@
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
+void ATacticPlayerController::ZoomCamera(float Value)
+{
+	Super::ZoomCamera(Value);
+
+	//FRotator ControlRotation = GetControlRotation();
+}
+
+void ATacticPlayerController::SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams)
+{
+	CurrentLerpValue;
+
+	Super::SetViewTarget(NewViewTarget, TransitionParams);
+}
+
 ATacticPlayerController::ATacticPlayerController()
 {
-	//NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
-	//SetupInputKeys();
 }
 
 void ATacticPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
 	TacticGameState = Cast<ATacticGameState>(GetWorld()->GetGameState());
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 
-	TacticSubsystem->OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
-	//UEnhancedInputLocalPlayerSubsystem* Subsystem = GetLocalPlayer()->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	//if (Subsystem)Subsystem->AddMappingContext(DefaultMappingContext,0);
+	TempSwitchCharacterActionDelegate = TacticSubsystem->OnSwitchCharacterAction.AddUObject(
+		this, &ThisClass::SwitchCharacterAction);
 
-	OnFreeViewport.AddUObject(this, &ThisClass::FreeViewportChange);
-	OnCharacterFocus.AddUObject(this, &ThisClass::CharacterFocus);
+	Possess(GetMySpectatorPawn());
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 
 {
 	Super::PlayerInputMovement(Value, Axis);
+
+	FRotator DirectionWithOutZ(0, GetControlRotation().Yaw, GetControlRotation().Roll);
+	const FVector Direction = FRotationMatrix(DirectionWithOutZ).GetUnitAxis(Axis);
+	// 应用移动
+	GetPawn()->AddMovementInput(Direction, Value);
 }
 
-
-void ATacticPlayerController::FreeViewportChange()
+void ATacticPlayerController::Destroyed()
 {
-	if (MyGameMode->IsTacticMode() && !bIsFreeViewport)
-	{
-		if (CurrentFocusCharacter && CurrentFocusCharacter->CameraComponent)
-		{
-			MySpectatorPawn->SetActorLocation(CurrentFocusCharacter->CameraComponent->GetComponentLocation());
-			MySpectatorPawn->SetActorRotation(GetControlRotation());
-			PossesSpawnedSpectatorPawn();
-		}
-		bIsFreeViewport = true;
-	}
+	TacticSubsystem->OnSwitchCharacterAction.Remove(TempSwitchCharacterActionDelegate);
+	
+	Super::Destroyed();
 }
-
-/*
-void ATacticPlayerController::SetupInputKeys()
-{
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> MappingContextObject(
-		TEXT("/Game/Controller/MainInputMappingContext"));
-	if (MappingContextObject.Object) DefaultMappingContext = MappingContextObject.Object;
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> LeftButtonActionObject(
-		TEXT("/Game/Controller/LeftButtonInputAction"));
-	if (LeftButtonActionObject.Object) LeftMouseButtonAction = LeftButtonActionObject.Object;
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> RightButtonActionObject(
-		TEXT("/Game/Controller/RightButtonInputAction"));
-	if (RightButtonActionObject.Object) RightMouseButtonAction = RightButtonActionObject.Object;
-}
-*/
 
 void ATacticPlayerController::Tick(float DeltaSeconds)
 {
@@ -76,41 +67,17 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 
 void ATacticPlayerController::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 {
-	CurrentFocusCharacter = BaseCharacter;
 	SetViewTarget(BaseCharacter);
 }
-
-void ATacticPlayerController::CharacterFocus()
-{
-	bIsFreeViewport = false;
-}
-
-void ATacticPlayerController::OnTabClick()
-{
-	Super::OnTabClick();
-	if (OnCharacterFocus.IsBound())
-	{
-		OnCharacterFocus.Broadcast();
-	}
-}
-
 
 void ATacticPlayerController::OnLeftMouseButtonDown()
 {
 	Super::OnLeftMouseButtonDown();
 
-	if (!CurrentFocusCharacter) return;
-	if ( APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CurrentFocusCharacter))
-	{
-		//todo		
-	}
+	//todo TacticSubsystem->OnMove.Broadcast();
 }
 
 
 void ATacticPlayerController::OnRightMouseButtonDown()
 {
-	if (OnFreeViewport.IsBound())
-	{
-		OnFreeViewport.Broadcast();
-	}
 }

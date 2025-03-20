@@ -142,16 +142,7 @@ void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
 		case EControlMode::FreeRoamMode:
 			BaseAIController->MoveToLocationWithPathFinding(EndLocation);
 			break;
-		case EControlMode::TacticalMode:
-			float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
-			if (MyAbilityComp && CurrentActionValues >= 1)
-			{
-				float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
-				BaseAIController->MoveToLocationWithPathFinding(EndLocation, false, MoveRange);
-				// 修改ActionValues属性值
-				BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
-			}
-			break;
+		
 		}
 	}
 }

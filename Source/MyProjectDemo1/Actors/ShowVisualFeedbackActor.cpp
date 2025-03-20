@@ -12,6 +12,11 @@ AShowVisualFeedbackActor::AShowVisualFeedbackActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PathTracerComponent = CreateComponent<UPathTracerComponent>();
+
+	SkillPlacementRadiusStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
+	
+	SphereStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
+	BoxStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 }
 
 

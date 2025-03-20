@@ -10,9 +10,6 @@
 void APlayerCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 {
 	Super::NotifyActorOnClicked(ButtonPressed);
-
-	// todo Test freeroam//
-	MyPlayerController->FreeRoamCurrentControlPlayer = this;
 }
 
 APlayerCharacter::APlayerCharacter()

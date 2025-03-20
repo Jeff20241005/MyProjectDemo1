@@ -25,16 +25,26 @@ void UInteractionComp::OnClickedActor()
 	SetDepth(true);
 }
 
-void UInteractionComp::SetDepth(bool SetDepth)
+void UInteractionComp::SetAsSkillTarget()
+{
+	SetDepth(true);
+}
+
+void UInteractionComp::UnSetAsSkillTarget()
+{
+	SetDepth(false);
+}
+
+void UInteractionComp::SetDepth(bool InIsSetDepth)
 {
 	//Visual Feedback
 	if (SkeletalMeshComponent)
 	{
-		SkeletalMeshComponent->SetRenderCustomDepth(SetDepth);
+		SkeletalMeshComponent->SetRenderCustomDepth(InIsSetDepth);
 	}
 	if (StaticMeshComponent)
 	{
-		StaticMeshComponent->SetRenderCustomDepth(SetDepth);
+		StaticMeshComponent->SetRenderCustomDepth(InIsSetDepth);
 	}
 }
 

@@ -21,7 +21,7 @@ class UMaterialInstanceDynamic;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStateChange, ABaseCharacter*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterSkillStateChange, ABaseCharacter*, UBaseAbility*)
-
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnCharacterSkillRelease, ABaseCharacter*, UBaseAbility*,TArray<ABaseCharacter*>)
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
 
@@ -31,18 +31,14 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
 UCLASS()
 class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 {
-	void PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
-	void Move(ABaseCharacter* BaseCharacter);
-	void CancelMove(ABaseCharacter* BaseCharacter);
-	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-	virtual void Deinitialize() override;
+	GENERATED_BODY()
 
 public:
 	void PreMoveBroadCast();
-	
+
 	UFUNCTION()
 	void TestFunc_SwitchCharacter_RanOutOfAction();
-	
+
 	// 预先准备移动： 显示角色移动路径，让bCanMove为True
 	FOnCharacterStateChange OnPreMove;
 	// 执行移动： 检测bCanMove，然后bCanMove为False
@@ -51,26 +47,23 @@ public:
 	FOnCharacterStateChange OnCancelMove;
 
 
-	
 	//全局的，查看某一个角色的信息的时候，显示移动范围。
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
 
-	
+
 	//切换到另一个角色行动时
 	FOnCharacterStateChange OnSwitchCharacterAction;
 	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
-	
-	
-	
+
 
 	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
 	FOnCharacterSkillStateChange OnPreSkillSelection;
 	//正在选择，显示Visual FeedBack等
 	FOnCharacterSkillStateChange OnPostSkillSelected;
 	//技能释放了
-	FOnCharacterSkillStateChange OnSkillRelease;
+	FOnCharacterSkillRelease OnSkillRelease;
 	//技能取消选择了
 	FOnCharacterSkillStateChange OnSkillSelectionCancelled;
 
@@ -78,14 +71,13 @@ public:
 	ABaseCharacter* CurrentControlPlayer;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
 	ABaseCharacter* CurrentActionCharacter;
-	
-	FTimerHandle VisualFeedBackTimeHandle;
 
-	TArray<FVector> MovePoints;
+
 	float DebugLifeTime = 0.1f;
-	
-	
 
+	bool bIsInRange;
+protected:
+	TArray<FVector> MovePoints;
 
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
 
@@ -93,47 +85,52 @@ public:
 	void CharacterPreMove(ABaseCharacter* InBaseCharacter);
 	void HideVisualFeedback_Move();
 
-protected:
-	bool bCanMove=false;
-	
+	FTimerHandle VisualFeedBackTimeHandle;
+	void CancelSelectedSkill();
+	bool bCanMove = false;
+
 	UTacticSubsystem();
 	UPROPERTY()
 	AShowVisualFeedbackActor* ShowVisualFeedbackActor;
 	TSubclassOf<AShowVisualFeedbackActor> VisualFeedbackActorClass;
 	AShowVisualFeedbackActor* GetShowVisualFeedbackActor();
 
+	void PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
+	void Move(ABaseCharacter* BaseCharacter);
+	void CancelMove(ABaseCharacter* BaseCharacter);
+
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+	virtual void Deinitialize() override;
 
 	ATacticPlayerController* GetTacticPlayerController()
 	{
-		return GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+		if (!TacticPlayerController)
+		{
+			TacticPlayerController = GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+		}
+		return TacticPlayerController;
 	}
-	
+
 	ATacticGameState* GetTacticGameState();
-
+	void SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility, TArray<ABaseCharacter*> PotentialTargets);
 	void RoundFinish(ABaseCharacter* BaseCharacter);
-	void SelectedSkill(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
-
+	void PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
 
 	UFUNCTION()
 	void ShowMove();
-
-	// Path visualization properties
-	UPROPERTY()
-	TArray<USplineMeshComponent*> PathSplineMeshes;
-
-	UPROPERTY()
-	UMaterialInstanceDynamic* PathMaterial;
-
-	UPROPERTY()
-	UStaticMesh* PathMesh;
 
 	// Path visualization settings
 	FVector2D PathScale = FVector2D(10.0f, 10.0f);
 	FLinearColor PathColor = FLinearColor(1.0f, 0.f, 0.f, 1.0f);
 	float PathOpacity = 0.8f;
 
+	FTimerHandle SelectedSkillTimerHandle;
 
-	GENERATED_BODY()
+private:
+	UPROPERTY()
+	ATacticPlayerController* TacticPlayerController;
+	UPROPERTY()
+	ATacticGameState* TacticGameState;
 };
 
 template <typename T>

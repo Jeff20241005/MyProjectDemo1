@@ -13,8 +13,6 @@ void ATacticGameMode::BeginPlay()
 	Super::BeginPlay();
 	TacticPlayerController = Cast<ATacticPlayerController>
 		(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	TacticGameState = Cast<ATacticGameState>(GetWorld()->GetGameState());
-	
 	//SetTacticStateEnum(BeginBattle);
 }
 
