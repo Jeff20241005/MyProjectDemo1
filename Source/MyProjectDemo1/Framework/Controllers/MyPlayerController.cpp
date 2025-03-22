@@ -87,6 +87,9 @@ void AMyPlayerController::SetupInputComponent()
 
 	// 添加鼠标滚轮绑定
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::ZoomCamera);
+
+	
+	InputComponent->BindAction("TabClick",IE_Pressed, this, &AMyPlayerController::TabClick);
 }
 
 void AMyPlayerController::GetMouseLocation()
@@ -116,6 +119,10 @@ void AMyPlayerController::LeftMouseLineTraceExecute(FHitResult HitResult)
 
 
 void AMyPlayerController::OnRightMouseButtonDown()
+{
+}
+
+void AMyPlayerController::TabClick()
 {
 }
 

@@ -5,12 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
 #include "MyGameMode.generated.h"
-/**
- * 
- */
 
 class AMyPlayerController;
+class ATacticPlayerController;
+class AFreeRoamPlayerController;
 
+// 游戏模式枚举
 UENUM(BlueprintType)
 enum class EControlMode : uint8
 {
@@ -19,15 +19,20 @@ enum class EControlMode : uint8
 	LevelMode // 关卡模式
 };
 
+/**
+ * 
+ */
 UCLASS()
 class MYPROJECTDEMO1_API AMyGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
+	AMyGameMode();
 	
 	UFUNCTION()
 	void SwitchControlMode();
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Control Mode")
 	EControlMode CurrentControlMode = EControlMode::FreeRoamMode;
 
@@ -43,4 +48,21 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+	// 各种控制器类
+	UPROPERTY(EditDefaultsOnly, Category = "Controllers")
+	TSubclassOf<ATacticPlayerController> TacticalControllerClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Controllers")
+	TSubclassOf<AFreeRoamPlayerController> FreeRoamControllerClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Controllers")
+	TSubclassOf<AMyPlayerController> LevelControllerClass;
+
+private:
+	// 保存当前控制器的状态
+	void SaveControllerState(APlayerController* Controller);
+
+	// 恢复控制器状态
+	void RestoreControllerState(APlayerController* Controller);
 };

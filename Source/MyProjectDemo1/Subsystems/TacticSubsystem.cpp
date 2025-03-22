@@ -11,12 +11,14 @@
 #include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Characters/PlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
+#include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
 #include "MyProjectDemo1/Components/PathTracerComponent.h"
-#include "MyProjectDemo1/FilePaths/TacticPaths.h"
+#include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "MyProjectDemo1/Framework/GameStates/MyGameState.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
@@ -24,16 +26,19 @@
 
 void UTacticSubsystem::TestFunc_SwitchCharacter_RanOutOfAction()
 {
-	//todo test
-	auto test = GetTacticGameState()->SortCharactersByActionValues();
-	if (OnSwitchCharacterAction.IsBound() && test)
+	GetTacticGameState()->SortCharactersByActionValues();
+	auto FirstCharacter = GetTacticGameState()->GetAllCharactersInOrder()[0];
+	if (OnSwitchCharacterAction.IsBound() && FirstCharacter)
 	{
-		OnSwitchCharacterAction.Broadcast(test);
-	}
+		OnSwitchCharacterAction.Broadcast(FirstCharacter);
 
-	//直接设置ActionValue，代表执行完毕Action。
-	test->GetBaseCharacterAttributeSet()->SetActionValues(0);
+
+		//直接设置ActionValue，代表执行完毕Action。
+		FirstCharacter->GetBaseCharacterAttributeSet()->SetActionValues(0);
+	}
 }
+
+
 
 void UTacticSubsystem::PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
 {
@@ -72,9 +77,20 @@ void UTacticSubsystem::CancelMove(ABaseCharacter* BaseCharacter)
 	bCanMove = false;
 }
 
+void UTacticSubsystem::MyMouseEndCursorOver(ABaseCharacter* BaseCharacter)
+{
+}
+
+void UTacticSubsystem::MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter)
+{
+	//if () todo 如果按下技能，则只显示自身的移动范围：  全局就一个圈，我们只调用VisualFeedBackActor就可以了
+	{
+	}
+}
+
 ATacticGameState* UTacticSubsystem::GetTacticGameState()
 {
-	if (TacticGameState)
+	if (!TacticGameState)
 	{
 		TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
 	}
@@ -122,6 +138,9 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	OnPreMove.AddUObject(this, &ThisClass::CharacterPreMove);
 	OnMove.AddUObject(this, &ThisClass::Move);
 	OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
+
+	OnMyMouseBeginCursorOver.AddUObject(this, &ThisClass::MyMouseBeginCursorOver);
+	OnMyMouseEndCursorOver.AddUObject(this, &ThisClass::MyMouseEndCursorOver);
 }
 
 void UTacticSubsystem::Deinitialize()
@@ -139,9 +158,9 @@ void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
 {
 	CurrentActionCharacter = BaseCharacter;
 
-	if (BaseCharacter->GetTeamComp()->IsPlayerTeam())
+	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(BaseCharacter))
 	{
-		CurrentControlPlayer = BaseCharacter;
+		CurrentControlPlayer = PlayerCharacter;
 	}
 }
 

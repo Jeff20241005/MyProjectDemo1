@@ -6,6 +6,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "TacticSubsystem.generated.h"
 
+class APlayerCharacter;
 class ATacticPlayerController;
 class AMyGameState;
 class AMyPlayerController;
@@ -68,7 +69,7 @@ public:
 	FOnCharacterSkillStateChange OnSkillSelectionCancelled;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	ABaseCharacter* CurrentControlPlayer;
+	APlayerCharacter* CurrentControlPlayer;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
 	ABaseCharacter* CurrentActionCharacter;
 
@@ -99,6 +100,8 @@ protected:
 	void Move(ABaseCharacter* BaseCharacter);
 	void CancelMove(ABaseCharacter* BaseCharacter);
 
+	void MyMouseEndCursorOver(ABaseCharacter* BaseCharacter);
+	void MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 

@@ -75,8 +75,6 @@ protected:
 	ABaseCharacter* Owner_BaseCharacter;
 
 	UTeamComp();
-	UPROPERTY()
-	ATacticGameState* TacticGameState;
 
 	virtual void BeginPlay() override;
 

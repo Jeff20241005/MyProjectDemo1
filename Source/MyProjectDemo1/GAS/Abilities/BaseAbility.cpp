@@ -108,6 +108,7 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 		case EAR_Cross:
 			// 设置十字形范围显示
 			break;
+		default: ;
 		}
 	}
 

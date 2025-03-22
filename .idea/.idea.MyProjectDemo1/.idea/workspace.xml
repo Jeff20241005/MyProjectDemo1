@@ -26,26 +26,73 @@
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/AI/Characters/EnemyCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/AI/Characters/EnemyCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Characters/PlayerCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Components/TeamComp.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Components/TeamComp.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Framework/Controllers/MyPlayerController.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Abilities/GameplayAbility.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/Abilities/GameplayAbility.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Public/GameplayAbilitySpecHandle.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MeshMergeUtilities/Private/MeshMergeHelpers.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Private/CameraController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/VREditor/Private/VREditorMode.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Android/AndroidFileClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/Gauntlet.Automation.csproj" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Mac/Mac.Automation.csproj" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Mac/MacPlatform.Automation.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Turnkey/TurnkeySettings.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Horde/Compute/Clients/ServerComputeClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Perforce/EpicGames.Perforce.csproj" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/UnrealBuildTool/UnrealBuildTool.csproj" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AIModule/Private/EnvironmentQuery/Generators/EnvQueryGenerator_OnCircle.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Private/Math/UnrealMath.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Containers/Array.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Delegates/DelegateSignatureImpl.inl" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Math/Axis.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Math/Matrix.inl" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/Templates/SubclassOf.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/Object.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Camera/PlayerCameraManager.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/ActorComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/SphereComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/Engine.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/World.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/Actor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/Controller.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/GameModeBase.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/GameState.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/PlayerController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/SpectatorPawn.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Actor.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Components/SceneComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Controller.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/DebugCameraController.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/GameInstance.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/GameModeBase.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/GameplayStatics.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Pawn.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Player.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/PlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/TimerManager.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/UnrealEngine.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/World.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/Subsystems/Subsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/TimerManager.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/FriendsAndChat/Private/FriendsChatStyle.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/FriendsAndChat/Public/FriendsChatStyle.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/NavigationSystem/Public/NavigationPath.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Net/Core/Public/Net/Core/PushModel/PushModel.h" root0="FORCE_HIGHLIGHTING" />
@@ -176,7 +223,7 @@
       <updated>1740194920095</updated>
       <workItem from="1740194921548" duration="726000" />
       <workItem from="1740195909177" duration="317000" />
-      <workItem from="1742260617613" duration="60164000" />
+      <workItem from="1742260617613" duration="101745000" />
     </task>
     <servers />
   </component>

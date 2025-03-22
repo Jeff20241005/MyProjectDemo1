@@ -132,29 +132,19 @@ void ABaseCharacter::CloseWidget()
 	MoveRangeWidgetComp->SetVisibility(false);
 }
 
-void ABaseCharacter::BaseCharacterAIMoveTo(FVector EndLocation)
-{
-	if (BaseAIController)
-	{
-		// 获取角色的移动范围
-		switch (MyGameMode->CurrentControlMode)
-		{
-		case EControlMode::FreeRoamMode:
-			BaseAIController->MoveToLocationWithPathFinding(EndLocation);
-			break;
-		
-		}
-	}
-}
-
 
 void ABaseCharacter::BeginPlay()
 {
-	TacticGameState = Cast<ATacticGameState>(GetWorld()->GetGameState());
 	Super::BeginPlay();
-
-	// 初始化AbilitySystem
-	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	
+	// Try to get GameState
+	TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
+	
+	if (GetWorld() && GetWorld()->GetGameInstance())
+	{
+		TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	}
+	
 	MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	if (MyAbilityComp)
@@ -184,6 +174,7 @@ void ABaseCharacter::BeginPlay()
 
 	MyPlayerController = Cast<AMyPlayerController>(
 		UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	
 }
 
 
@@ -225,8 +216,9 @@ void ABaseCharacter::NotifyActorBeginCursorOver()
 	{
 		MyPlayerController->HoveredActor = this;
 	}
-
-	if (TacticSubsystem->OnMyMouseBeginCursorOver.IsBound())
+	
+	// 添加空指针检查
+	if (TacticSubsystem)
 	{
 		TacticSubsystem->OnMyMouseBeginCursorOver.Broadcast(this);
 	}
@@ -247,7 +239,8 @@ void ABaseCharacter::NotifyActorEndCursorOver()
 		MyPlayerController->HoveredActor = nullptr;
 	}
 
-	if (TacticSubsystem->OnMyMouseEndCursorOver.IsBound())
+	// 添加空指针检查
+	if (TacticSubsystem && TacticSubsystem->OnMyMouseEndCursorOver.IsBound())
 	{
 		TacticSubsystem->OnMyMouseEndCursorOver.Broadcast(this);
 	}

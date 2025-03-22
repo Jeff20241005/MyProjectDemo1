@@ -7,6 +7,7 @@
 #include "MyProjectDemo1/AI/AIControllers/EnemyAIController.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 
 
 void AEnemyCharacter::NotifyActorOnClicked(FKey ButtonPressed)

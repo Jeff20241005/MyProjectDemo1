@@ -5,6 +5,7 @@
 
 #include "GameFramework/SpectatorPawn.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
@@ -12,6 +13,22 @@
 void AFreeRoamPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	// Find the player character
+	if (!FreeRoamCurrentControlPlayer)
+	{
+		FreeRoamCurrentControlPlayer = Cast<APlayerCharacter>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass()));
+
+		if (!FreeRoamCurrentControlPlayer)
+		{
+			UE_LOG(LogTemp, Error, TEXT("FreeRoamPlayerController: Could not find a PlayerCharacter in the world"));
+		}
+		else
+		{
+			// Set the view target to the found player character
+			SetViewTarget(FreeRoamCurrentControlPlayer);
+		}
+	}
 }
 
 void AFreeRoamPlayerController::OnFreeModeLeftMouseButtonDown(FHitResult HitResult)
@@ -21,7 +38,7 @@ void AFreeRoamPlayerController::OnFreeModeLeftMouseButtonDown(FHitResult HitResu
 		// 暂时取消玩家控制
 		UnPossess();
 		FreeRoamCurrentControlPlayer->BaseAIController->Possess(FreeRoamCurrentControlPlayer);
-		FreeRoamCurrentControlPlayer->BaseCharacterAIMoveTo(LastClickLocation);
+		FreeRoamCurrentControlPlayer->BaseAIController->MoveToLocationWithPathFinding(LastClickLocation);
 		PossesSpawnedSpectatorPawn();
 	}
 }
@@ -35,7 +52,8 @@ void AFreeRoamPlayerController::OnLeftMouseButtonDown()
 void AFreeRoamPlayerController::ZoomCamera(float Value)
 {
 	Super::ZoomCamera(Value);
-	if (FreeRoamCurrentControlPlayer && FreeRoamCurrentControlPlayer->SpringArmComponent)
+	if (FreeRoamCurrentControlPlayer
+		&& FreeRoamCurrentControlPlayer->SpringArmComponent)
 	{
 		if (CurrentSpringArmLength == 0)
 		{
@@ -96,10 +114,8 @@ void AFreeRoamPlayerController::PossesSpawnedSpectatorPawn()
 void AFreeRoamPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 {
 	Super::PlayerInputMovement(Value, Axis);
-	// 创建移动旋转
-	FRotator MovementRotation(0.0f, 0.0f, 0.0f);
 
+	FRotator MovementRotation(0.0f, 0.0f, 0.0f);
 	const FVector Direction = FRotationMatrix(MovementRotation).GetUnitAxis(Axis);
-	// 应用移动
 	GetPawn()->AddMovementInput(Direction, Value);
 }

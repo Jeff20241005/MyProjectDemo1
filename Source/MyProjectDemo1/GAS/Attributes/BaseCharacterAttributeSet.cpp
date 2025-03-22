@@ -6,6 +6,7 @@
 #include "GameplayEffectExtension.h"
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 
@@ -86,10 +87,18 @@ void UBaseCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffect
 	}
 }
 
+ABaseCharacter* UBaseCharacterAttributeSet::GetOwnerCharacter()
+{
+	if (!OwnerCharacter)
+	{
+		OwnerCharacter = Cast<ABaseCharacter>(GetOwningActor());
+	}
+	return OwnerCharacter;
+}
+
 void UBaseCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
-	//ABaseCharacter* OwnerCharacter = Cast<ABaseCharacter>(GetOwningActor());
 
 	// Clamp health between 0 and max health
 	if (Attribute == GetHealthAttribute())
@@ -111,7 +120,7 @@ void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& A
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
-	if (Attribute == GetActionValuesAttribute())
+	if (Attribute == GetActionValuesAttribute() && GetOwnerCharacter()->GetMyAbilityComp()->bAbilitiesInitialized)
 	{
 		if (ATacticGameState* TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld())))
 		{

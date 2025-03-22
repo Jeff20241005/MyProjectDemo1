@@ -16,6 +16,7 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 #define GET_NUMERIC_VALUE(AttributeSetName, PropertyName) \
 AttributeSetName->Get##PropertyName##Attribute().GetNumericValue(AttributeSetName)
 
+class ABaseCharacter;
 /**
  * 
  */
@@ -33,9 +34,11 @@ public:
 	
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	ABaseCharacter* GetOwnerCharacter();
 
 	UPROPERTY(EditAnywhere, Category = "Base")
 	FGameplayAttributeData MaxHealth;
+	
 	ATTRIBUTE_ACCESSORS(UBaseCharacterAttributeSet, MaxHealth)
 	UPROPERTY(EditAnywhere)
 	FGameplayAttributeData Health;
@@ -82,4 +85,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Base")
 	FGameplayAttributeData MoveRange;
 	ATTRIBUTE_ACCESSORS(ThisClass, MoveRange)
+
+protected:
+	UPROPERTY()
+	ABaseCharacter* OwnerCharacter;
 };

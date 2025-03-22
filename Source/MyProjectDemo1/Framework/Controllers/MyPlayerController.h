@@ -38,15 +38,13 @@ public:
 	//点击的物品（操作角色靠近或者捡起等）
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* ClickedItem;
-	
+
 	void MouseLocationTraceExecute(FHitResult HitResult);
 
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 
-
 protected:
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float TraceDistance = 100000;
 
@@ -72,6 +70,7 @@ protected:
 	void LeftMouseLineTraceExecute(FHitResult HitResult);
 
 	virtual void OnRightMouseButtonDown();
+	virtual void TabClick();
 	// 绑定输入事件
 	virtual void SetupInputComponent() override;
 
@@ -80,18 +79,16 @@ protected:
 
 	AMyPlayerController();
 
-
 	// WASD移动相关
 	virtual void MoveForward(float Value);
 	virtual void MoveRight(float Value);
 
 	virtual void PlayerInputMovement(float Value, EAxis::Type Axis);
 
-	virtual  void ZoomCamera(float Value);
+	virtual void ZoomCamera(float Value);
 
 	UFUNCTION(BlueprintCallable)
-	ASpectatorPawn* GetMySpectatorPawn(); 
-private:
+	ASpectatorPawn* GetMySpectatorPawn();
 	UPROPERTY()
 	ASpectatorPawn* MySpectatorPawn;
 };

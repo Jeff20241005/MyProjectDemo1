@@ -56,7 +56,4 @@ public:
 
 	ETacticState CurrentBattleState;
 
-private:
-	UPROPERTY()
-	ATacticPlayerController* TacticPlayerController;		//---获取玩家控制器
 };

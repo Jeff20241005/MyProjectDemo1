@@ -12,16 +12,14 @@ void ATacticGameState::BeginPlay()
 	Super::BeginPlay();
 }
 
-ABaseCharacter* ATacticGameState::SortCharactersByActionValues()
+void ATacticGameState::SortCharactersByActionValues()
 {
-	if (AllCharactersInOrder.IsEmpty()) return nullptr;
 	AllCharactersInOrder.Sort([](const ABaseCharacter& A, const ABaseCharacter& B) -> bool
 	{
 		const float ValueA = A.GetBaseCharacterAttributeSet()->GetActionValues();
 		const float ValueB = B.GetBaseCharacterAttributeSet()->GetActionValues();
 		return ValueA > ValueB;
 	});
-	return AllCharactersInOrder[0];
 	// debug field
 }
 

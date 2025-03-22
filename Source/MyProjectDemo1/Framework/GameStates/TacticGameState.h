@@ -18,7 +18,7 @@ class MYPROJECTDEMO1_API ATacticGameState : public AMyGameState
 public:
 	//任意角色行动值改变时，在Attribute里自动调用了此函数
 	UFUNCTION(BlueprintCallable, Category = "Utility")
-	ABaseCharacter* SortCharactersByActionValues();
+	void SortCharactersByActionValues();
 
 	
 	// 获取对特定角色敌对的所有角色
@@ -51,8 +51,8 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Utility")
 	TArray<ABaseCharacter*> GetNeutralTeam() const { return NeutralTeam; }
 
-private:
-	friend UTeamComp;
+
+//	friend UTeamComp;
 	UFUNCTION(BlueprintCallable, Category = "Utility")
 	void RemoveCharacterFromTeamByType(ABaseCharacter* Character);
 	// 根据角色的团队类型自动添加到相应队伍

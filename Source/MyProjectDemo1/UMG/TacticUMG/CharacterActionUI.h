@@ -32,5 +32,7 @@ public:
 protected:
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
+	UFUNCTION()
+	void ActionButton_SkillFunction();
 	virtual void NativeConstruct() override;
 };

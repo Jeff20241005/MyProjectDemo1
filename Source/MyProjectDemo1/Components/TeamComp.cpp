@@ -5,7 +5,7 @@
 
 #include "MyAbilityComp.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/FilePaths/TacticPaths.h"
+#include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
@@ -22,17 +22,18 @@ void UTeamComp::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
-	TacticGameState = Owner_BaseCharacter->TacticGameState;
+	
 }
 
 
 void UTeamComp::SetTeam(ETeamType NewTeam)
 {
 	// 先从原队伍移除
-	TacticGameState->RemoveCharacterFromTeamByType(Owner_BaseCharacter);
+	Owner_BaseCharacter->TacticGameState->RemoveCharacterFromTeamByType(Owner_BaseCharacter);
+
 	TeamType = NewTeam;
 	// 添加到新队伍
-	TacticGameState->AddCharacterToTeamByType(Owner_BaseCharacter);
+	Owner_BaseCharacter->TacticGameState->AddCharacterToTeamByType(Owner_BaseCharacter);
 
 	// 可以在这里添加团队变更时的逻辑
 	// 例如更新角色外观、等
@@ -109,7 +110,7 @@ ABaseCharacter* UTeamComp::GetNearestHostileCharacter() const
 	float MinDistance = MAX_FLT;
 
 	// 获取所有敌对角色
-	TArray<ABaseCharacter*> HostileCharacters = TacticGameState->GetAllHostileCharacters(Owner_BaseCharacter);
+	TArray<ABaseCharacter*> HostileCharacters = Owner_BaseCharacter->TacticGameState->GetAllHostileCharacters(Owner_BaseCharacter);
 
 	// 找出最近的敌对角色
 	for (ABaseCharacter* Hostile : HostileCharacters)
@@ -136,7 +137,7 @@ ABaseCharacter* UTeamComp::GetNearestFriendlyCharacter() const
 
 	// 获取GameState
 	// 获取所有友好角色
-	TArray<ABaseCharacter*> FriendlyCharacters = TacticGameState->GetAllFriendlyCharacters(Owner_BaseCharacter);
+	TArray<ABaseCharacter*> FriendlyCharacters = Owner_BaseCharacter->TacticGameState->GetAllFriendlyCharacters(Owner_BaseCharacter);
 
 	// 找出最近的友好角色（排除自己）
 	for (ABaseCharacter* Friendly : FriendlyCharacters)
@@ -176,7 +177,7 @@ TArray<ABaseCharacter*> UTeamComp::GetHostileCharactersInAttackRange() const
 	TArray<ABaseCharacter*> HostilesInRange;
 
 	// 获取所有敌对角色
-	TArray<ABaseCharacter*> HostileCharacters = TacticGameState->GetAllHostileCharacters(Owner_BaseCharacter);
+	TArray<ABaseCharacter*> HostileCharacters = Owner_BaseCharacter->TacticGameState->GetAllHostileCharacters(Owner_BaseCharacter);
 
 	// 筛选在攻击范围内的敌对角色
 	float AttackRange = Owner_BaseCharacter->GetBaseCharacterAttributeSet()->GetAttackRange();
@@ -197,12 +198,11 @@ TArray<ABaseCharacter*> UTeamComp::GetHostileCharactersInAttackRange() const
 
 void UTeamComp::Charm()
 {
-	if (!Owner_BaseCharacter)
-		return;
-
+	if (!Owner_BaseCharacter) return;
+	//TacticGameState->RemoveCharacterFromTeamByType(Owner_BaseCharacter);
 	// 保存原始队伍类型
 	OriginalTeam = TeamType;
-	
+
 	// 根据原始队伍类型设置新队伍
 	switch (TeamType)
 	{
@@ -216,12 +216,16 @@ void UTeamComp::Charm()
 	default:
 		break;
 	}
+
+	//TacticGameState->AddCharacterToTeamByType(Owner_BaseCharacter);
 }
 
 void UTeamComp::UnCharm()
 {
-	if (!Owner_BaseCharacter)
-		return;
+	if (!Owner_BaseCharacter) return;
+	//TacticGameState->RemoveCharacterFromTeamByType(Owner_BaseCharacter);
 	// 恢复原始队伍
 	SetTeam(OriginalTeam);
+
+	//TacticGameState->AddCharacterToTeamByType(Owner_BaseCharacter);
 }

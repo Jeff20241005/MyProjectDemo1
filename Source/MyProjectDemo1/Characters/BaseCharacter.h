@@ -41,15 +41,12 @@ public:
 
 	void DrawMoveRange(ABaseCharacter* BaseCharacter);
 	void CloseWidget();
-
-
+	
 	void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
 	                  ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
 	void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 
-	void BaseCharacterAIMoveTo(FVector EndLocation);
-
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	ABaseAIController* BaseAIController;
 

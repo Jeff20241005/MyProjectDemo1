@@ -9,6 +9,22 @@
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/ActionButtonUI.h"
 
+void UCharacterActionUI::ActionButton_SkillFunction()
+{
+	if (ABaseCharacter* InCurrentControlPlayer = TacticSubsystem->CurrentActionCharacter)
+	{
+		//也许不断重新创建比较好？删除又创建，就不用手动清空技能列表了。
+		/*todo 把InCurrentControlPlayer放入技能UI
+		TArray<FGameplayAbilitySpecHandle> OutAbilityHandle;
+		InCurrentControlPlayer->GetMyAbilityComp()->GetAllAbilities(OutAbilityHandle);
+
+		for (FGameplayAbilitySpecHandle AbilityHandle : OutAbilityHandle)
+		{
+			//AbilityHandle.
+		}*/
+	}
+}
+
 /* todo put it in buttonbase
 for (auto Spec : GetActivatableAbilities())
 	{
@@ -27,20 +43,22 @@ for (auto Spec : GetActivatableAbilities())
 void UCharacterActionUI::NativeConstruct()
 {
 	Super::NativeConstruct();
-	
+
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 
 	//todo better or not to put show move / BeginDrawVisualFeedBack in userwidgets
-//todo 	ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
+	//todo 	ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
 	// we may move the tactic "real" move function, to ability base
-	
+
 	//ActionButton_Move->Button->OnClicked.AddDynamic(this, &ThisClass::SetCurrent);
-	
+
 	//ActionButton_Attack->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
-	//ActionButton_Skill->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
+	ActionButton_Skill->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButton_SkillFunction);
 
 	AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-	ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode,&AMyGameMode::SwitchControlMode);
-	
-	ActionButton_SwitchCharacter->Button->OnClicked.AddDynamic(TacticSubsystem,&UTacticSubsystem::TestFunc_SwitchCharacter_RanOutOfAction);
+	ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode, &AMyGameMode::SwitchControlMode);
+
+	ActionButton_SwitchCharacter->Button->OnClicked.AddDynamic(TacticSubsystem,
+	                                                           &UTacticSubsystem::
+	                                                           TestFunc_SwitchCharacter_RanOutOfAction);
 }
