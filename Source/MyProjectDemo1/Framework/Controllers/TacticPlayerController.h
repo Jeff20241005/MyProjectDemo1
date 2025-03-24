@@ -4,14 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "MyPlayerController.h"
-#include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Framework/GameModes/TacticGameMode.h"
-#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "TacticPlayerController.generated.h"
 
 class UTacticSubsystem;
-class ATacticGameState;
-class ABaseCharacter; // Forward declaration instead of including the header
+class ABaseCharacter;
 
 /**
  * 
@@ -83,8 +79,6 @@ protected:
 
 
 	UPROPERTY()
-	ATacticGameState* TacticGameState;
-	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
 
 	// Camera zoom properties
@@ -95,7 +89,7 @@ protected:
 	float MaxCameraHeight = 800.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
-	float MinCameraHeight = 100.0f;
+	float MinCameraHeight = 120.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float MaxCameraPitch = -45.0f; // Looking down at x degrees

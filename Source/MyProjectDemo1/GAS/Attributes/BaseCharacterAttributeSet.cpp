@@ -4,11 +4,9 @@
 #include "BaseCharacterAttributeSet.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
-#include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 UBaseCharacterAttributeSet::UBaseCharacterAttributeSet()
 {
@@ -122,9 +120,9 @@ void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& A
 
 	if (Attribute == GetActionValuesAttribute() && GetOwnerCharacter()->GetMyAbilityComp()->bAbilitiesInitialized)
 	{
-		if (ATacticGameState* TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld())))
+		if (UTacticSubsystem* TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>())
 		{
-			TacticGameState->SortCharactersByActionValues();
+			TacticSubsystem->SortCharactersByActionValues();
 		}
 	}
 }

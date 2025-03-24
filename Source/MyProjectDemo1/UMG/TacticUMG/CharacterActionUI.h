@@ -34,5 +34,7 @@ protected:
 	UTacticSubsystem* TacticSubsystem;
 	UFUNCTION()
 	void ActionButton_SkillFunction();
+	UFUNCTION()
+	void TestSwitchCharac();
 	virtual void NativeConstruct() override;
 };

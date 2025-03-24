@@ -7,7 +7,6 @@
 #include "MyAbilityComp.generated.h"
 
 enum EAttackRangeType : uint8;
-class ATacticGameState;
 class UBaseAbility;
 class UBaseCharacterAttributeSet;
 class ABaseCharacter;

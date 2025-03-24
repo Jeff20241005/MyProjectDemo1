@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameMode.h"
+#include "GameFramework/GameModeBase.h"
 #include "MyGameMode.generated.h"
 
 class AMyPlayerController;
@@ -23,7 +23,7 @@ enum class EControlMode : uint8
  * 
  */
 UCLASS()
-class MYPROJECTDEMO1_API AMyGameMode : public AGameMode
+class MYPROJECTDEMO1_API AMyGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 

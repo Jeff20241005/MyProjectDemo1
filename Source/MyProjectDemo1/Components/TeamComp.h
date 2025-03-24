@@ -7,8 +7,8 @@
 #include "TeamComp.generated.h"
 
 
+class UTacticSubsystem;
 class ABaseCharacter;
-class ATacticGameState;
 
 UENUM(BlueprintType)
 enum class ETeamType : uint8
@@ -73,6 +73,8 @@ protected:
 	ETeamType TeamType;
 	UPROPERTY()
 	ABaseCharacter* Owner_BaseCharacter;
+	UPROPERTY()
+	UTacticSubsystem* TacticSubsystem;
 
 	UTeamComp();
 

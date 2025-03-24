@@ -5,7 +5,9 @@
 
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
+#include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
+#include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/ActionButtonUI.h"
 
@@ -22,6 +24,21 @@ void UCharacterActionUI::ActionButton_SkillFunction()
 		{
 			//AbilityHandle.
 		}*/
+	}
+}
+
+void UCharacterActionUI::TestSwitchCharac()
+{
+
+	TacticSubsystem->SortCharactersByActionValues();
+	
+	auto FirstCharacter = TacticSubsystem->GetAllCharactersInOrder()[0];
+	
+	if (TacticSubsystem->OnSwitchCharacterAction.IsBound() && FirstCharacter)
+	{
+		TacticSubsystem->OnSwitchCharacterAction.Broadcast(FirstCharacter);
+		//直接设置ActionValue，代表执行完毕Action。
+		FirstCharacter->GetBaseCharacterAttributeSet()->SetActionValues(0);
 	}
 }
 
@@ -53,12 +70,13 @@ void UCharacterActionUI::NativeConstruct()
 	//ActionButton_Move->Button->OnClicked.AddDynamic(this, &ThisClass::SetCurrent);
 
 	//ActionButton_Attack->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
-	ActionButton_Skill->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButton_SkillFunction);
 
-	AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-	ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode, &AMyGameMode::SwitchControlMode);
+	ActionButton_SwitchCharacter->Button->OnClicked.AddDynamic(this, &ThisClass::TestSwitchCharac);
+	//todo test can't bind subsystem , can not find subsystem on construction
+	//todo2 test can't bind button.
 
-	ActionButton_SwitchCharacter->Button->OnClicked.AddDynamic(TacticSubsystem,
-	                                                           &UTacticSubsystem::
-	                                                           TestFunc_SwitchCharacter_RanOutOfAction);
+	//ActionButton_Skill->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButton_SkillFunction);
+
+	//AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	//ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode, &AMyGameMode::SwitchControlMode);
 }

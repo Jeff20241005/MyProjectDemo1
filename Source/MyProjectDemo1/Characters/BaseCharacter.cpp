@@ -15,7 +15,6 @@
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 
 
 void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResult& HitInfo,
@@ -138,7 +137,6 @@ void ABaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	// Try to get GameState
-	TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
 	
 	if (GetWorld() && GetWorld()->GetGameInstance())
 	{

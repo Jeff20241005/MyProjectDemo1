@@ -5,7 +5,6 @@
 
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 
 
 void APlayerCharacter::NotifyActorOnClicked(FKey ButtonPressed)

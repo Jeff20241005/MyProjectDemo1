@@ -11,7 +11,7 @@
 #include "Components/BoxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                    const FGameplayAbilityActivationInfo ActivationInfo,
@@ -112,28 +112,28 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 		}
 	}
 
-	// 获取游戏状态
-	ATacticGameState* GameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(Owner_Caster->GetWorld()));
-	if (!GameState)
+	// Get subsystem instead of game state
+	UTacticSubsystem* TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	if (!TacticSubsystem)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GetPotentialTargets: Failed to get TacticGameState!"));
-		return true; // 返回true因为鼠标位置有效，只是没有找到目标
+		UE_LOG(LogTemp, Warning, TEXT("GetPotentialTargets: Failed to get TacticSubsystem!"));
+		return true;
 	}
 
-	// 获取所有角色
-	TArray<ABaseCharacter*> AllCharacters = GameState->GetAllCharactersInOrder();
+	// Get all characters
+	TArray<ABaseCharacter*> AllCharacters = TacticSubsystem->GetAllCharactersInOrder();
 
-	// 根据技能是否为负面效果，获取敌对或友好角色
+	// According to whether the skill is negative effect, get hostile or friendly characters
 	TArray<ABaseCharacter*> PotentialTargets;
 	if (bIsNegativeEffect)
 	{
-		// 负面效果针对敌人
-		PotentialTargets = GameState->GetAllHostileCharacters(Owner_Caster);
+		// Negative effects target enemies
+		PotentialTargets = TacticSubsystem->GetAllHostileCharacters(Owner_Caster);
 	}
 	else
 	{
-		// 正面效果针对友方
-		PotentialTargets = GameState->GetAllFriendlyCharacters(Owner_Caster);
+		// Positive effects target allies
+		PotentialTargets = TacticSubsystem->GetAllFriendlyCharacters(Owner_Caster);
 	}
 
 	// 如果需要包含自身

@@ -9,7 +9,6 @@
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void ATacticPlayerController::MoveForward(float Value)
@@ -20,6 +19,16 @@ void ATacticPlayerController::MoveForward(float Value)
 
 void ATacticPlayerController::ZoomCameraTick(float DeltaTime)
 {
+	// Smoothly interpolate camera rotation
+	CurrentCameraRotation = FMath::RInterpTo(
+		CurrentCameraRotation,
+		TargetCameraRotation,
+		DeltaTime,
+		RotationInterpSpeed
+	);
+	// Apply the interpolated rotation
+	SetControlRotation(CurrentCameraRotation);
+
 	// Get current spectator pawn
 	ASpectatorPawn* SpecPawn = Cast<ASpectatorPawn>(GetPawn());
 	if (!SpecPawn) return;
@@ -35,7 +44,8 @@ void ATacticPlayerController::ZoomCameraTick(float DeltaTime)
 	//float ForwardOffset = ZoomFactor * 200.0f; // Adjust this value for more/less curve
 
 	// Get forward vector (ignoring pitch) for offset calculation
-	FVector ForwardVector = FRotationMatrix(FRotator(0, TargetCameraRotation.Yaw, 0)).GetUnitAxis(EAxis::X);
+	//FVector ForwardVector = FRotationMatrix(FRotator(0, TargetCameraRotation.Yaw, 0)).GetUnitAxis(EAxis::X);
+
 	// Calculate target position with height and forward offset
 	FVector GroundLocation = FVector(CurrentLocation.X, CurrentLocation.Y, 0);
 	FVector TargetLocation = GroundLocation + FVector(0, 0, DesiredHeight); /* (ForwardVector * ForwardOffset);*/
@@ -47,16 +57,8 @@ void ATacticPlayerController::ZoomCameraTick(float DeltaTime)
 		DeltaTime,
 		ZoomInterpSpeed
 	);
-	// Smoothly move to new position
-	FVector NewLocationFinal = FMath::VInterpTo(
-		NewLocation,
-		TargetLocation,
-		DeltaTime,
-		ZoomInterpSpeed
-	);
-
 	// Set the new location
-	SpecPawn->SetActorLocation(NewLocationFinal);
+	SpecPawn->SetActorLocation(NewLocation);
 }
 
 void ATacticPlayerController::ZoomCamera(float Value)
@@ -72,7 +74,6 @@ void ATacticPlayerController::ZoomCamera(float Value)
 
 	// Get current location and calculate desired height
 	DesiredHeight = FMath::Lerp(MaxCameraHeight, MinCameraHeight, ZoomFactor);
-
 	// Calculate the desired pitch (angle)
 	DesiredPitch = FMath::Lerp(MaxCameraPitch, MinCameraPitch, ZoomFactor);
 }
@@ -97,41 +98,27 @@ void ATacticPlayerController::SetViewTarget(AActor* NewViewTarget, FViewTargetTr
 
 	ASpectatorPawn* MySpecPawn = GetMySpectatorPawn();
 	if (!MySpecPawn) return;
-	
+
 	// 获取相机当前位置和旋转
 	FVector CurrentLocation = MySpecPawn->GetActorLocation();
 	FRotator CamRotation = GetControlRotation();
-	
+
 	// 1. 从目标位置出发
 	FVector TargetLocation = NewViewTarget->GetActorLocation();
-	
+	FVector AdjustTargetLocation = FVector(TargetLocation.X, TargetLocation.Y, TargetLocation.Z + MinCameraHeight);
+
 	// 2. 获取相机朝向的反方向（相机看向的反方向）
 	FVector CameraForward = CamRotation.Vector().GetSafeNormal(); // 前向向量
 	FVector InverseCameraDirection = -CameraForward; // 相机反方向
-	
-	// 3. 沿着反方向射出一条射线，长度为MaxCameraHeight
-	FVector CameraPositionBeforeProjection = TargetLocation + (InverseCameraDirection * MaxCameraHeight);
-	
-	// 4. 从该点垂直向下投影计算
-	FVector GroundPosition = FVector(
-		CameraPositionBeforeProjection.X,
-		CameraPositionBeforeProjection.Y, 
-		0 // 简化为地面高度为0，实际项目中可能需要射线检测真实地面
-	);
-	// 计算实际相机高度 - 保持当前高度
-	float CurrentHeight = CurrentLocation.Z;
-	
-	// 计算最终相机位置
-	FVector NewCameraLocation = FVector(
-		GroundPosition.X, 
-		GroundPosition.Y,
-		CurrentHeight
-	);
-	
+
+	// 3. 沿着反方向射出一条射线，长度为CameraHeight
+	FVector CameraPositionBeforeProjection = AdjustTargetLocation + InverseCameraDirection * (MaxCameraHeight +
+		MinCameraHeight);
+
 	// 清除现有过渡计时器
 	GetWorldTimerManager().ClearTimer(CameraTransitionTimerHandle);
 	AlphaTimer = 0;
-	
+
 	// 设置平滑过渡的计时器
 	GetWorldTimerManager().SetTimer(
 		CameraTransitionTimerHandle,
@@ -140,27 +127,26 @@ void ATacticPlayerController::SetViewTarget(AActor* NewViewTarget, FViewTargetTr
 			// 增加过渡值
 			AlphaTimer += GetWorld()->GetDeltaSeconds() / SetViewTargetDuration;
 
+			// 插值计算位置
+			FVector TheFinalLocation = FMath::Lerp(
+				CurrentLocation,
+				CameraPositionBeforeProjection,
+				AlphaTimer);
 			// 检查是否完成过渡
 			if (AlphaTimer >= 1.0f)
 			{
 				AlphaTimer = 1.0f;
-				MySpecPawn->SetActorLocation(NewCameraLocation);
+				//MySpecPawn->SetActorLocation(CameraPositionBeforeProjection);
 				GetWorldTimerManager().ClearTimer(CameraTransitionTimerHandle);
 				return;
 			}
 
-			// 插值计算位置
-			FVector NewLocation = FMath::Lerp(
-				CurrentLocation,
-				NewCameraLocation,
-				AlphaTimer
-			);
 
 			// 应用新位置
-			MySpecPawn->SetActorLocation(NewLocation);
+			MySpecPawn->SetActorLocation(TheFinalLocation);
 		},
 		0.016f, // ~60 fps
-		true    // 重复计时器
+		true // 重复计时器
 	);
 }
 
@@ -174,11 +160,9 @@ void ATacticPlayerController::BeginPlay()
 
 	// Get current location and calculate desired height
 	DesiredHeight = FMath::Lerp(MaxCameraHeight, MinCameraHeight, ZoomFactor);
-
 	// Calculate the desired pitch (angle)
 	DesiredPitch = FMath::Lerp(MaxCameraPitch, MinCameraPitch, ZoomFactor);
 
-	TacticGameState = Cast<ATacticGameState>(GetWorld()->GetGameState());
 	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 
 	TempSwitchCharacterActionDelegate = TacticSubsystem->OnSwitchCharacterAction.AddUObject(
@@ -204,9 +188,8 @@ void ATacticPlayerController::BeginPlay()
 	));
 
 	// Set initial camera rotation
-	TargetCameraRotation = FRotator(MaxCameraPitch, TargetCameraRotation.Yaw, 0.0f);
-	CurrentCameraRotation = TargetCameraRotation;
-	SetControlRotation(TargetCameraRotation);
+	//CurrentCameraRotation = TargetCameraRotation;
+	//SetControlRotation(TargetCameraRotation);
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
@@ -270,18 +253,6 @@ void ATacticPlayerController::Destroyed()
 void ATacticPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	// Smoothly interpolate camera rotation
-	CurrentCameraRotation = FMath::RInterpTo(
-		CurrentCameraRotation,
-		TargetCameraRotation,
-		DeltaSeconds,
-		RotationInterpSpeed
-	);
-
-	// Apply the interpolated rotation
-	SetControlRotation(CurrentCameraRotation);
-
 
 	ZoomCameraTick(DeltaSeconds);
 }

@@ -12,7 +12,6 @@ class AMyGameState;
 class AMyPlayerController;
 class AShowVisualFeedbackActor;
 class UWidgetComponent;
-class ATacticGameState;
 class ABaseCharacter;
 class ATacticPlayerCharacter;
 class UWidget_CharacterSkill;
@@ -37,8 +36,6 @@ class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
 public:
 	void PreMoveBroadCast();
 
-	UFUNCTION()
-	void TestFunc_SwitchCharacter_RanOutOfAction();
 
 	// 预先准备移动： 显示角色移动路径，让bCanMove为True
 	FOnCharacterStateChange OnPreMove;
@@ -77,6 +74,47 @@ public:
 	float DebugLifeTime = 0.1f;
 
 	bool bIsInRange;
+
+
+	//Data of Team
+	// Character team management functions
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	void SortCharactersByActionValues();
+
+	// Team query functions
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	TArray<ABaseCharacter*> GetAllHostileCharacters(const ABaseCharacter* Character) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	TArray<ABaseCharacter*> GetAllFriendlyCharacters(const ABaseCharacter* Character) const;
+
+	// Team status check functions
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	bool AreAllEnemiesDefeated() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	bool AreAllPlayersDefeated() const;
+
+	// Getter functions
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
+	TArray<ABaseCharacter*> GetAllCharactersInOrder() const { return AllCharactersInOrder; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
+	TArray<ABaseCharacter*> GetPlayerTeam() const { return PlayerTeam; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
+	TArray<ABaseCharacter*> GetEnemyTeam() const { return EnemyTeam; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
+	TArray<ABaseCharacter*> GetNeutralTeam() const { return NeutralTeam; }
+
+	// Character team management
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	void RemoveCharacterFromTeamByType(ABaseCharacter* Character);
+	
+	UFUNCTION(BlueprintCallable, Category = "Team Management")
+	void AddCharacterToTeamByType(ABaseCharacter* Character);
+
 protected:
 	TArray<FVector> MovePoints;
 
@@ -114,7 +152,6 @@ protected:
 		return TacticPlayerController;
 	}
 
-	ATacticGameState* GetTacticGameState();
 	void SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility, TArray<ABaseCharacter*> PotentialTargets);
 	void RoundFinish(ABaseCharacter* BaseCharacter);
 	void PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
@@ -128,12 +165,23 @@ protected:
 	float PathOpacity = 0.8f;
 
 	FTimerHandle SelectedSkillTimerHandle;
+private:
+	UPROPERTY()
+	TArray<ABaseCharacter*> EnemyTeam;
+	
+	UPROPERTY()
+	TArray<ABaseCharacter*> PlayerTeam;
+	
+	UPROPERTY()
+	TArray<ABaseCharacter*> NeutralTeam;
+	
+	// Character ordering by action values
+	UPROPERTY()
+	TArray<ABaseCharacter*> AllCharactersInOrder;
 
 private:
 	UPROPERTY()
 	ATacticPlayerController* TacticPlayerController;
-	UPROPERTY()
-	ATacticGameState* TacticGameState;
 };
 
 template <typename T>

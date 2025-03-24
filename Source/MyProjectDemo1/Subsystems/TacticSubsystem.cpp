@@ -14,30 +14,13 @@
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
-#include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
 #include "MyProjectDemo1/Components/PathTracerComponent.h"
+#include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
-#include "MyProjectDemo1/Framework/GameStates/MyGameState.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
-
-void UTacticSubsystem::TestFunc_SwitchCharacter_RanOutOfAction()
-{
-	GetTacticGameState()->SortCharactersByActionValues();
-	auto FirstCharacter = GetTacticGameState()->GetAllCharactersInOrder()[0];
-	if (OnSwitchCharacterAction.IsBound() && FirstCharacter)
-	{
-		OnSwitchCharacterAction.Broadcast(FirstCharacter);
-
-
-		//直接设置ActionValue，代表执行完毕Action。
-		FirstCharacter->GetBaseCharacterAttributeSet()->SetActionValues(0);
-	}
-}
-
 
 
 void UTacticSubsystem::PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
@@ -45,7 +28,6 @@ void UTacticSubsystem::PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbi
 	//todo !!!
 	/*if (BaseCharacter && BaseAbility)
 	{
-		TArray<ABaseCharacter*> PotentialTargets = GetTacticGameState()->GetTargetCharacters(
 		
 		);
 	}*/
@@ -88,14 +70,6 @@ void UTacticSubsystem::MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter)
 	}
 }
 
-ATacticGameState* UTacticSubsystem::GetTacticGameState()
-{
-	if (!TacticGameState)
-	{
-		TacticGameState = Cast<ATacticGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	}
-	return TacticGameState;
-}
 
 void UTacticSubsystem::SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility,
                                     TArray<ABaseCharacter*> PotentialTargets)
@@ -257,7 +231,7 @@ void UTacticSubsystem::PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbi
 			                                       // 处理目标列表...
 			                                       // 例如高亮显示可选目标
 			                                       for (ABaseCharacter*
-			                                            CharactersInOrder : GetTacticGameState()->
+			                                            CharactersInOrder :
 			                                            GetAllCharactersInOrder())
 			                                       {
 				                                       if (!PotentialTargets.Contains(CharactersInOrder))
@@ -284,7 +258,6 @@ void UTacticSubsystem::CancelSelectedSkill()
 	GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
 
 	/*// 清除所有目标的高亮
-	if (ATacticGameState* GameState = GetTacticGameState())
 	{
 		TArray<ABaseCharacter*> AllCharacters = GameState->GetAllCharactersInOrder();
 		for (ABaseCharacter* Character : AllCharacters)
@@ -295,4 +268,127 @@ void UTacticSubsystem::CancelSelectedSkill()
 			}
 		}
 	}*/
+}
+
+void UTacticSubsystem::SortCharactersByActionValues()
+{
+	AllCharactersInOrder.Sort([](const ABaseCharacter& A, const ABaseCharacter& B) -> bool
+	{
+		const float ValueA = A.GetBaseCharacterAttributeSet()->GetActionValues();
+		const float ValueB = B.GetBaseCharacterAttributeSet()->GetActionValues();
+		return ValueA > ValueB;
+	});
+}
+
+void UTacticSubsystem::AddCharacterToTeamByType(ABaseCharacter* Character)
+{
+	{
+		FString
+			TempStr = FString::Printf(TEXT("Add :%s "),*Character->GetName());
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+	}
+
+	if (!Character)
+		return;
+	// 更新行动顺序
+	AllCharactersInOrder.AddUnique(Character);
+	SortCharactersByActionValues();
+
+	// 根据角色的团队类型添加到相应队伍
+	switch (Character->GetTeamComp()->GetTeam())
+	{
+	case ETeamType::ETT_Player:
+		PlayerTeam.AddUnique(Character);
+		break;
+	case ETeamType::ETT_Enemy:
+		EnemyTeam.AddUnique(Character);
+		break;
+	case ETeamType::ETT_Neutral:
+		NeutralTeam.AddUnique(Character);
+		break;
+	default:
+		break;
+	}
+}
+
+TArray<ABaseCharacter*> UTacticSubsystem::GetAllHostileCharacters(const ABaseCharacter* Character) const
+{
+	if (!Character)
+		return TArray<ABaseCharacter*>();
+
+	TArray<ABaseCharacter*> HostileCharacters;
+
+	// 筛选敌对角色
+	for (ABaseCharacter* OtherCharacter : AllCharactersInOrder)
+	{
+		if (Character->GetTeamComp()->IsHostileTo(OtherCharacter))
+		{
+			HostileCharacters.Add(OtherCharacter);
+		}
+	}
+
+	return HostileCharacters;
+}
+
+TArray<ABaseCharacter*> UTacticSubsystem::GetAllFriendlyCharacters(const ABaseCharacter* Character) const
+{
+	if (!Character)
+		return TArray<ABaseCharacter*>();
+
+	TArray<ABaseCharacter*> FriendlyCharacters;
+
+	// 筛选友好角色
+	for (ABaseCharacter* OtherCharacter : AllCharactersInOrder)
+	{
+		if (Character->GetTeamComp()->IsFriendlyTo(OtherCharacter))
+		{
+			FriendlyCharacters.Add(OtherCharacter);
+		}
+	}
+
+	return FriendlyCharacters;
+}
+
+bool UTacticSubsystem::AreAllEnemiesDefeated() const
+{
+	// 检查敌人队伍是否为空或所有敌人都已死亡
+	for (const ABaseCharacter* Enemy : EnemyTeam)
+	{
+		if (Enemy && Enemy->GetBaseCharacterAttributeSet()->GetHealth() > 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool UTacticSubsystem::AreAllPlayersDefeated() const
+{
+	// 检查玩家队伍是否为空或所有玩家角色都已死亡
+	for (const ABaseCharacter* Player : PlayerTeam)
+	{
+		if (Player && Player->GetBaseCharacterAttributeSet()->GetHealth() > 0)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void UTacticSubsystem::RemoveCharacterFromTeamByType(ABaseCharacter* Character)
+{
+	if (!Character)
+		return;
+	{
+		FString
+			TempStr = FString::Printf(TEXT("Remove :%s "),*Character->GetName());
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+	}
+	// 从所有队伍中移除该角色
+	AllCharactersInOrder.Remove(Character);
+	PlayerTeam.Remove(Character);
+	EnemyTeam.Remove(Character);
+	NeutralTeam.Remove(Character);
 }

@@ -18,9 +18,6 @@ AMyGameMode::AMyGameMode()
 	CurrentControlMode = EControlMode::FreeRoamMode;
 
 	PlayerControllerClass = ATacticPlayerController::StaticClass();//todo test gamemode cause bug
-
-	// Make sure to set the correct GameState class
-	GameStateClass = ATacticGameState::StaticClass();
 }
 
 void AMyGameMode::BeginPlay()

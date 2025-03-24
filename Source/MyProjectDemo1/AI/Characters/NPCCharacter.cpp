@@ -5,7 +5,6 @@
 
 #include "MyProjectDemo1/AI/AIControllers/NPCAIController.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 
 
 ANPCCharacter::ANPCCharacter()

@@ -13,7 +13,6 @@ class AMyGameMode;
 class UPathTracerComponent;
 class UTeamComp;
 class UWidgetComponent;
-class ATacticGameState;
 class AMyPlayerController;
 class ABaseAIController;
 class UBaseAbility;
@@ -62,8 +61,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTeamComp* GetTeamComp() const { return TeamComp; }
 
-	UPROPERTY()
-	ATacticGameState* TacticGameState;
 
 	// 移动消耗的GameplayEffect，可以在蓝图中设置
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Effects")

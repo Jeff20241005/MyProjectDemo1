@@ -5,7 +5,6 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Framework/GameStates/TacticGameState.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 

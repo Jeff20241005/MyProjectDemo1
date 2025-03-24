@@ -28,6 +28,7 @@
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/Intermediate/Build/Win64/UnrealEditor/Inc/MyProjectDemo1/UHT/TacticSubsystem.gen.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/AI/Characters/EnemyCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/AI/Characters/EnemyCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Characters/PlayerCharacter.cpp" root0="SKIP_HIGHLIGHTING" />
@@ -223,7 +224,7 @@
       <updated>1740194920095</updated>
       <workItem from="1740194921548" duration="726000" />
       <workItem from="1740195909177" duration="317000" />
-      <workItem from="1742260617613" duration="101745000" />
+      <workItem from="1742260617613" duration="109936000" />
     </task>
     <servers />
   </component>
