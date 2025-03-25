@@ -86,7 +86,6 @@ void AFreeRoamPlayerController::MoveRight(float Value)
 	EnsurePlayerControl();
 }
 
-//todo move to single file
 void AFreeRoamPlayerController::EnsurePlayerControl()
 {
 	if (FreeRoamCurrentControlPlayer && FreeRoamCurrentControlPlayer->GetController() != this)

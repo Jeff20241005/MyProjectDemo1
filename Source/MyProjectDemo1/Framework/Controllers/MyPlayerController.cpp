@@ -155,7 +155,6 @@ void AMyPlayerController::SetViewTarget(class AActor* NewViewTarget, FViewTarget
 	Super::SetViewTarget(NewViewTarget, TransitionParams);
 }
 
-//todo move to single file
 void AMyPlayerController::ZoomCamera(float Value)
 {
 	if (Value == 0.0f) return;

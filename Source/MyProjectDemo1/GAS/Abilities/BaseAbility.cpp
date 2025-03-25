@@ -37,7 +37,7 @@ void UBaseAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 }
 
 bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackActor,
-                                       const FVector& MouseLocation,
+                                       const FVector& TargetLocation,
                                        TArray<ABaseCharacter*>& OutTargets,
                                        ABaseCharacter* SourceCharacter)
 {
@@ -60,7 +60,7 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 	if (bAimWithMouse)
 	{
 		// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
-		float DistanceToMouse = FVector::Dist2D(Owner_Caster->GetActorLocation(), MouseLocation);
+		float DistanceToMouse = FVector::Dist2D(Owner_Caster->GetActorLocation(), TargetLocation);
 
 		if (!bInfiniteRange && DistanceToMouse > SkillPlacementRadius)
 		{
@@ -68,7 +68,7 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 			return false;
 		}
 
-		AbilityCenter = MouseLocation;
+		AbilityCenter = TargetLocation;
 		//ForwardVector = (MouseLocation - Owner_Caster->GetActorLocation()).GetSafeNormal();
 	}
 	else
@@ -79,7 +79,7 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 		if (bSkillLookAtMouseHoveringLocation)
 		{
 			// 朝向鼠标位置
-			ForwardVector = (MouseLocation - Owner_Caster->GetActorLocation()).GetSafeNormal();
+			ForwardVector = (TargetLocation - Owner_Caster->GetActorLocation()).GetSafeNormal();
 		}
 		else
 		{
@@ -95,6 +95,7 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 		switch (SkillRangeType)
 		{
 		case EAR_Circle:
+			
 			//todo
 			// 设置圆形范围显示
 			// 这里需要根据你的VisualFeedbackActor实现来调用相应方法
@@ -113,11 +114,9 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 	}
 
 	// Get subsystem instead of game state
-	UTacticSubsystem* TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 	if (!TacticSubsystem)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GetPotentialTargets: Failed to get TacticSubsystem!"));
-		return true;
+		TacticSubsystem = VisualFeedbackActor->GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 	}
 
 	// Get all characters
@@ -159,7 +158,6 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 		case EAR_Circle:
 			//test 是否直接设置VisualFeedBackActor里面的组件更好？然后蓝图中，让可视化调整为响应的角度。
 			//还是说，都一样，蓝图中设置一个跟collision一样大，形状的，都是一样的难。。主要看扇形，测试扇形吧！
-
 			bInRange = IsCharacterInCircleRange(AbilityCenter, Character);
 			break;
 		case EAR_Box:

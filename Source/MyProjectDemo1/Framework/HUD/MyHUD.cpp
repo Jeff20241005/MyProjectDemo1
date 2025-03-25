@@ -17,7 +17,6 @@ T* AMyHUD::GetSingleObjectWidgetClass(TSubclassOf<UUserWidget> WidgetClass)
 	{
 		T* Object = CreateWidget<T>(GetWorld(), WidgetClass);
 		SingleObjectMap.Add(T::StaticClass(), Object);
-		//Object->AddToViewport();
 		return Object;
 	}
 }

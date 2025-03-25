@@ -16,8 +16,6 @@ AMyGameMode::AMyGameMode()
 	
 	// 设置默认游戏模式
 	CurrentControlMode = EControlMode::FreeRoamMode;
-
-	PlayerControllerClass = ATacticPlayerController::StaticClass();//todo test gamemode cause bug
 }
 
 void AMyGameMode::BeginPlay()

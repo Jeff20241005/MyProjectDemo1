@@ -57,6 +57,7 @@ protected:
 
 	// Method to disable vertical movement
 	void DisableVerticalMovement(float Value);
+	float CalculateHypotenuse();
 
 	FDelegateHandle TempSwitchCharacterActionDelegate;
 	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);

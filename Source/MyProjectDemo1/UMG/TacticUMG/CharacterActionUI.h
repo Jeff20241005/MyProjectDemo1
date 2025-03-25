@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterActionUI.generated.h"
 
+class USkillListUI;
 class UTacticSubsystem;
 class UActionButtonUI;
 /**
@@ -15,7 +16,7 @@ UCLASS()
 class MYPROJECTDEMO1_API UCharacterActionUI : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_Attack;
@@ -23,11 +24,14 @@ public:
 	UActionButtonUI* ActionButton_Skill;
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_Move;
-	
+
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_SwitchGameModeTest;
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_SwitchCharacter;
+	
+	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
+	USkillListUI* SkillListUI;
 
 protected:
 	UPROPERTY()

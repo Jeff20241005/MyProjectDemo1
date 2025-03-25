@@ -208,24 +208,57 @@ void UTacticSubsystem::RoundFinish(ABaseCharacter* BaseCharacter)
 	// Clear path visualization when round finishes
 }
 
+void UTacticSubsystem::PostSkillSelectedTimer(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
+{
+	if (BaseCharacter && BaseAbility)
+	{
+		// 调用 GetPotentialTargets 并传递参数
+		bIsInRange = BaseAbility->GetPotentialTargets(
+			GetShowVisualFeedbackActor(),
+			GetTacticPlayerController()->
+			MouseHoveringCursorOverLocation,
+			GlobalPotentialTargets,
+			BaseCharacter);
+
+		// 处理目标列表...
+		// 例如高亮显示可选目标
+		for (ABaseCharacter*
+		     CharactersInOrder :
+		     GetAllCharactersInOrder())
+		{
+			if (!GlobalPotentialTargets.Contains(CharactersInOrder))
+			{
+				CharactersInOrder->GetInteractionComp()->
+				                   UnSetAsSkillTarget();
+			}
+		}
+		for (ABaseCharacter* Target : GlobalPotentialTargets)
+		{
+			if (Target && Target->GetInteractionComp())
+			{
+				Target->GetInteractionComp()->SetAsSkillTarget();
+			}
+		}
+	}
+}
+
 void UTacticSubsystem::PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
 {
+	//FTimerDelegate TimerDelegate;
+	// TimerDelegate.BindUObject(this, &UTacticSubsystem::PostSkillSelectedTimer, BaseCharacter, BaseAbility);
+	// GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle, TimerDelegate, 0.02f, true);
 	// 保存参数到成员变量
-
 	GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle,
-	                                       [&]()
+	                                       [&,BaseCharacter,BaseAbility]()
 	                                       {
 		                                       if (BaseCharacter && BaseAbility)
 		                                       {
-			                                       TArray<ABaseCharacter*> PotentialTargets;
-			                                       FVector MouseLocation = GetTacticPlayerController()->
-				                                       MouseHoveringCursorOverLocation;
-
 			                                       // 调用 GetPotentialTargets 并传递参数
 			                                       bIsInRange = BaseAbility->GetPotentialTargets(
 				                                       GetShowVisualFeedbackActor(),
-				                                       MouseLocation,
-				                                       PotentialTargets,
+				                                       GetTacticPlayerController()->
+				                                       MouseHoveringCursorOverLocation,
+				                                       GlobalPotentialTargets,
 				                                       BaseCharacter);
 
 			                                       // 处理目标列表...
@@ -234,13 +267,13 @@ void UTacticSubsystem::PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbi
 			                                            CharactersInOrder :
 			                                            GetAllCharactersInOrder())
 			                                       {
-				                                       if (!PotentialTargets.Contains(CharactersInOrder))
+				                                       if (!GlobalPotentialTargets.Contains(CharactersInOrder))
 				                                       {
 					                                       CharactersInOrder->GetInteractionComp()->
 					                                                          UnSetAsSkillTarget();
 				                                       }
 			                                       }
-			                                       for (ABaseCharacter* Target : PotentialTargets)
+			                                       for (ABaseCharacter* Target : GlobalPotentialTargets)
 			                                       {
 				                                       if (Target && Target->GetInteractionComp())
 				                                       {
@@ -282,13 +315,6 @@ void UTacticSubsystem::SortCharactersByActionValues()
 
 void UTacticSubsystem::AddCharacterToTeamByType(ABaseCharacter* Character)
 {
-	{
-		FString
-			TempStr = FString::Printf(TEXT("Add :%s "),*Character->GetName());
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-	}
-
 	if (!Character)
 		return;
 	// 更新行动顺序
@@ -382,7 +408,7 @@ void UTacticSubsystem::RemoveCharacterFromTeamByType(ABaseCharacter* Character)
 		return;
 	{
 		FString
-			TempStr = FString::Printf(TEXT("Remove :%s "),*Character->GetName());
+			TempStr = FString::Printf(TEXT("Remove :%s "), *Character->GetName());
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
 		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
 	}

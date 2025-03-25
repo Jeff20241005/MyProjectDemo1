@@ -43,18 +43,15 @@ public:
 	FOnCharacterStateChange OnMove;
 	// 取消移动： bCanMove为False，然后取消划线
 	FOnCharacterStateChange OnCancelMove;
-
-
+	
 	//全局的，查看某一个角色的信息的时候，显示移动范围。
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
-
-
+	
 	//切换到另一个角色行动时
 	FOnCharacterStateChange OnSwitchCharacterAction;
 	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
-
 
 	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
 	FOnCharacterSkillStateChange OnPreSkillSelection;
@@ -74,6 +71,7 @@ public:
 	float DebugLifeTime = 0.1f;
 
 	bool bIsInRange;
+	TArray<ABaseCharacter*> GlobalPotentialTargets;
 
 
 	//Data of Team
@@ -154,6 +152,7 @@ protected:
 
 	void SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility, TArray<ABaseCharacter*> PotentialTargets);
 	void RoundFinish(ABaseCharacter* BaseCharacter);
+	void PostSkillSelectedTimer(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
 	void PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
 
 	UFUNCTION()

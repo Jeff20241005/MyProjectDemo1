@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "BaseAbility.generated.h"
 
 class UBaseEffect;
@@ -30,14 +31,14 @@ public:
 	/**
 	 * 获取技能可选择的目标
 	 * @param VisualFeedbackActor 用于显示技能范围和效果的Actor
-	 * @param MouseLocation 鼠标当前位置
+	 * @param TargetLocation 鼠标当前位置
 	 * @param OutTargets 输出参数，存储找到的目标角色
 	 * @param SourceCharacter 可选参数，技能的施放者
 	 * @return 如果鼠标位置在有效范围内返回true，否则返回false
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
 	bool GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackActor,
-	                         const FVector& MouseLocation,
+	                         const FVector& TargetLocation,
 	                         TArray<ABaseCharacter*>& OutTargets,
 	                         ABaseCharacter* SourceCharacter = nullptr);
 
@@ -137,8 +138,10 @@ public:
 		EditConditionHides
 	))
 	float CrossLength = 500.0f;
-
 protected:
+	UPROPERTY()
+	UTacticSubsystem* TacticSubsystem;
+
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
 	                             const FGameplayEventData* TriggerEventData) override;

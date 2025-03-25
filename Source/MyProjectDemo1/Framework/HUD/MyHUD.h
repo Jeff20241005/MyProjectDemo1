@@ -24,6 +24,7 @@ public:
 	UPROPERTY()
 	UMainUI* MainUI;
 
+	
 
 protected:
 	template <class T>

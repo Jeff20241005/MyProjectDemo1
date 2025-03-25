@@ -3,15 +3,26 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyProjectDemo1/UMG/Base/MovableUI.h"
+#include "Blueprint/UserWidget.h"
 #include "SkillListUI.generated.h"
 
+class UScrollBox;
+class USkillUI;
+class APlayerCharacter;
 /**
  * 
  */
 UCLASS()
-class MYPROJECTDEMO1_API USkillListUI : public UMovableUI
+class MYPROJECTDEMO1_API USkillListUI : public UUserWidget
 {
-	
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)	
+	UScrollBox* ScrollBox;
+	void GenerateList(APlayerCharacter* PlayerCharacter);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	TSubclassOf<USkillUI> SkillUIClass;
+
+protected:
 };

@@ -29,13 +29,6 @@ void UTeamComp::BeginPlay()
 
 void UTeamComp::SetTeam(ETeamType NewTeam)
 {
-	{
-		FString
-			TempStr = FString::Printf(TEXT("SetTem%hhd"), NewTeam);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-	}
-
 	// Remove from original team
 	if (TacticSubsystem->GetAllCharactersInOrder().Contains(Owner_BaseCharacter))
 	{
