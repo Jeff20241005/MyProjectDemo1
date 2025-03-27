@@ -165,11 +165,11 @@ void ATacticPlayerController::BeginPlay()
 
 	// Calculate the desired pitch (angle)
 	DesiredPitch = FMath::Lerp(MaxCameraPitch, MinCameraPitch, ZoomFactor);
-	
 
-	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
 
-	TempSwitchCharacterActionDelegate = TacticSubsystem->OnSwitchCharacterAction.AddUObject(
+	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+
+	TempSwitchCharacterActionDelegate = TacticSubsystem->OnSwitchToNextCharacterAction.AddUObject(
 		this, &ThisClass::SwitchCharacterAction);
 
 	// Create and possess the spectator pawn
@@ -250,7 +250,7 @@ void ATacticPlayerController::RotateRight(float Value)
 
 void ATacticPlayerController::Destroyed()
 {
-	TacticSubsystem->OnSwitchCharacterAction.Remove(TempSwitchCharacterActionDelegate);
+	TacticSubsystem->OnSwitchToNextCharacterAction.Remove(TempSwitchCharacterActionDelegate);
 
 	Super::Destroyed();
 }
@@ -272,9 +272,17 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 	ZoomCameraTick(DeltaSeconds);
 }
 
-void ATacticPlayerController::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
+void ATacticPlayerController::SwitchCharacterAction()
 {
-	SetViewTarget(BaseCharacter);
+	if (!TacticSubsystem->CurrentActionCharacter)
+	{
+		{
+			FString TempStr = FString::Printf(TEXT("!TacticSubsystem->CurrentActionCharacter"));
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
+	}
+	SetViewTarget(TacticSubsystem->CurrentActionCharacter);
 }
 
 void ATacticPlayerController::MoveRight(float Value)

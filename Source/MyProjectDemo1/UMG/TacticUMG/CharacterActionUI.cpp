@@ -24,10 +24,9 @@ void UCharacterActionUI::TestSwitchCharac()
 	TacticSubsystem->SortCharactersByActionValues();
 
 	auto FirstCharacter = TacticSubsystem->GetAllCharactersInOrder()[0];
-
-	if (TacticSubsystem->OnSwitchCharacterAction.IsBound() && FirstCharacter)
+	if (TacticSubsystem->OnSwitchToNextCharacterAction.IsBound() && FirstCharacter)
 	{
-		TacticSubsystem->OnSwitchCharacterAction.Broadcast(FirstCharacter);
+		TacticSubsystem->OnSwitchToNextCharacterAction.Broadcast();
 		//直接设置ActionValue，代表执行完毕Action。
 		FirstCharacter->GetBaseCharacterAttributeSet()->SetActionValues(0);
 	}
@@ -37,7 +36,7 @@ void UCharacterActionUI::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 
 	//todo better or not to put show move / BeginDrawVisualFeedBack in userwidgets
 	//ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);

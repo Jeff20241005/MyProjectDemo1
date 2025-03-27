@@ -23,7 +23,6 @@ public:
 	TSubclassOf<UMainUI> MainUIClass;
 	UPROPERTY()
 	UMainUI* MainUI;
-
 	
 
 protected:

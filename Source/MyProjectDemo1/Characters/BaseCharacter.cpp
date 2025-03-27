@@ -115,16 +115,12 @@ ABaseCharacter::ABaseCharacter()
 	MoveRangeWidgetComp->SetRelativeRotation(FRotator(90, 0, 0));
 }
 
-void ABaseCharacter::DrawRangeSize(float Radius_P)
+void ABaseCharacter::DrawRangeSize()
 {
-	MoveRangeWidgetComp->SetDrawSize(FVector2D(Radius_P));
+	MoveRangeWidgetComp->SetDrawSize(FVector2D(GetBaseCharacterAttributeSet()->GetMoveRange()));
 	MoveRangeWidgetComp->SetVisibility(true);
 }
 
-void ABaseCharacter::DrawMoveRange(ABaseCharacter* BaseCharacter)
-{
-	DrawRangeSize(BaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange());
-}
 
 void ABaseCharacter::CloseWidget()
 {
@@ -135,14 +131,14 @@ void ABaseCharacter::CloseWidget()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// Try to get GameState
-	
-	if (GetWorld() && GetWorld()->GetGameInstance())
+
+	if (GetWorld())
 	{
-		TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+		TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 	}
-	
+
 	MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	if (MyAbilityComp)
@@ -172,7 +168,6 @@ void ABaseCharacter::BeginPlay()
 
 	MyPlayerController = Cast<AMyPlayerController>(
 		UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	
 }
 
 
@@ -214,7 +209,7 @@ void ABaseCharacter::NotifyActorBeginCursorOver()
 	{
 		MyPlayerController->HoveredActor = this;
 	}
-	
+
 	// 添加空指针检查
 	if (TacticSubsystem)
 	{

@@ -20,7 +20,7 @@ ATacticPlayerCharacter::ATacticPlayerCharacter()
 void ATacticPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 }
 
 void ATacticPlayerCharacter::Tick(float DeltaTime)

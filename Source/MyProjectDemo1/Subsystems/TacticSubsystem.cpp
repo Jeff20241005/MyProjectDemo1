@@ -8,10 +8,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
-#include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
+#include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
@@ -22,42 +23,6 @@
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 
-
-void UTacticSubsystem::PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
-{
-	//todo !!!
-	/*if (BaseCharacter && BaseAbility)
-	{
-		
-		);
-	}*/
-}
-
-void UTacticSubsystem::Move(ABaseCharacter* BaseCharacter)
-{
-	if (bCanMove)
-	{
-		UBaseCharacterAttributeSet* BaseCharacterAttributeSet = BaseCharacter->GetBaseCharacterAttributeSet();
-		float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
-		if (BaseCharacter->GetMyAbilityComp() && CurrentActionValues >= 1)
-		{
-			float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
-			BaseCharacter->BaseAIController->MoveToLocationWithPathFinding(
-				GetTacticPlayerController()->LastClickLocation, false, MoveRange);
-			// 修改ActionValues属性值
-			BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
-		}
-	}
-
-	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-	bCanMove = false;
-}
-
-void UTacticSubsystem::CancelMove(ABaseCharacter* BaseCharacter)
-{
-	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-	bCanMove = false;
-}
 
 void UTacticSubsystem::MyMouseEndCursorOver(ABaseCharacter* BaseCharacter)
 {
@@ -70,21 +35,62 @@ void UTacticSubsystem::MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter)
 	}
 }
 
-
-void UTacticSubsystem::SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility,
-                                    TArray<ABaseCharacter*> PotentialTargets)
+void UTacticSubsystem::CancelMoveAndSkillThenClearVisualFeedback()
 {
-	TArray<ABaseCharacter*> TempPotentialTargets;
-	// 调用 GetPotentialTargets 并传递参数
-	BaseAbility->GetPotentialTargets(
-		GetShowVisualFeedbackActor(),
-		GetTacticPlayerController()->LastClickLocation,
-		TempPotentialTargets,
-		BaseCharacter);
+	bCanMove = false;
+	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
+	GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
 
-	for (ABaseCharacter*
-	     TempPotentialTarget : TempPotentialTargets)
+	/*// 清除所有目标的高亮
 	{
+		TArray<ABaseCharacter*> AllCharacters = GameState->GetAllCharactersInOrder();
+		for (ABaseCharacter* Character : AllCharacters)
+		{
+			if (Character && Character->GetInteractionComp())
+			{
+				Character->GetInteractionComp()->EndOfHighlightAsTarget();
+			}
+		}
+	}*/
+}
+
+void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
+{
+	if (bCanMove && CurrentActionCharacter)
+	{
+		UBaseCharacterAttributeSet* BaseCharacterAttributeSet = CurrentActionCharacter->GetBaseCharacterAttributeSet();
+		float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
+		if (CurrentActionCharacter->GetMyAbilityComp() && CurrentActionValues >= 1)
+		{
+			float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
+			CurrentActionCharacter->BaseAIController->MoveToLocationWithPathFinding(
+				InTacticPlayerController->LastClickLocation, false, MoveRange);
+			// 修改ActionValues属性值
+			BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
+		}
+	}
+}
+
+void UTacticSubsystem::CharacterPreMove(ATacticPlayerController* TacticPlayerController)
+{
+	bCanMove = true;
+	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
+
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &UTacticSubsystem::PreMove,
+	                          TacticPlayerController);
+	GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, TimerDelegate, 0.04f, true, 0.1f);
+}
+
+void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+{
+	//todo bug 可能 GlobalPotentialTargets会为空，因为此变量总是改变着
+	//所以可能需要先取消，然后0.2s延迟执行	
+	for (ABaseCharacter*
+	     TempPotentialTarget : GlobalPotentialTargets)
+	{
+		//BaseAbility->BaseEffect.GetDefaultObject();
+
 		//todo cut these to BaseAbility class in Activation function 
 		/*FGameplayEffectSpecHandle SpecHandle = BaseCharacter->GetMyAbilityComp()->MakeOutgoingSpec(
 			UEffectBase::StaticClass(), 1, BaseCharacter->GetMyAbilityComp()->MakeEffectContext()
@@ -98,20 +104,38 @@ void UTacticSubsystem::SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility*
 	}
 }
 
+void UTacticSubsystem::PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+{
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindUObject(this, &UTacticSubsystem::PostSkillSelectedTimer, TacticPlayerController, BaseAbility);
+	GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle, TimerDelegate, 0.02f, true);
+}
+
+void UTacticSubsystem::PreSkillSelection(UBaseAbility* BaseAbility)
+{
+	//也可能可以直接调用VisualFeedbackActor的移动组件。让其变成合适的大小。圈内的Targets高亮
+	if (BaseAbility && BaseAbility->GetPotentialTargets(
+		GlobalPotentialTargets,
+		CurrentActionCharacter, this, CurrentActionCharacter->GetActorLocation()))
+	{
+	}
+}
+
 
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	OnSwitchCharacterAction.AddUObject(this, &ThisClass::SwitchCharacterAction);
+	OnSwitchToNextCharacterAction.AddUObject(this, &ThisClass::SwitchToNextCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
+
 	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
 	OnPostSkillSelected.AddUObject(this, &ThisClass::PostSkillSelected);
 	OnSkillRelease.AddUObject(this, &ThisClass::SkillRelease);
 
 	OnPreMove.AddUObject(this, &ThisClass::CharacterPreMove);
 	OnMove.AddUObject(this, &ThisClass::Move);
-	OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
+	OnCancelMoveAndSkill.AddUObject(this, &ThisClass::CancelMoveAndSkillThenClearVisualFeedback);
 
 	OnMyMouseBeginCursorOver.AddUObject(this, &ThisClass::MyMouseBeginCursorOver);
 	OnMyMouseEndCursorOver.AddUObject(this, &ThisClass::MyMouseEndCursorOver);
@@ -123,28 +147,59 @@ void UTacticSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-void UTacticSubsystem::PreMoveBroadCast()
+void UTacticSubsystem::BeginSwitchCharacter()
 {
-	OnPreMove.Broadcast(CurrentActionCharacter);
+	// 在这里初始化 CurrentActionCharacter
+	if (AllCharactersInOrder.Num() > 0)
+	{
+		CurrentActionCharacter = AllCharactersInOrder[0];
+
+		// 手动触发一次委托，确保 PlayerController 能获取到正确的角色
+		OnSwitchToNextCharacterAction.Broadcast();
+	}
 }
 
-void UTacticSubsystem::SwitchCharacterAction(ABaseCharacter* BaseCharacter)
+void UTacticSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
-	CurrentActionCharacter = BaseCharacter;
+	Super::OnWorldBeginPlay(InWorld);
 
-	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(BaseCharacter))
+	//todo bug CurrentActionCharacter may not be Init in some situations(加载场景卡顿时。。角色Beginplay加载卡顿) somehow
+	FTimerHandle TempHandle;
+	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::BeginSwitchCharacter, 1.f);
+}
+
+void UTacticSubsystem::PostInitialize()
+{
+	Super::PostInitialize();
+
+	// 在这里初始化 CurrentActionCharacter
+	if (AllCharactersInOrder.Num() > 0)
+	{
+		CurrentActionCharacter = AllCharactersInOrder[0];
+
+		// 手动触发一次委托，确保 PlayerController 能获取到正确的角色
+		OnSwitchToNextCharacterAction.Broadcast();
+	}
+}
+
+
+void UTacticSubsystem::SwitchToNextCharacterAction()
+{
+	if (!IsValid(AllCharactersInOrder[0])) return;
+	CurrentActionCharacter = AllCharactersInOrder[0];
+	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CurrentActionCharacter))
 	{
 		CurrentControlPlayer = PlayerCharacter;
 	}
 }
 
-void UTacticSubsystem::ShowMove()
+void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController)
 {
 	if (!CurrentControlPlayer)
 	{
 		{
 			FString
-				TempStr = FString::Printf(TEXT("!CurrentControlCharacter"));
+				TempStr = FString::Printf(TEXT("!CurrentControlPlayer"));
 			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
 			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
 		}
@@ -154,7 +209,7 @@ void UTacticSubsystem::ShowMove()
 	FVector projectedLoc;
 	//---角色移动范围---
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		GetTacticPlayerController()->MouseHoveringCursorOverLocation - CurrentControlPlayer->GetActorLocation(),
+		InTacticPlayerController->MouseHoveringCursorOverLocation - CurrentControlPlayer->GetActorLocation(),
 		0.0f,
 		1000.0f) + CurrentControlPlayer->GetActorLocation();
 
@@ -173,135 +228,86 @@ void UTacticSubsystem::ShowMove()
 	}
 }
 
-void UTacticSubsystem::CharacterPreMove(ABaseCharacter* InBaseCharacter)
-{
-	bCanMove = true;
-	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-	if (GetWorld())
-	{
-		GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, this, &ThisClass::ShowMove,
-		                                       0.07, true, 0.1f);
-	}
-}
-
-void UTacticSubsystem::HideVisualFeedback_Move()
-{
-	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
-}
 
 UTacticSubsystem::UTacticSubsystem()
 {
 	FindMyClass(VisualFeedbackActorClass, *VisualFeedbackActor_Path);
 }
 
-AShowVisualFeedbackActor* UTacticSubsystem::GetShowVisualFeedbackActor()
+AVisualFeedbackActor* UTacticSubsystem::GetShowVisualFeedbackActor()
 {
 	if (!ShowVisualFeedbackActor)
 	{
-		ShowVisualFeedbackActor = GetWorld()->SpawnActor<AShowVisualFeedbackActor>(VisualFeedbackActorClass);
+		ShowVisualFeedbackActor = GetWorld()->SpawnActor<AVisualFeedbackActor>(VisualFeedbackActorClass);
 	}
 	return ShowVisualFeedbackActor;
 }
 
-void UTacticSubsystem::RoundFinish(ABaseCharacter* BaseCharacter)
+void UTacticSubsystem::RoundFinish()
 {
+	// switch to next character 
 	// Clear path visualization when round finishes
 }
 
-void UTacticSubsystem::PostSkillSelectedTimer(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
+void UTacticSubsystem::ShowGlobalTargetsOutline()
 {
-	if (BaseCharacter && BaseAbility)
+	for (ABaseCharacter*
+	     CharactersInOrder :
+	     GetAllCharactersInOrder())
 	{
-		// 调用 GetPotentialTargets 并传递参数
-		bIsInRange = BaseAbility->GetPotentialTargets(
-			GetShowVisualFeedbackActor(),
-			GetTacticPlayerController()->
-			MouseHoveringCursorOverLocation,
-			GlobalPotentialTargets,
-			BaseCharacter);
-
-		// 处理目标列表...
-		// 例如高亮显示可选目标
-		for (ABaseCharacter*
-		     CharactersInOrder :
-		     GetAllCharactersInOrder())
+		if (!GlobalPotentialTargets.Contains(CharactersInOrder))
 		{
-			if (!GlobalPotentialTargets.Contains(CharactersInOrder))
-			{
-				CharactersInOrder->GetInteractionComp()->
-				                   UnSetAsSkillTarget();
-			}
+			CharactersInOrder->GetInteractionComp()->
+			                   UnSetAsSkillTarget();
 		}
-		for (ABaseCharacter* Target : GlobalPotentialTargets)
+	}
+	for (ABaseCharacter* Target : GlobalPotentialTargets)
+	{
+		if (Target && Target->GetInteractionComp())
 		{
-			if (Target && Target->GetInteractionComp())
-			{
-				Target->GetInteractionComp()->SetAsSkillTarget();
-			}
+			Target->GetInteractionComp()->SetAsSkillTarget();
 		}
 	}
 }
 
-void UTacticSubsystem::PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility)
+void UTacticSubsystem::PostSkillSelectedTimer(ATacticPlayerController* InTacticPlayerController,
+                                              UBaseAbility* BaseAbility)
 {
-	//FTimerDelegate TimerDelegate;
-	// TimerDelegate.BindUObject(this, &UTacticSubsystem::PostSkillSelectedTimer, BaseCharacter, BaseAbility);
-	// GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle, TimerDelegate, 0.02f, true);
-	// 保存参数到成员变量
-	GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle,
-	                                       [&,BaseCharacter,BaseAbility]()
-	                                       {
-		                                       if (BaseCharacter && BaseAbility)
-		                                       {
-			                                       // 调用 GetPotentialTargets 并传递参数
-			                                       bIsInRange = BaseAbility->GetPotentialTargets(
-				                                       GetShowVisualFeedbackActor(),
-				                                       GetTacticPlayerController()->
-				                                       MouseHoveringCursorOverLocation,
-				                                       GlobalPotentialTargets,
-				                                       BaseCharacter);
-
-			                                       // 处理目标列表...
-			                                       // 例如高亮显示可选目标
-			                                       for (ABaseCharacter*
-			                                            CharactersInOrder :
-			                                            GetAllCharactersInOrder())
-			                                       {
-				                                       if (!GlobalPotentialTargets.Contains(CharactersInOrder))
-				                                       {
-					                                       CharactersInOrder->GetInteractionComp()->
-					                                                          UnSetAsSkillTarget();
-				                                       }
-			                                       }
-			                                       for (ABaseCharacter* Target : GlobalPotentialTargets)
-			                                       {
-				                                       if (Target && Target->GetInteractionComp())
-				                                       {
-					                                       Target->GetInteractionComp()->SetAsSkillTarget();
-				                                       }
-			                                       }
-		                                       }
-	                                       },
-	                                       0.02f, true);
-}
-
-// 添加一个函数来清除定时器和高亮
-void UTacticSubsystem::CancelSelectedSkill()
-{
-	GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
-
-	/*// 清除所有目标的高亮
+	if (InTacticPlayerController && BaseAbility && CurrentActionCharacter)
 	{
-		TArray<ABaseCharacter*> AllCharacters = GameState->GetAllCharactersInOrder();
-		for (ABaseCharacter* Character : AllCharacters)
+		// 调用并传递参数
+		if (BaseAbility->GetPotentialTargets(
+			GlobalPotentialTargets,
+			CurrentActionCharacter, this,
+			InTacticPlayerController->MouseHoveringCursorOverLocation
+			/*todo bug test CurrentActionCharacter->GetActorLocation()*/))
 		{
-			if (Character && Character->GetInteractionComp())
-			{
-				Character->GetInteractionComp()->EndOfHighlightAsTarget();
-			}
+			
 		}
-	}*/
+		// 进行鼠标指针检测
+		else if (BaseAbility->GetPotentialTargets(
+			GlobalPotentialTargets,
+			CurrentActionCharacter, this, InTacticPlayerController->MouseHoveringCursorOverLocation))
+		{
+			{
+				FString TempStr = FString::Printf(TEXT("进行鼠标指针检测"));
+				if (GEngine)
+					GEngine->
+						AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+			}
+			//OnPreMove.Broadcast(BaseCharacter)
+			//todo move broadcast
+		}
+		//超出最远距离检测的实现, 所有技能变红
+		else
+		{
+		}
+	}
+
+	ShowGlobalTargetsOutline();
 }
+
 
 void UTacticSubsystem::SortCharactersByActionValues()
 {
@@ -406,12 +412,7 @@ void UTacticSubsystem::RemoveCharacterFromTeamByType(ABaseCharacter* Character)
 {
 	if (!Character)
 		return;
-	{
-		FString
-			TempStr = FString::Printf(TEXT("Remove :%s "), *Character->GetName());
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-	}
+
 	// 从所有队伍中移除该角色
 	AllCharactersInOrder.Remove(Character);
 	PlayerTeam.Remove(Character);

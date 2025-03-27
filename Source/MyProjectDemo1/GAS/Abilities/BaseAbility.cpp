@@ -4,13 +4,8 @@
 #include "BaseAbility.h"
 
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Components/MyAbilityComp.h"
-#include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
-#include "MyProjectDemo1/Actors/ShowVisualFeedbackActor.h"
-#include "Components/BoxComponent.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/GameplayStatics.h"
+#include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -36,22 +31,32 @@ void UBaseAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackActor,
-                                       const FVector& TargetLocation,
-                                       TArray<ABaseCharacter*>& OutTargets,
-                                       ABaseCharacter* SourceCharacter)
+bool UBaseAbility::GetPotentialTargets(
+	TArray<ABaseCharacter*>& OutTargets,
+	ABaseCharacter* SourceCharacter, UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation)
 {
+	ABaseCharacter* Owner_Caster = BaseCharacterOwner ? BaseCharacterOwner : SourceCharacter;
+
+	if (!Owner_Caster || !InTacticSubsystem)
+	{
+		FString TempStr = FString::Printf(TEXT("if (!Owner_Caster || !InTacticSubsystem)"));
+		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+
+		return false;
+	}
+	AVisualFeedbackActor* VisualFeedbackActor = InTacticSubsystem->GetShowVisualFeedbackActor();
+	if (!VisualFeedbackActor)
+	{
+		FString TempStr = FString::Printf(TEXT("if (!VisualFeedbackActor)"));
+		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+
+		return false;
+	}
 	// 清空输出数组
 	OutTargets.Empty();
 
-	// 获取施法者
-	if (!BaseCharacterOwner && !SourceCharacter)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("GetPotentialTargets: No source character provided!"));
-		return false;
-	}
-
-	ABaseCharacter* Owner_Caster = BaseCharacterOwner ? BaseCharacterOwner : SourceCharacter;
 
 	// 获取技能释放位置
 	FVector AbilityCenter;
@@ -60,11 +65,15 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 	if (bAimWithMouse)
 	{
 		// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
-		float DistanceToMouse = FVector::Dist2D(Owner_Caster->GetActorLocation(), TargetLocation);
 
-		if (!bInfiniteRange && DistanceToMouse > SkillPlacementRadius)
+		if (const float DistanceToMouse = FVector::Dist2D(Owner_Caster->GetActorLocation(), TargetLocation);
+			!bInfiniteRange && DistanceToMouse > SkillPlacementRadius)
 		{
-			// 鼠标超出范围，返回false
+			// 更新视觉反馈
+			//VisualFeedbackActor->CloseVisualFeedback(this);
+
+
+			// 鼠标是否没有超出施法范围
 			return false;
 		}
 
@@ -89,50 +98,24 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 	}
 
 	// 更新视觉反馈
-	if (VisualFeedbackActor)
-	{
-		// 根据技能类型设置视觉反馈
-		switch (SkillRangeType)
-		{
-		case EAR_Circle:
-			
-			//todo
-			// 设置圆形范围显示
-			// 这里需要根据你的VisualFeedbackActor实现来调用相应方法
-			break;
-		case EAR_Box:
-			// 设置矩形范围显示
-			break;
-		case EAR_Sector:
-			// 设置扇形范围显示
-			break;
-		case EAR_Cross:
-			// 设置十字形范围显示
-			break;
-		default: ;
-		}
-	}
+	VisualFeedbackActor->ShowVisualFeedback(this);
 
 	// Get subsystem instead of game state
-	if (!TacticSubsystem)
-	{
-		TacticSubsystem = VisualFeedbackActor->GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
-	}
 
 	// Get all characters
-	TArray<ABaseCharacter*> AllCharacters = TacticSubsystem->GetAllCharactersInOrder();
+	TArray<ABaseCharacter*> AllCharacters = InTacticSubsystem->GetAllCharactersInOrder();
 
 	// According to whether the skill is negative effect, get hostile or friendly characters
 	TArray<ABaseCharacter*> PotentialTargets;
 	if (bIsNegativeEffect)
 	{
 		// Negative effects target enemies
-		PotentialTargets = TacticSubsystem->GetAllHostileCharacters(Owner_Caster);
+		PotentialTargets = InTacticSubsystem->GetAllHostileCharacters(Owner_Caster);
 	}
 	else
 	{
 		// Positive effects target allies
-		PotentialTargets = TacticSubsystem->GetAllFriendlyCharacters(Owner_Caster);
+		PotentialTargets = InTacticSubsystem->GetAllFriendlyCharacters(Owner_Caster);
 	}
 
 	// 如果需要包含自身
@@ -174,7 +157,19 @@ bool UBaseAbility::GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackA
 
 		if (bInRange)
 		{
-			OutTargets.Add(Character);
+			OutTargets.AddUnique(Character);
+		}
+	}
+	for (ABaseCharacter*
+	     OutTarget : OutTargets)
+	{
+		{
+			FString
+				TempStr = FString::Printf(TEXT("%s"), *OutTarget->GetName());
+			if (GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true,
+				                                 FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
 		}
 	}
 
@@ -189,7 +184,7 @@ bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ABaseCharacte
 	float Distance = FVector::Dist2D(Center, Character->GetActorLocation());
 
 	// 检查是否在圆形范围内
-	return bInfiniteRange || Distance <= AbilityTargetingRange;
+	return bInfiniteRange || Distance <= CircleTargetingRadius;
 }
 
 bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& Forward, ABaseCharacter* Character) const
@@ -231,7 +226,7 @@ bool UBaseAbility::IsCharacterInSectorRange(const FVector& Center, const FVector
 	float Distance = RelativeLocation.Size2D();
 
 	// 检查距离
-	if (!bInfiniteRange && Distance > AbilityTargetingRange)
+	if (!bInfiniteRange && Distance > CircleTargetingRadius)
 	{
 		return false;
 	}

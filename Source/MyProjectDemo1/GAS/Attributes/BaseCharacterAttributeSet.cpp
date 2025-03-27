@@ -120,7 +120,7 @@ void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& A
 
 	if (Attribute == GetActionValuesAttribute() && GetOwnerCharacter()->GetMyAbilityComp()->bAbilitiesInitialized)
 	{
-		if (UTacticSubsystem* TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>())
+		if (UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>())
 		{
 			TacticSubsystem->SortCharactersByActionValues();
 		}

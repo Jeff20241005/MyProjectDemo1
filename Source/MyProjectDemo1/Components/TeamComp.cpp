@@ -23,7 +23,7 @@ void UTeamComp::BeginPlay()
 {
 	Super::BeginPlay();
 	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
-	TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
+	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 }
 
 

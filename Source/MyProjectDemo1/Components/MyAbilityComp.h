@@ -34,15 +34,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 	TArray<TSubclassOf<UBaseAbility>> GameplayAbilities;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
-	UBaseAbility* CurrentSelectAbility;
-
-	UFUNCTION(BlueprintCallable)
+	//UFUNCTION(BlueprintCallable)
 	void AutoGiveAbilitiesAndEffectsAtStart();
 
 	bool bAbilitiesInitialized = false;
-
-
+	
 	FDeactivatePassiveAbility OnDeactivatePassiveAbility;
 
 protected:

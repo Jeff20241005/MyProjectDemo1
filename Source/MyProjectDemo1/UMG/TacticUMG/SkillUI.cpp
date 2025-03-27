@@ -4,6 +4,8 @@
 #include "SkillUI.h"
 
 #include "Components/Button.h"
+#include "Components/TextBlock.h"
+#include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/ActionButtonUI.h"
 
@@ -18,10 +20,11 @@ void USkillUI::ActionButtonUIOnHovered()
 
 void USkillUI::ActionButtonUIOnClicked()
 {
-	UTacticSubsystem* TacticSubsystem = GetWorld()->GetGameInstance()->GetSubsystem<UTacticSubsystem>();
-	if (TacticSubsystem->CurrentActionCharacter && BaseAbility)
+	UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+	if (ATacticPlayerController* TacticPlayerController = GetWorld()->GetFirstPlayerController<
+		ATacticPlayerController>(); TacticSubsystem->CurrentActionCharacter && BaseAbility)
 	{
-		TacticSubsystem->OnPostSkillSelected.Broadcast(TacticSubsystem->CurrentActionCharacter, BaseAbility);
+		TacticSubsystem->OnPostSkillSelected.Broadcast(TacticPlayerController, BaseAbility);
 	}
 }
 
@@ -46,4 +49,6 @@ void USkillUI::NativeConstruct()
 	ActionButtonUI->Button->OnHovered.AddDynamic(this, &ThisClass::ActionButtonUIOnHovered);
 	ActionButtonUI->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButtonUIOnClicked);
 	ActionButtonUI->Button->OnUnhovered.AddDynamic(this, &ThisClass::ActionButtonUIOnUnhovered);
+
+	ActionButtonUI->TextBlock->SetText(BaseAbility->SkillName);
 }

@@ -3,25 +3,25 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Subsystems/GameInstanceSubsystem.h"
+#include "Subsystems/WorldSubsystem.h"
 #include "TacticSubsystem.generated.h"
 
 class APlayerCharacter;
-class ATacticPlayerController;
 class AMyGameState;
-class AMyPlayerController;
-class AShowVisualFeedbackActor;
+class AVisualFeedbackActor;
 class UWidgetComponent;
 class ABaseCharacter;
-class ATacticPlayerCharacter;
+class ATacticPlayerController;
 class UWidget_CharacterSkill;
 class UBaseAbility;
 class USplineMeshComponent;
 class UMaterialInstanceDynamic;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterStateChange, ABaseCharacter*)
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterSkillStateChange, ABaseCharacter*, UBaseAbility*)
-DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnCharacterSkillRelease, ABaseCharacter*, UBaseAbility*,TArray<ABaseCharacter*>)
+DECLARE_MULTICAST_DELEGATE(FOnCharacterStateChange)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterMove, ATacticPlayerController*)
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FSkillStateChange, UBaseAbility*)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillLocationChange, ATacticPlayerController*, UBaseAbility*)
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
 
@@ -29,38 +29,34 @@ DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
  * 
  */
 UCLASS()
-class MYPROJECTDEMO1_API UTacticSubsystem : public UGameInstanceSubsystem
+class MYPROJECTDEMO1_API UTacticSubsystem : public UWorldSubsystem
 {
 	GENERATED_BODY()
 
 public:
-	void PreMoveBroadCast();
+	//切换到另一个角色行动时
+	FOnCharacterStateChange OnSwitchToNextCharacterAction;
+	//一个角色回合结束的时候
+	FOnCharacterStateChange OnRoundFinish;
+	//取消移动和技能的选择
+	FOnCharacterStateChange OnCancelMoveAndSkill;
 
-
-	// 预先准备移动： 显示角色移动路径，让bCanMove为True
-	FOnCharacterStateChange OnPreMove;
-	// 执行移动： 检测bCanMove，然后bCanMove为False
-	FOnCharacterStateChange OnMove;
-	// 取消移动： bCanMove为False，然后取消划线
-	FOnCharacterStateChange OnCancelMove;
-	
 	//全局的，查看某一个角色的信息的时候，显示移动范围。
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
-	
-	//切换到另一个角色行动时
-	FOnCharacterStateChange OnSwitchCharacterAction;
-	//一个角色回合结束的时候
-	FOnCharacterStateChange OnRoundFinish;
 
+	
+	// 预先准备移动： 显示角色移动路径，让bCanMove为True
+	FOnCharacterMove OnPreMove;
+	// 执行移动： 检测bCanMove，然后bCanMove为False
+	FOnCharacterMove OnMove;
+	
 	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
-	FOnCharacterSkillStateChange OnPreSkillSelection;
+	FSkillStateChange OnPreSkillSelection;
 	//正在选择，显示Visual FeedBack等
-	FOnCharacterSkillStateChange OnPostSkillSelected;
+	FOnSkillLocationChange OnPostSkillSelected;
 	//技能释放了
-	FOnCharacterSkillRelease OnSkillRelease;
-	//技能取消选择了
-	FOnCharacterSkillStateChange OnSkillSelectionCancelled;
+	FOnSkillLocationChange OnSkillRelease;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	APlayerCharacter* CurrentControlPlayer;
@@ -70,7 +66,6 @@ public:
 
 	float DebugLifeTime = 0.1f;
 
-	bool bIsInRange;
 	TArray<ABaseCharacter*> GlobalPotentialTargets;
 
 
@@ -109,54 +104,50 @@ public:
 	// Character team management
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
 	void RemoveCharacterFromTeamByType(ABaseCharacter* Character);
-	
+
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
 	void AddCharacterToTeamByType(ABaseCharacter* Character);
+
+	UFUNCTION(BlueprintCallable)
+	AVisualFeedbackActor* GetShowVisualFeedbackActor();
 
 protected:
 	TArray<FVector> MovePoints;
 
-	void SwitchCharacterAction(ABaseCharacter* BaseCharacter);
+	void SwitchToNextCharacterAction();
 
-	UFUNCTION()
-	void CharacterPreMove(ABaseCharacter* InBaseCharacter);
-	void HideVisualFeedback_Move();
 
 	FTimerHandle VisualFeedBackTimeHandle;
-	void CancelSelectedSkill();
 	bool bCanMove = false;
 
 	UTacticSubsystem();
 	UPROPERTY()
-	AShowVisualFeedbackActor* ShowVisualFeedbackActor;
-	TSubclassOf<AShowVisualFeedbackActor> VisualFeedbackActorClass;
-	AShowVisualFeedbackActor* GetShowVisualFeedbackActor();
+	AVisualFeedbackActor* ShowVisualFeedbackActor;
+	TSubclassOf<AVisualFeedbackActor> VisualFeedbackActorClass;
 
-	void PreSkillSelection(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
-	void Move(ABaseCharacter* BaseCharacter);
-	void CancelMove(ABaseCharacter* BaseCharacter);
+	void RoundFinish();
 
 	void MyMouseEndCursorOver(ABaseCharacter* BaseCharacter);
 	void MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter);
+	void CancelMoveAndSkillThenClearVisualFeedback();
+	void Move(ATacticPlayerController* InTacticPlayerController);
+	void CharacterPreMove(ATacticPlayerController* TacticPlayerController);
+	void SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void PreSkillSelection(UBaseAbility* BaseAbility);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	ATacticPlayerController* GetTacticPlayerController()
-	{
-		if (!TacticPlayerController)
-		{
-			TacticPlayerController = GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
-		}
-		return TacticPlayerController;
-	}
+	void BeginSwitchCharacter();
+	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
+	virtual void PostInitialize() override;
 
-	void SkillRelease(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility, TArray<ABaseCharacter*> PotentialTargets);
-	void RoundFinish(ABaseCharacter* BaseCharacter);
-	void PostSkillSelectedTimer(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
-	void PostSkillSelected(ABaseCharacter* BaseCharacter, UBaseAbility* BaseAbility);
+
+	void ShowGlobalTargetsOutline();
+	void PostSkillSelectedTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* BaseAbility);
 
 	UFUNCTION()
-	void ShowMove();
+	void PreMove(ATacticPlayerController* InTacticPlayerController);
 
 	// Path visualization settings
 	FVector2D PathScale = FVector2D(10.0f, 10.0f);
@@ -164,23 +155,20 @@ protected:
 	float PathOpacity = 0.8f;
 
 	FTimerHandle SelectedSkillTimerHandle;
-private:
-	UPROPERTY()
-	TArray<ABaseCharacter*> EnemyTeam;
-	
-	UPROPERTY()
-	TArray<ABaseCharacter*> PlayerTeam;
-	
-	UPROPERTY()
-	TArray<ABaseCharacter*> NeutralTeam;
-	
-	// Character ordering by action values
-	UPROPERTY()
-	TArray<ABaseCharacter*> AllCharactersInOrder;
 
 private:
 	UPROPERTY()
-	ATacticPlayerController* TacticPlayerController;
+	TArray<ABaseCharacter*> EnemyTeam;
+
+	UPROPERTY()
+	TArray<ABaseCharacter*> PlayerTeam;
+
+	UPROPERTY()
+	TArray<ABaseCharacter*> NeutralTeam;
+
+	// Character ordering by action values
+	UPROPERTY()
+	TArray<ABaseCharacter*> AllCharactersInOrder;
 };
 
 template <typename T>

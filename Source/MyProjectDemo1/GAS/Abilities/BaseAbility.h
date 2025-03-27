@@ -10,7 +10,7 @@
 class UBaseEffect;
 class ATacticPlayerController;
 class ABaseCharacter;
-class AShowVisualFeedbackActor;
+class AVisualFeedbackActor;
 
 UENUM()
 enum EAttackRangeType : uint8
@@ -28,19 +28,26 @@ UCLASS()
 class MYPROJECTDEMO1_API UBaseAbility : public UGameplayAbility
 {
 public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=( ToolTip="技能显示的名称"))
+	FText SkillName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=( ToolTip="技能的释放时，对目标产生的效果"))
+	TSubclassOf<UBaseEffect> BaseEffect;
+
 	/**
 	 * 获取技能可选择的目标
-	 * @param VisualFeedbackActor 用于显示技能范围和效果的Actor
-	 * @param TargetLocation 鼠标当前位置
 	 * @param OutTargets 输出参数，存储找到的目标角色
 	 * @param SourceCharacter 可选参数，技能的施放者
+	 * @param InTacticSubsystem
+	 * @param TargetLocation
 	 * @return 如果鼠标位置在有效范围内返回true，否则返回false
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
-	bool GetPotentialTargets(AShowVisualFeedbackActor* VisualFeedbackActor,
-	                         const FVector& TargetLocation,
-	                         TArray<ABaseCharacter*>& OutTargets,
-	                         ABaseCharacter* SourceCharacter = nullptr);
+	bool GetPotentialTargets(
+		TArray<ABaseCharacter*>& OutTargets,
+		ABaseCharacter* SourceCharacter, UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation);
 
 	/** 技能范围类型，决定技能的作用形状 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
@@ -52,10 +59,7 @@ public:
 		meta=(ToolTip="技能是否为负面效果，影响目标选择逻辑（敌对/友好）"))
 	bool bIsNegativeEffect = true;
 
-	/** 技能作用范围 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
-		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围"))
-	float AbilityTargetingRange = 300.0f;
+	
 
 	/** 是否使用鼠标指向来确定技能释放位置 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup,
@@ -72,20 +76,25 @@ public:
 	float SkillPlacementRadius = 0.0f;
 
 	/** 技能是否朝向鼠标位置 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip=
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip=
 		"技能是否看向鼠标位置（玩家可自由选择角度），注意：只旋转Yaw。当bAimWithMouse开启时，这个自动为false",
 		EditCondition = "!bAimWithMouse",
 		EditConditionHides))
 	bool bSkillLookAtMouseHoveringLocation = false;
 
 	/** 是否包含自身作为目标 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip="是否将施法者自身包含在目标列表中"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否将施法者自身包含在目标列表中"))
 	bool bIncludeSelf = false;
 
 	/** 是否无视距离限制 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="TargetSelection", meta=(ToolTip="是否无视距离限制，适用于全图技能"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否无视距离限制，适用于全图技能"))
 	bool bInfiniteRange = false;
 
+	/** 技能作用范围 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围"))
+	float CircleTargetingRadius = 300.0f;
+	
 	/** 扇形技能的角度 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
@@ -138,10 +147,8 @@ public:
 		EditConditionHides
 	))
 	float CrossLength = 500.0f;
-protected:
-	UPROPERTY()
-	UTacticSubsystem* TacticSubsystem;
 
+protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
 	                             const FGameplayEventData* TriggerEventData) override;

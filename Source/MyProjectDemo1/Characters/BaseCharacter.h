@@ -28,24 +28,16 @@ class MYPROJECTDEMO1_API ABaseCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* HealthWidgetComp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* MoveRangeWidgetComp;
-
 public:
-	//选择相关//
-	void DrawRangeSize(float Radius_P);
+	void DrawRangeSize();
 
-	void DrawMoveRange(ABaseCharacter* BaseCharacter);
 	void CloseWidget();
-	
+
 	void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
 	                  ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
 	void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	ABaseAIController* BaseAIController;
 
@@ -61,18 +53,12 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTeamComp* GetTeamComp() const { return TeamComp; }
 
-
-	// 移动消耗的GameplayEffect，可以在蓝图中设置
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities|Effects")
-	TSubclassOf<UGameplayEffect> MoveActionCostEffect;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	USpringArmComponent* SpringArmComponent;
+
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
 	UCameraComponent* CameraComponent;
-protected:
-
-
 	//custom settings
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UMyAbilityComp* MyAbilityComp;
@@ -107,6 +93,10 @@ protected:
 
 	//	UDataTable* AttributeDT;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UWidgetComponent* HealthWidgetComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UWidgetComponent* MoveRangeWidgetComp;
 
 	virtual void NotifyActorOnClicked(FKey ButtonPressed = EKeys::LeftMouseButton) override;
 	virtual void NotifyActorBeginCursorOver() override;
