@@ -115,6 +115,8 @@ bool UBaseAbility::GetPotentialTargets(
 				FVector ClampedLocation = AdjustTargetLocation; // 由于是引用，所以这步不能删
 				UThisProjectFunctionLibrary::ClampMoveRange(AdjustOwnerSourceLocation, RangeToMove,
 				                                            ClampedLocation);
+
+				//再次检测，让它沿着边缘走
 				GetPotentialTargets(InTacticSubsystem, ClampedLocation, true);
 			}
 			return false;

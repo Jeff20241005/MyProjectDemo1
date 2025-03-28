@@ -249,7 +249,6 @@ void UPathTracerComponent::SetupPathSegments(FVector Start_P, FVector End_P, boo
 		{
 			tempSplineMesh = NewObject<USplineMeshComponent>(VisualFeedbackActor);
 			tempSplineMesh->RegisterComponentWithWorld(GetWorld());
-			
 			tempSplineMesh->SetCollisionProfileName("NoCollision");
 		}
 		// Register the component with the world
@@ -276,6 +275,7 @@ void UPathTracerComponent::SetSegmentsDotted(FVector Start_P, FVector End_P, boo
 	}
 	else
 	{
+		//todo here may cause memory leak
 		if (!IsValid(SupporterSpline))
 		{
 			SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);

@@ -38,7 +38,7 @@ public:
 	FOnCharacterStateChange OnSwitchToNextCharacterAction;
 	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
-	//取消移动和技能的选择
+	//取消移动,技能的选择
 	FOnCharacterStateChange OnCancelMoveAndSkill;
 	FOnCharacterStateChange OnCancelMove;
 

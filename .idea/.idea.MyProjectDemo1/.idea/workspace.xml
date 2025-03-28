@@ -91,6 +91,7 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Private/CameraController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Private/DebugToolExec.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Public/Subsystems/EditorSubsystemBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/VREditor/Private/UI/VREditorRadialFloatingUI.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/VREditor/Private/VREditorMode.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Android/AndroidFileClient.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/Framework/Utils/Gauntlet.HtmlBuilder.cs" root0="FORCE_HIGHLIGHTING" />
@@ -438,6 +439,7 @@
       <workItem from="1743154336296" duration="29000" />
       <workItem from="1743154410779" duration="386000" />
       <workItem from="1743154823009" duration="284000" />
+      <workItem from="1743155215751" duration="990000" />
     </task>
     <servers />
   </component>

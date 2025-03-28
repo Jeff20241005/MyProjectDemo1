@@ -23,6 +23,8 @@ public:
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 
 protected:
+	virtual void OnLeftMouseButtonDown() override;//todo skill release broadcast!
+	
 	// Camera zoom properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float ZoomFactor = 0.3f; // 0 = highest point, 1 = lowest point

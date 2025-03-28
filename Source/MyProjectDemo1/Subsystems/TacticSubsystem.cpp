@@ -101,6 +101,11 @@ void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerControl
 	for (ABaseCharacter*
 	     TempPotentialTarget : GlobalPotentialTargets)
 	{
+		{
+			FString TempStr = FString::Printf(TEXT("Todo here!"));
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
 		//BaseAbility->BaseEffect.GetDefaultObject();
 
 		//todo cut these to BaseAbility class in Activation function 
