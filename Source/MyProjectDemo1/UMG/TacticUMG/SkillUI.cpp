@@ -8,6 +8,7 @@
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/ActionButtonUI.h"
+#include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 
 void USkillUI::ActionButtonUIOnHovered()
 {
