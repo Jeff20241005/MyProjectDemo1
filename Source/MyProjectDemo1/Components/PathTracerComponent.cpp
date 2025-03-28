@@ -7,6 +7,7 @@
 #include "Components/SplineMeshComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 
 // Sets default values for this component's properties
 UPathTracerComponent::UPathTracerComponent()
@@ -20,7 +21,7 @@ UPathTracerComponent::UPathTracerComponent()
 // Called when the game starts
 void UPathTracerComponent::DrawPath(TArray<FVector> PathPoints_p)
 {
-	if (PathPoints_p.Num() > 1)
+	if (PathPoints_p.Num() > 1 && bCanDraw)
 	{
 		PathPoints = PathPoints_p;
 		GeneratePaths();
@@ -81,17 +82,28 @@ void UPathTracerComponent::MoveMarkers()
 
 void UPathTracerComponent::ResetSegments()
 {
-	if (!SplineMeshes.IsEmpty() && SplineMeshes.IsValidIndex(0))
+	// Properly clean up components that are no longer needed
+	for (int32 i = 0; i < SplineMeshes.Num(); ++i)
 	{
-		for (USplineMeshComponent* SplineMesh : SplineMeshes)
+		USplineMeshComponent* SplineMesh = SplineMeshes[i];
+		if (IsValid(SplineMesh))
 		{
-			if (IsValid(SplineMesh))
+			if (i < SplineMeshAmount)
 			{
-				//SplineMesh->GetVisibleFlag()
 				SplineMesh->SetVisibility(false);
+			}
+			else
+			{
+				// Properly destroy components we don't need anymore
+				SplineMesh->DestroyComponent();
+				SplineMeshes[i] = nullptr;
 			}
 		}
 	}
+
+	// Remove null entries from the array
+	SplineMeshes.RemoveAll([](const USplineMeshComponent* Comp) { return Comp == nullptr; });
+
 	MainMeshAmount = SplineMeshAmount = DynamicMeshAmount = 0;
 	OffsetUV = 0;
 }
@@ -138,14 +150,27 @@ void UPathTracerComponent::GenerateRoundCornersPath()
 	}
 }
 
+void UPathTracerComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	// 获取拥有者以设置附加关系
+	VisualFeedbackActor = Cast<AVisualFeedbackActor>(GetOwner());
+	if (!VisualFeedbackActor || !VisualFeedbackActor->GetRootComponent())
+	{
+		UE_LOG(LogTemp, Error, TEXT("PathTracerComponent: Invalid owner or root component"));
+	}
+}
+
 void UPathTracerComponent::SetupMaterials()
 {
 	if (IsValid(PathMaterial))
 	{
 		if (!IsValid(PathMeshComponent)) return;
+		//PathMeshComponent seems to be useless
 		PathMeshComponent->SetStaticMesh(PathMesh);
 		PathMeshComponent->SetMaterial(0, PathMaterial);
-		PathDynamicMaterial = PathMeshComponent->CreateDynamicMaterialInstance(0);
+		PathDynamicMaterial = PathMeshComponent/*but it may use on this*/->CreateDynamicMaterialInstance(0);
 
 		PathDynamicMaterial->SetVectorParameterValue(DynamicMaterial_NameOfColor, DynamicMaterialColor);
 		PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy, DynamicMaterialOpacitgy);
@@ -159,6 +184,15 @@ void UActorComponent_PathTracer::SetupMarkers()
 	{
 		if (!IsValid(TargetPointMarker))
 		{
+
+		/todo
+		SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
+			SupporterSpline->RegisterComponentWithWorld(GetWorld());
+			SupporterSpline->AttachToComponent(VisualFeedbackActor,
+			                                   FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			SupporterSpline->SetCollisionProfileName("NoCollision");
+
+			
 			//TargetPointMarker = CreateDefaultSubobject<UChildActorComponent>(TEXT("TargetPointMarker"));
 			TargetPointMarker = NewObject<UChildActorComponent>();
 			TargetPointMarker->SetChildActorClass(TargetPointMarkerClass);
@@ -174,6 +208,13 @@ void UActorComponent_PathTracer::SetupMarkers()
 	{
 		if (!IsValid(CharacterMarker))
 		{
+//todo
+SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
+			SupporterSpline->RegisterComponentWithWorld(GetWorld());
+			SupporterSpline->AttachToComponent(VisualFeedbackActor,
+											   FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			SupporterSpline->SetCollisionProfileName("NoCollision");
+		
 			//CharacterMarker = CreateDefaultSubobject<UChildActorComponent>(TEXT("CharacterMarker"));
 			CharacterMarker = NewObject<UChildActorComponent>();
 			CharacterMarker->SetCactorClass(CharacterMarkerClass);
@@ -204,10 +245,14 @@ void UPathTracerComponent::SetupPathSegments(FVector Start_P, FVector End_P, boo
 	}
 	else
 	{
-		int MeshIndex = SplineMeshes.Num();
-		//tempSplineMesh = CreateDefaultSubobject<USplineMeshComponent>(TEXT("SplineMesh"));
-		tempSplineMesh = NewObject<USplineMeshComponent>();
-		tempSplineMesh->RegisterComponentWithWorld(GetWorld());
+		// Create a new spline mesh component
+		{
+			tempSplineMesh = NewObject<USplineMeshComponent>(VisualFeedbackActor);
+			tempSplineMesh->RegisterComponentWithWorld(GetWorld());
+			
+			tempSplineMesh->SetCollisionProfileName("NoCollision");
+		}
+		// Register the component with the world
 
 		SplineMeshes.Add(tempSplineMesh);
 		SplineMeshAmount++;
@@ -223,7 +268,6 @@ void UPathTracerComponent::SetSegmentsDotted(FVector Start_P, FVector End_P, boo
 {
 	PathDynamicMaterial = GetDottedMaterialInstance();
 
-
 	float segmentLength;
 
 	if (IsSegmentStraight_P)
@@ -234,16 +278,18 @@ void UPathTracerComponent::SetSegmentsDotted(FVector Start_P, FVector End_P, boo
 	{
 		if (!IsValid(SupporterSpline))
 		{
-			//---Instead of AddSplineComponent----------------------------------------
-			//SupporterSpline = CreateDefaultSubobject<USplineComponent>(TEXT("Spline"));
-			SupporterSpline = NewObject<USplineComponent>();
-			//SupporterSpline->RegisterComponentWithWorld(GetWorld());
+			SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
+			SupporterSpline->RegisterComponentWithWorld(GetWorld());
+			
+			SupporterSpline->SetCollisionProfileName("NoCollision");
 		}
 
-		SupporterSpline->SetLocationAtSplinePoint(0, Start_P, ESplineCoordinateSpace::Local, false);
-		SupporterSpline->SetLocationAtSplinePoint(1, End_P, ESplineCoordinateSpace::Local, false);
-		SupporterSpline->SetLocationAtSplinePoint(0, StartTangent_P, ESplineCoordinateSpace::Local, false);
-		SupporterSpline->SetLocationAtSplinePoint(1, EndTangent_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->ClearSplinePoints(false);
+		SupporterSpline->AddSplinePoint(Start_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->AddSplinePoint(End_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->SetTangentAtSplinePoint(0, StartTangent_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->SetTangentAtSplinePoint(1, EndTangent_P, ESplineCoordinateSpace::Local, false);
+		SupporterSpline->UpdateSpline();
 		segmentLength = SupporterSpline->GetSplineLength();
 	}
 
@@ -269,11 +315,13 @@ UMaterialInstanceDynamic* UPathTracerComponent::GetDottedMaterialInstance()
 		GetWorld(), DotterDynamicMaterial);
 	DottedLineDynamicMaterials.Add(tempMaterialInstance);
 	DynamicMeshAmount++;
-
-	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy, DotterOpacity);
-	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfGapSize, DotterGapSize);
-	tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfAnimSpeed, DotterAnimSpeed);
-	tempMaterialInstance->SetVectorParameterValue(DynamicMaterial_NameOfColor, DynamicMaterialColor);
+	if (tempMaterialInstance)
+	{
+		tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy, DotterOpacity);
+		tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfGapSize, DotterGapSize);
+		tempMaterialInstance->SetScalarParameterValue(DynamicMaterial_NameOfAnimSpeed, DotterAnimSpeed);
+		tempMaterialInstance->SetVectorParameterValue(DynamicMaterial_NameOfColor, DynamicMaterialColor);
+	}
 
 	return tempMaterialInstance;
 }
@@ -293,3 +341,55 @@ void UPathTracerComponent::InitSetup()
 	TargetPointMarker = nullptr;
 	CharacterMarker = nullptr;
 }
+
+void UPathTracerComponent::Deactivate()
+{
+	// Clean up all created components
+	for (USplineMeshComponent* SplineMesh : SplineMeshes)
+	{
+		if (IsValid(SplineMesh))
+		{
+			SplineMesh->DestroyComponent();
+		}
+	}
+	SplineMeshes.Empty();
+
+	if (IsValid(SupporterSpline))
+	{
+		SupporterSpline->DestroyComponent();
+		SupporterSpline = nullptr;
+	}
+
+	bCanDraw = false;
+	Super::Deactivate();
+}
+
+void UPathTracerComponent::Activate(bool bReset)
+{
+	Super::Activate(bReset);
+	bCanDraw = true;
+}
+
+/*
+// Add a cleanup method to properly destroy components when the owner is destroyed
+void UPathTracerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	// Clean up all created components
+	for (USplineMeshComponent* SplineMesh : SplineMeshes)
+	{
+		if (IsValid(SplineMesh))
+		{
+			SplineMesh->DestroyComponent();
+		}
+	}
+	SplineMeshes.Empty();
+
+	if (IsValid(SupporterSpline))
+	{
+		SupporterSpline->DestroyComponent();
+		SupporterSpline = nullptr;
+	}
+}
+*/

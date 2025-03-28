@@ -91,6 +91,10 @@ protected:
 	ASpectatorPawn* GetMySpectatorPawn();
 	UPROPERTY()
 	ASpectatorPawn* MySpectatorPawn;
+
+	FCollisionObjectQueryParams CurrentObjectQueryParams;
+	FCollisionObjectQueryParams DefaultObjectQueryParams;
+	FCollisionObjectQueryParams GroundObjectQueryParams;
 };
 
 template <class TClass, class TMemberFunc, class... TArgs>
@@ -107,16 +111,8 @@ void AMyPlayerController::PerformLineTrace(TClass* Instance, TMemberFunc Func, T
 
 			// 配置射线检测参数
 			FCollisionQueryParams QueryParams;
-			QueryParams.AddIgnoredActor(GetPawn());
+			// QueryParams.AddIgnoredActor(GetPawn());
 			QueryParams.bTraceComplex = true; // 使用复杂碰撞检测
-
-			// 设置碰撞检测类型
-			//todo 设置只能射线到地面的参数。。
-			FCollisionObjectQueryParams ObjectQueryParams;
-			ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn); // 检测Pawn
-			ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic); // 检测静态物体
-			ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic); // 检测动态物体
-			ObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody); // 检测物理物体
 
 			// 执行射线检测
 			FHitResult HitResult;
@@ -124,7 +120,7 @@ void AMyPlayerController::PerformLineTrace(TClass* Instance, TMemberFunc Func, T
 				HitResult,
 				TraceStart,
 				TraceEnd,
-				ObjectQueryParams,
+				CurrentObjectQueryParams,
 				QueryParams
 			);
 			/*

@@ -34,9 +34,9 @@ void ATacticPlayerController::ZoomCameraTick(float DeltaTime)
 	//float ForwardOffset = ZoomFactor * 200.0f; // Adjust this value for more/less curve
 
 	// Get forward vector (ignoring pitch) for offset calculation
-	FVector ForwardVector = FRotationMatrix(FRotator(0, TargetCameraRotation.Yaw, 0)).GetUnitAxis(EAxis::X);
 	// Calculate target position with height and forward offset
 	FVector GroundLocation = FVector(CurrentLocation.X, CurrentLocation.Y, 0);
+	// FVector ForwardVector = FRotationMatrix(FRotator(0, TargetCameraRotation.Yaw, 0)).GetUnitAxis(EAxis::X);
 	FVector TargetLocation = GroundLocation + FVector(0, 0, DesiredHeight); /* (ForwardVector * ForwardOffset);*/
 
 	// Smoothly move to new position
@@ -102,26 +102,20 @@ void ATacticPlayerController::SetViewTarget(AActor* NewViewTarget, FViewTargetTr
 
 	// 1. 从目标位置出发
 	FVector TargetLocation = NewViewTarget->GetActorLocation();
-	//注意：高度我们现在怎么都无所谓，最终摄像机会因为ZoomCameraTick调整到自己的高度（SetTimer结束会感觉到），所以XY对了就会是对的
-	FVector AdjustTargetLocation = FVector(TargetLocation.X, TargetLocation.Y, TargetLocation.Z + MinCameraHeight / 2);
+	FVector AdjustTargetLocation = FVector(TargetLocation.X, TargetLocation.Y, TargetLocation.Z + MinCameraHeight);
 
 	// 2. 获取相机朝向的反方向（相机看向的反方向）
 	FVector CameraForward = CamRotation.Vector().GetSafeNormal(); // 前向向量
 	FVector InverseCameraDirection = -CameraForward; // 相机反方向
 
 	// 3. 沿着反方向射出一条射线
-	//const float AdjustDistance = MaxCameraHeight + MinCameraHeight + -DesiredPitch; //镜头越高，角度越大，距离越远。
-	//const FVector CameraPositionBeforeProjection = AdjustTargetLocation + InverseCameraDirection * AdjustDistance;
-
-	// 计算斜边长度
-	float Hypotenuse = CalculateHypotenuse();
-
-	// 计算最终相机位置
-	FVector CameraPosition = AdjustTargetLocation + InverseCameraDirection * Hypotenuse;
+	const float AdjustDistance = MaxCameraHeight + MinCameraHeight + -DesiredPitch; //镜头越高，角度越大，距离越远。
+	const FVector CameraPositionBeforeProjection = AdjustTargetLocation + InverseCameraDirection * AdjustDistance;
 
 	// 清除现有过渡计时器
 	GetWorldTimerManager().ClearTimer(CameraTransitionTimerHandle);
 	AlphaTimer = 0;
+
 	// 设置平滑过渡的计时器
 	GetWorldTimerManager().SetTimer(
 		CameraTransitionTimerHandle,
@@ -133,7 +127,7 @@ void ATacticPlayerController::SetViewTarget(AActor* NewViewTarget, FViewTargetTr
 			// 插值计算位置
 			FVector TheFinalLocation = FMath::Lerp(
 				CurrentLocation,
-				CameraPosition,
+				CameraPositionBeforeProjection,
 				AlphaTimer);
 			// 检查是否完成过渡
 			if (AlphaTimer >= 1.0f)
@@ -166,11 +160,10 @@ void ATacticPlayerController::BeginPlay()
 	// Calculate the desired pitch (angle)
 	DesiredPitch = FMath::Lerp(MaxCameraPitch, MinCameraPitch, ZoomFactor);
 
-
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 
 	TempSwitchCharacterActionDelegate = TacticSubsystem->OnSwitchToNextCharacterAction.AddUObject(
-		this, &ThisClass::SwitchCharacterAction);
+		this, &ThisClass::SwitchToNextCharacterAction);
 
 	// Create and possess the spectator pawn
 	ASpectatorPawn* SpecPawn = GetMySpectatorPawn();
@@ -195,6 +188,11 @@ void ATacticPlayerController::BeginPlay()
 	TargetCameraRotation = FRotator(MaxCameraPitch, TargetCameraRotation.Yaw, 0.0f);
 	CurrentCameraRotation = TargetCameraRotation;
 	SetControlRotation(TargetCameraRotation);
+
+	// 绑定委托到子系统
+	TacticSubsystem->OnPostSkillSelected.AddUObject(this, &ATacticPlayerController::PostSkillSelected);
+	TacticSubsystem->OnCancelMoveAndSkill.AddUObject(
+		this, &ATacticPlayerController::CancelMoveAndSkill);
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
@@ -250,8 +248,6 @@ void ATacticPlayerController::RotateRight(float Value)
 
 void ATacticPlayerController::Destroyed()
 {
-	TacticSubsystem->OnSwitchToNextCharacterAction.Remove(TempSwitchCharacterActionDelegate);
-
 	Super::Destroyed();
 }
 
@@ -272,18 +268,25 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 	ZoomCameraTick(DeltaSeconds);
 }
 
-void ATacticPlayerController::SwitchCharacterAction()
+void ATacticPlayerController::CancelMoveAndSkill()
 {
-	if (!TacticSubsystem->CurrentActionCharacter)
-	{
-		{
-			FString TempStr = FString::Printf(TEXT("!TacticSubsystem->CurrentActionCharacter"));
-			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
-	}
-	SetViewTarget(TacticSubsystem->CurrentActionCharacter);
+	CurrentObjectQueryParams = DefaultObjectQueryParams;
 }
+
+void ATacticPlayerController::PostSkillSelected(ATacticPlayerController* TacticPlayerController,
+                                                UBaseAbility* BaseAbility)
+{
+	CurrentObjectQueryParams = GroundObjectQueryParams;
+}
+
+void ATacticPlayerController::SwitchToNextCharacterAction()
+{
+	if (TacticSubsystem->CurrentActionCharacter)
+	{
+		SetViewTarget(TacticSubsystem->CurrentActionCharacter);
+	}
+}
+
 
 void ATacticPlayerController::MoveRight(float Value)
 {
@@ -306,22 +309,4 @@ void ATacticPlayerController::OnRightMouseButtonDown()
 void ATacticPlayerController::DisableVerticalMovement(float Value)
 {
 	// Intentionally empty to prevent movement
-}
-
-float ATacticPlayerController::CalculateHypotenuse()
-{
-	// 计算垂直高度差
-	float VerticalHeight = DesiredHeight - MinCameraHeight;
-
-	// 将俯仰角转换为弧度（取绝对值）
-	float PitchRadians = FMath::DegreesToRadians(FMath::Abs(DesiredPitch));
-
-	// 安全检查：避免除零错误
-	if (FMath::IsNearlyZero(PitchRadians) || FMath::IsNearlyZero(FMath::Sin(PitchRadians)))
-	{
-		return MaxCameraHeight - MinCameraHeight; // 返回安全最大距离
-	}
-
-	// 计算斜边长度
-	return VerticalHeight / FMath::Sin(PitchRadians);
 }

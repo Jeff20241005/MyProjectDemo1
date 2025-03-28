@@ -28,6 +28,19 @@ UCLASS()
 class MYPROJECTDEMO1_API UBaseAbility : public UGameplayAbility
 {
 public:
+	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
+	bool GetPotentialTargets(
+		UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation, bool bAddMovingRange = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
+
+	void SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSubsystem, ABaseCharacter* Owner_Caster,
+	                                      TArray<ABaseCharacter*>& PotentialTargets) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
+	TArray<ABaseCharacter*> GetTargetsInMaxRange(ABaseCharacter* InOwner, UTacticSubsystem* InTacticSubsystem);
+
+public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
 		meta=( ToolTip="技能显示的名称"))
 	FText SkillName;
@@ -44,10 +57,6 @@ public:
 	 * @param TargetLocation
 	 * @return 如果鼠标位置在有效范围内返回true，否则返回false
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
-	bool GetPotentialTargets(
-		TArray<ABaseCharacter*>& OutTargets,
-		ABaseCharacter* SourceCharacter, UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation);
 
 	/** 技能范围类型，决定技能的作用形状 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
@@ -59,7 +68,6 @@ public:
 		meta=(ToolTip="技能是否为负面效果，影响目标选择逻辑（敌对/友好）"))
 	bool bIsNegativeEffect = true;
 
-	
 
 	/** 是否使用鼠标指向来确定技能释放位置 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup,
@@ -93,8 +101,8 @@ public:
 	/** 技能作用范围 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
 		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围"))
-	float CircleTargetingRadius = 300.0f;
-	
+	float CircleTargetingRange = 300.0f;
+
 	/** 扇形技能的角度 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
@@ -156,13 +164,14 @@ protected:
 	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility,
 	                        bool bWasCancelled) override;
 
+
 	UPROPERTY(BlueprintReadOnly, Category = AbilitySetup)
 	ABaseCharacter* BaseCharacterOwner;
 
 	/**
 	 * 检查角色是否在圆形范围内
 	 */
-	bool IsCharacterInCircleRange(const FVector& Center, ABaseCharacter* Character) const;
+	bool IsCharacterInCircleRange(const FVector& Center, ABaseCharacter* Character, float UseCustomRadius = -1.f) const;
 
 	/**
 	 * 检查角色是否在矩形范围内

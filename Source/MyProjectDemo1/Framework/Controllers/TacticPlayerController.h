@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MyPlayerController.h"
+#include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "TacticPlayerController.generated.h"
 
 class UTacticSubsystem;
@@ -22,7 +23,6 @@ public:
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 
 protected:
-	
 	// Camera zoom properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float ZoomFactor = 0.3f; // 0 = highest point, 1 = lowest point
@@ -45,7 +45,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float ZoomSensitivity = 0.1f;
 
-	
 
 	// Camera  properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -54,12 +53,12 @@ protected:
 	float YawRotationAmount = 3.0f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=SetViewTarget)
 	float SetViewTargetDuration = 0.5f;
-	
+
 	FRotator TargetCameraRotation;
 	FRotator CurrentCameraRotation;
 	float DesiredHeight;
 	float DesiredPitch;
-	float AlphaTimer = 0;	
+	float AlphaTimer = 0;
 
 
 	// Camera rotation methods
@@ -71,10 +70,8 @@ protected:
 
 	// Method to disable vertical movement
 	void DisableVerticalMovement(float Value);
-	float CalculateHypotenuse();
 
 	FDelegateHandle TempSwitchCharacterActionDelegate;
-	void SwitchCharacterAction();
 
 
 	virtual void MoveRight(float Value) override;
@@ -99,5 +96,8 @@ protected:
 	FTimerHandle CameraTransitionTimerHandle;
 
 	virtual void Tick(float DeltaSeconds) override;
+	void CancelMoveAndSkill();
+	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void SwitchToNextCharacterAction();
 	virtual void BeginPlay() override;
 };

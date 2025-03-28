@@ -40,17 +40,18 @@ public:
 	FOnCharacterStateChange OnRoundFinish;
 	//取消移动和技能的选择
 	FOnCharacterStateChange OnCancelMoveAndSkill;
+	FOnCharacterStateChange OnCancelMove;
 
 	//全局的，查看某一个角色的信息的时候，显示移动范围。
 	FOnMouseEvent OnMyMouseBeginCursorOver;
 	FOnMouseEvent OnMyMouseEndCursorOver;
 
-	
+
 	// 预先准备移动： 显示角色移动路径，让bCanMove为True
 	FOnCharacterMove OnPreMove;
 	// 执行移动： 检测bCanMove，然后bCanMove为False
 	FOnCharacterMove OnMove;
-	
+
 	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
 	FSkillStateChange OnPreSkillSelection;
 	//正在选择，显示Visual FeedBack等
@@ -109,7 +110,7 @@ public:
 	void AddCharacterToTeamByType(ABaseCharacter* Character);
 
 	UFUNCTION(BlueprintCallable)
-	AVisualFeedbackActor* GetShowVisualFeedbackActor();
+	AVisualFeedbackActor* GetVisualFeedbackActor();
 
 protected:
 	TArray<FVector> MovePoints;
@@ -135,15 +136,14 @@ protected:
 	void SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void PreSkillSelection(UBaseAbility* BaseAbility);
+	void CancelMove();
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
 	void BeginSwitchCharacter();
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
-	virtual void PostInitialize() override;
 
-
-	void ShowGlobalTargetsOutline();
+	void CheckGlobalPotentialTargetsOutline();
 	void PostSkillSelectedTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* BaseAbility);
 
 	UFUNCTION()

@@ -14,6 +14,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
+#include "CollisionQueryParams.h"
+
 
 AMyPlayerController::AMyPlayerController()
 {
@@ -67,9 +69,18 @@ void AMyPlayerController::BeginPlay()
 		SetViewTarget(DefaultPawn);
 	}
 	*/
-	
+
 	FTimerHandle TempHandle;
 	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::GetMouseLocation, 0.02f, true);
+
+	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn); // 检测Pawn
+	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic); // 检测静态物体
+	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic); // 检测动态物体
+	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody); // 检测物理物体
+
+	GroundObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+
+	CurrentObjectQueryParams = DefaultObjectQueryParams;
 }
 
 
@@ -88,8 +99,8 @@ void AMyPlayerController::SetupInputComponent()
 	// 添加鼠标滚轮绑定
 	InputComponent->BindAxis("MouseWheel", this, &AMyPlayerController::ZoomCamera);
 
-	
-	InputComponent->BindAction("TabClick",IE_Pressed, this, &AMyPlayerController::TabClick);
+
+	InputComponent->BindAction("TabClick", IE_Pressed, this, &AMyPlayerController::TabClick);
 }
 
 void AMyPlayerController::GetMouseLocation()

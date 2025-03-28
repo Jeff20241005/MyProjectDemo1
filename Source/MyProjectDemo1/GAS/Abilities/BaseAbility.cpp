@@ -6,6 +6,7 @@
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
+#include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -31,82 +32,13 @@ void UBaseAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-bool UBaseAbility::GetPotentialTargets(
-	TArray<ABaseCharacter*>& OutTargets,
-	ABaseCharacter* SourceCharacter, UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation)
+
+void UBaseAbility::SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSubsystem, ABaseCharacter* Owner_Caster,
+                                                    TArray<ABaseCharacter*>& PotentialTargets) const
 {
-	ABaseCharacter* Owner_Caster = BaseCharacterOwner ? BaseCharacterOwner : SourceCharacter;
-
-	if (!Owner_Caster || !InTacticSubsystem)
-	{
-		FString TempStr = FString::Printf(TEXT("if (!Owner_Caster || !InTacticSubsystem)"));
-		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-
-		return false;
-	}
-	AVisualFeedbackActor* VisualFeedbackActor = InTacticSubsystem->GetShowVisualFeedbackActor();
-	if (!VisualFeedbackActor)
-	{
-		FString TempStr = FString::Printf(TEXT("if (!VisualFeedbackActor)"));
-		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-
-		return false;
-	}
-	// 清空输出数组
-	OutTargets.Empty();
-
-
-	// 获取技能释放位置
-	FVector AbilityCenter;
-	FVector ForwardVector;
-
-	if (bAimWithMouse)
-	{
-		// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
-
-		if (const float DistanceToMouse = FVector::Dist2D(Owner_Caster->GetActorLocation(), TargetLocation);
-			!bInfiniteRange && DistanceToMouse > SkillPlacementRadius)
-		{
-			// 更新视觉反馈
-			//VisualFeedbackActor->CloseVisualFeedback(this);
-
-
-			// 鼠标是否没有超出施法范围
-			return false;
-		}
-
-		AbilityCenter = TargetLocation;
-		//ForwardVector = (MouseLocation - Owner_Caster->GetActorLocation()).GetSafeNormal();
-	}
-	else
-	{
-		// 不使用鼠标指向，以施法者为中心
-		AbilityCenter = Owner_Caster->GetActorLocation();
-
-		if (bSkillLookAtMouseHoveringLocation)
-		{
-			// 朝向鼠标位置
-			ForwardVector = (TargetLocation - Owner_Caster->GetActorLocation()).GetSafeNormal();
-		}
-		else
-		{
-			// 使用施法者当前朝向
-			ForwardVector = Owner_Caster->GetActorForwardVector();
-		}
-	}
-
-	// 更新视觉反馈
-	VisualFeedbackActor->ShowVisualFeedback(this);
-
-	// Get subsystem instead of game state
-
 	// Get all characters
 	TArray<ABaseCharacter*> AllCharacters = InTacticSubsystem->GetAllCharactersInOrder();
 
-	// According to whether the skill is negative effect, get hostile or friendly characters
-	TArray<ABaseCharacter*> PotentialTargets;
 	if (bIsNegativeEffect)
 	{
 		// Negative effects target enemies
@@ -128,6 +60,90 @@ bool UBaseAbility::GetPotentialTargets(
 		// 确保不包含自身
 		PotentialTargets.Remove(Owner_Caster);
 	}
+}
+
+bool UBaseAbility::GetPotentialTargets(
+	UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation, bool bAddMovingRange)
+{
+	TArray<ABaseCharacter*>& OutTargets = InTacticSubsystem->GlobalPotentialTargets;
+
+	ABaseCharacter* Owner_Caster = BaseCharacterOwner
+		                               ? BaseCharacterOwner
+		                               : (InTacticSubsystem ? InTacticSubsystem->CurrentActionCharacter : nullptr);
+
+	if (!Owner_Caster)
+	{
+		FString TempStr = FString::Printf(TEXT("if (!Owner_Caster || !InTacticSubsystem)"));
+		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+
+		return false;
+	}
+	AVisualFeedbackActor* VisualFeedbackActor = InTacticSubsystem->GetVisualFeedbackActor();
+	if (!VisualFeedbackActor)
+	{
+		FString TempStr = FString::Printf(TEXT("if (!VisualFeedbackActor)"));
+		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+
+		return false;
+	}
+
+	FVector AdjustTargetLocation = UThisProjectFunctionLibrary::FVectorZToGround(TargetLocation);
+	FVector AdjustOwnerSourceLocation = UThisProjectFunctionLibrary::FVectorZToGround(Owner_Caster->GetActorLocation());
+
+	// 清空输出数组
+	OutTargets.Empty();
+
+
+	// 获取技能释放位置
+	FVector AbilityCenter;
+	FVector ForwardVector;
+
+
+	if (bAimWithMouse)
+	{
+		const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
+		// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
+		if (!bInfiniteRange && DistanceToMouse > (SkillPlacementRadius
+			+ (bAddMovingRange ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() : 0)))
+		{
+			// 鼠标是否在施法范围内
+			if (bAddMovingRange)
+			{
+				float RangeToMove = Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() + SkillPlacementRadius;
+				FVector ClampedLocation = AdjustTargetLocation; // 由于是引用，所以这步不能删
+				UThisProjectFunctionLibrary::ClampMoveRange(AdjustOwnerSourceLocation, RangeToMove,
+				                                            ClampedLocation);
+				GetPotentialTargets(InTacticSubsystem, ClampedLocation, true);
+			}
+			return false;
+		}
+
+		AbilityCenter = AdjustTargetLocation;
+		//ForwardVector = (MouseLocation - AdjustOwnerSourceLocation).GetSafeNormal();
+	}
+	else
+	{
+		// 不使用鼠标指向，以施法者为中心
+		AbilityCenter = AdjustOwnerSourceLocation;
+
+		if (bSkillLookAtMouseHoveringLocation)
+		{
+			// 朝向鼠标位置
+			ForwardVector = (AdjustTargetLocation - AdjustOwnerSourceLocation).GetSafeNormal();
+		}
+		else
+		{
+			// 使用施法者当前朝向
+			ForwardVector = Owner_Caster->GetActorForwardVector();
+		}
+	}
+
+
+	// Get subsystem instead of game state
+	TArray<ABaseCharacter*> PotentialTargets;
+	SelectTargetsByTeamAndProperties(InTacticSubsystem, Owner_Caster, PotentialTargets);
 
 	// 根据技能范围类型筛选目标
 	for (ABaseCharacter* Character : PotentialTargets)
@@ -160,6 +176,7 @@ bool UBaseAbility::GetPotentialTargets(
 			OutTargets.AddUnique(Character);
 		}
 	}
+
 	for (ABaseCharacter*
 	     OutTarget : OutTargets)
 	{
@@ -173,18 +190,78 @@ bool UBaseAbility::GetPotentialTargets(
 		}
 	}
 
+	// 更新视觉反馈
+	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, OutTargets);
+	VisualFeedbackActor->SetActorLocation(AdjustTargetLocation);
+
 	return true;
 }
 
-bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ABaseCharacter* Character) const
+TArray<ABaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ABaseCharacter* InOwner, UTacticSubsystem* InTacticSubsystem)
+{
+	TArray<ABaseCharacter*> PotentialTargets;
+	ABaseCharacter* Owner_Caster = BaseCharacterOwner ? BaseCharacterOwner : InOwner;
+	if (!Owner_Caster)
+	{
+		{
+			FString TempStr = FString::Printf(TEXT("!Owner_Caster"));
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
+		return PotentialTargets;
+	}
+
+	SelectTargetsByTeamAndProperties(InTacticSubsystem, Owner_Caster, PotentialTargets);
+	if (PotentialTargets.IsEmpty())return PotentialTargets;
+
+	// 根据技能范围类型筛选目标
+	for (ABaseCharacter* Character : PotentialTargets)
+	{
+		if (!Character) continue;
+		bool bInRange = false;
+
+		float SelectDistanceByType = 0;
+		float DistanceByProperty = Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() +
+			(bAimWithMouse ? SkillPlacementRadius : 0);
+
+		switch (SkillRangeType)
+		{
+		case EAR_Circle:
+		case EAR_Sector:
+			SelectDistanceByType = CircleTargetingRange + DistanceByProperty;
+			bInRange = IsCharacterInCircleRange(Owner_Caster->GetActorLocation(), Character, SelectDistanceByType);
+			break;
+
+		case EAR_Box:
+			//todo bInRange = IsCharacterInBoxRange(Owner_Caster->GetActorLocation(), ForwardVector, Character);
+			break;
+		case EAR_Cross:
+			//todo bInRange = IsCharacterInCrossRange(Owner_Caster->GetActorLocation(), ForwardVector, Character);
+			break;
+		default: ;
+		}
+		if (!bInRange)
+		{
+			PotentialTargets.Remove(Character);
+		}
+	}
+	return PotentialTargets;
+}
+
+bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ABaseCharacter* Character,
+                                            float UseCustomRadius) const
 {
 	if (!Character) return false;
 
 	// 计算2D距离（忽略高度差异）
 	float Distance = FVector::Dist2D(Center, Character->GetActorLocation());
 
+
+	// 使用的半径：如果 UseCustomRadius 大于 0，则使用它，否则使用 CircleTargetingRange
+	float RadiusToUse = (UseCustomRadius > 0.0f) ? UseCustomRadius : CircleTargetingRange;
+
 	// 检查是否在圆形范围内
-	return bInfiniteRange || Distance <= CircleTargetingRadius;
+	return bInfiniteRange || Distance <= RadiusToUse;
 }
 
 bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& Forward, ABaseCharacter* Character) const
@@ -226,7 +303,7 @@ bool UBaseAbility::IsCharacterInSectorRange(const FVector& Center, const FVector
 	float Distance = RelativeLocation.Size2D();
 
 	// 检查距离
-	if (!bInfiniteRange && Distance > CircleTargetingRadius)
+	if (!bInfiniteRange && Distance > CircleTargetingRange)
 	{
 		return false;
 	}

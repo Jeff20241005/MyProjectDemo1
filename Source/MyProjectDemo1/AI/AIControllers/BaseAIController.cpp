@@ -6,6 +6,7 @@
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "NavigationSystem.h"
+#include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "Perception/AIPerceptionComponent.h"
 
 
@@ -73,17 +74,7 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	// 如果不是自由移动且有范围限制，则检查距离
 	if (!IsFreeToMove && RangeToMove > 0.0f)
 	{
-		// 计算从当前位置到目标位置的方向和距离
-		FVector Direction = (MouseClickLocation - CurrentLocation);
-		float Distance = Direction.Size();
-
-		// 如果距离超过了允许的范围
-		if (Distance > RangeToMove)
-		{
-			// 将方向标准化，然后乘以最大允许距离
-			Direction.Normalize();
-			TargetLocation = CurrentLocation + (Direction * RangeToMove);
-		}
+		UThisProjectFunctionLibrary::ClampMoveRange(CurrentLocation, RangeToMove, TargetLocation);
 	}
 
 	// 在目标点周围找一个可到达的点

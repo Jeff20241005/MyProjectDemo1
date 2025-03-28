@@ -20,12 +20,21 @@ class MYPROJECTDEMO1_API AVisualFeedbackActor : public AActor
 public:
 	//UFUNCTION(BlueprintCallable)
 	//UBaseAbility* GetBaseAbility() const { return BaseAbility; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
+	float AngleOfSphereSM = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	FName MaterialName = FName("Angle");
 
-	void ShowVisualFeedback(UBaseAbility* InBaseAbility);
-	
-	void OnMouseCursorOver();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	float AdjustedSkillProperty = 1.f / 100.f * 2.f;
+
+	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ABaseCharacter*>& InPotentialTargets);
 
 	float DrawAttackRange(ABaseCharacter* BaseCharacter);
+
+	UFUNCTION(BlueprintCallable)
+	USceneComponent* GetSceneComponent() const { return SceneComponent; }
+
 	UFUNCTION(BlueprintCallable)
 	UPathTracerComponent* GetPathTracerComponent() const { return PathTracerComponent; }
 
@@ -34,22 +43,25 @@ public:
 	{
 		return SkillPlacementRadiusStaticMeshComponent;
 	}
-	
+
 	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
 	UStaticMeshComponent* GetBoxStaticMeshComponent() const { return BoxStaticMeshComponent; }
 
 	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
-	UStaticMeshComponent* GetBoxStaticMeshComponentForSector() const { return BoxStaticMeshComponentForSector; }
+	UStaticMeshComponent* GetBoxStaticMeshComponentForSector() const { return BoxStaticMeshComponentForCross; }
 
 	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
-	UStaticMeshComponent* GetSphereStaticMeshComponent() const { return SphereStaticMeshComponent; }
+	UStaticMeshComponent* GetSphereStaticMeshComponent() const { return CircleStaticMeshComponent; }
 
 	UFUNCTION(BlueprintCallable)
-	void CloseVisualFeedback(UBaseAbility* InBaseAbility);
+	void CancelVisualFeedback(UBaseAbility* InBaseAbility);
 
-	//todo，之后想办法生成一个扇形的Collision
+	void CancelMove();
 protected:
+	virtual void OnConstruction(const FTransform& Transform) override;
 	AVisualFeedbackActor();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	USceneComponent* SceneComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UPathTracerComponent* PathTracerComponent;
@@ -58,22 +70,22 @@ protected:
 	UStaticMeshComponent* SkillPlacementRadiusStaticMeshComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
-	UStaticMeshComponent* SphereStaticMeshComponent;
+	UStaticMeshComponent* CircleStaticMeshComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UStaticMeshComponent* BoxStaticMeshComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UStaticMeshComponent* BoxStaticMeshComponentForSector;
+	UStaticMeshComponent* BoxStaticMeshComponentForCross;
 
 
-	template <class Comp>
+	template <typename Comp>
 	Comp* CreateComponent();
 
+	void ShowStaticMesh(UStaticMeshComponent* InStaticMeshComponent, FVector InScale);
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
 
 private:
-	UPROPERTY()
-	UBaseAbility* BaseAbility;
+	//UPROPERTY()
+	//UBaseAbility* BaseAbility;
 };
 
 //记得包含头文件在C++文件
@@ -93,12 +105,20 @@ Comp* AVisualFeedbackActor::CreateComponent()
 
 	FName CompName = FName(*(Comp::StaticClass()->GetName() + TEXT("_") + FString::FromInt(CompCount)));
 
+	// 创建组件
 	Comp* TheComp = CreateDefaultSubobject<Comp>(CompName);
+	
 	if (USceneComponent* TempSceneComponentTemp = Cast<USceneComponent>(TheComp))
 	{
 		if (TempSceneComponentTemp)
 		{
 			TempSceneComponentTemp->SetupAttachment(RootComponent);
+			if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(TempSceneComponentTemp))
+			{
+				StaticMeshComponent->SetCollisionProfileName("NoCollision");
+				StaticMeshComponent->SetVisibility(false);
+				//StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			}
 		}
 	}
 

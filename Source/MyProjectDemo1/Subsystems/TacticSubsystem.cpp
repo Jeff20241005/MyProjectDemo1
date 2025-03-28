@@ -5,14 +5,13 @@
 
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
+#include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/PlayerCharacter.h"
-#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
@@ -37,9 +36,16 @@ void UTacticSubsystem::MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter)
 
 void UTacticSubsystem::CancelMoveAndSkillThenClearVisualFeedback()
 {
-	bCanMove = false;
+	if (OnCancelMove.IsBound())
+	{
+		OnCancelMove.Broadcast();
+	}
+
 	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 	GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
+
+	GlobalPotentialTargets.Empty();
+	CheckGlobalPotentialTargetsOutline();
 
 	/*// 清除所有目标的高亮
 	{
@@ -74,12 +80,18 @@ void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
 void UTacticSubsystem::CharacterPreMove(ATacticPlayerController* TacticPlayerController)
 {
 	bCanMove = true;
-	GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindUObject(this, &UTacticSubsystem::PreMove,
-	                          TacticPlayerController);
-	GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, TimerDelegate, 0.04f, true, 0.1f);
+	if (!ShowVisualFeedbackActor->GetPathTracerComponent()->IsActive())
+	{
+		ShowVisualFeedbackActor->GetPathTracerComponent()->Activate();
+
+		GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
+
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUObject(this, &UTacticSubsystem::PreMove,
+		                          TacticPlayerController);
+		GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, TimerDelegate, 0.04f, true, 0.1f);
+	}
 }
 
 void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
@@ -113,12 +125,18 @@ void UTacticSubsystem::PostSkillSelected(ATacticPlayerController* TacticPlayerCo
 
 void UTacticSubsystem::PreSkillSelection(UBaseAbility* BaseAbility)
 {
-	//也可能可以直接调用VisualFeedbackActor的移动组件。让其变成合适的大小。圈内的Targets高亮
+	//一次性的，可以不用SetTimer。。
 	if (BaseAbility && BaseAbility->GetPotentialTargets(
-		GlobalPotentialTargets,
-		CurrentActionCharacter, this, CurrentActionCharacter->GetActorLocation()))
+		this, CurrentActionCharacter->GetActorLocation()))
 	{
 	}
+	CheckGlobalPotentialTargetsOutline();
+}
+
+void UTacticSubsystem::CancelMove()
+{
+	GetVisualFeedbackActor()->CancelMove();
+	bCanMove = false;
 }
 
 
@@ -129,13 +147,16 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	OnSwitchToNextCharacterAction.AddUObject(this, &ThisClass::SwitchToNextCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
 
+	OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
+	OnCancelMoveAndSkill.AddUObject(this, &ThisClass::CancelMoveAndSkillThenClearVisualFeedback);
+
 	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
 	OnPostSkillSelected.AddUObject(this, &ThisClass::PostSkillSelected);
 	OnSkillRelease.AddUObject(this, &ThisClass::SkillRelease);
 
 	OnPreMove.AddUObject(this, &ThisClass::CharacterPreMove);
 	OnMove.AddUObject(this, &ThisClass::Move);
-	OnCancelMoveAndSkill.AddUObject(this, &ThisClass::CancelMoveAndSkillThenClearVisualFeedback);
+
 
 	OnMyMouseBeginCursorOver.AddUObject(this, &ThisClass::MyMouseBeginCursorOver);
 	OnMyMouseEndCursorOver.AddUObject(this, &ThisClass::MyMouseEndCursorOver);
@@ -155,7 +176,10 @@ void UTacticSubsystem::BeginSwitchCharacter()
 		CurrentActionCharacter = AllCharactersInOrder[0];
 
 		// 手动触发一次委托，确保 PlayerController 能获取到正确的角色
-		OnSwitchToNextCharacterAction.Broadcast();
+		if (OnSwitchToNextCharacterAction.IsBound())
+		{
+			OnSwitchToNextCharacterAction.Broadcast();
+		}
 	}
 }
 
@@ -168,21 +192,6 @@ void UTacticSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::BeginSwitchCharacter, 1.f);
 }
 
-void UTacticSubsystem::PostInitialize()
-{
-	Super::PostInitialize();
-
-	// 在这里初始化 CurrentActionCharacter
-	if (AllCharactersInOrder.Num() > 0)
-	{
-		CurrentActionCharacter = AllCharactersInOrder[0];
-
-		// 手动触发一次委托，确保 PlayerController 能获取到正确的角色
-		OnSwitchToNextCharacterAction.Broadcast();
-	}
-}
-
-
 void UTacticSubsystem::SwitchToNextCharacterAction()
 {
 	if (!IsValid(AllCharactersInOrder[0])) return;
@@ -192,6 +201,7 @@ void UTacticSubsystem::SwitchToNextCharacterAction()
 		CurrentControlPlayer = PlayerCharacter;
 	}
 }
+
 
 void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController)
 {
@@ -208,22 +218,29 @@ void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController
 
 	FVector projectedLoc;
 	//---角色移动范围---
+
+	FVector PlayerLocation = CurrentControlPlayer->GetActorLocation();
+	float RangeToMove = CurrentControlPlayer->GetBaseCharacterAttributeSet()->GetMoveRange();
+	FVector TargetLocation = InTacticPlayerController->MouseHoveringCursorOverLocation;
+	UThisProjectFunctionLibrary::ClampMoveRange(PlayerLocation, RangeToMove, TargetLocation);
+
+
 	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		InTacticPlayerController->MouseHoveringCursorOverLocation - CurrentControlPlayer->GetActorLocation(),
+		TargetLocation - PlayerLocation,
 		0.0f,
-		1000.0f) + CurrentControlPlayer->GetActorLocation();
+		1000.0f) + PlayerLocation;
 
 	if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), FinalLocation, projectedLoc, nullptr,
 	                                                     UNavigationQueryFilter::StaticClass(),
 	                                                     FVector(1000, 1000, 1000)))
 	{
 		UNavigationPath* NaviValue = UNavigationSystemV1::FindPathToLocationSynchronously(
-			GetWorld(), CurrentControlPlayer->GetActorLocation(), projectedLoc);
+			GetWorld(), PlayerLocation, projectedLoc);
 
 		if (NaviValue != nullptr)
 		{
 			MovePoints = NaviValue->PathPoints;
-			GetShowVisualFeedbackActor()->GetPathTracerComponent()->DrawPath(MovePoints);
+			GetVisualFeedbackActor()->GetPathTracerComponent()->DrawPath(MovePoints);
 		}
 	}
 }
@@ -234,7 +251,7 @@ UTacticSubsystem::UTacticSubsystem()
 	FindMyClass(VisualFeedbackActorClass, *VisualFeedbackActor_Path);
 }
 
-AVisualFeedbackActor* UTacticSubsystem::GetShowVisualFeedbackActor()
+AVisualFeedbackActor* UTacticSubsystem::GetVisualFeedbackActor()
 {
 	if (!ShowVisualFeedbackActor)
 	{
@@ -249,11 +266,11 @@ void UTacticSubsystem::RoundFinish()
 	// Clear path visualization when round finishes
 }
 
-void UTacticSubsystem::ShowGlobalTargetsOutline()
+void UTacticSubsystem::CheckGlobalPotentialTargetsOutline()
 {
 	for (ABaseCharacter*
 	     CharactersInOrder :
-	     GetAllCharactersInOrder())
+	     AllCharactersInOrder)
 	{
 		if (!GlobalPotentialTargets.Contains(CharactersInOrder))
 		{
@@ -275,37 +292,77 @@ void UTacticSubsystem::PostSkillSelectedTimer(ATacticPlayerController* InTacticP
 {
 	if (InTacticPlayerController && BaseAbility && CurrentActionCharacter)
 	{
-		// 调用并传递参数
-		if (BaseAbility->GetPotentialTargets(
-			GlobalPotentialTargets,
-			CurrentActionCharacter, this,
-			InTacticPlayerController->MouseHoveringCursorOverLocation
-			/*todo bug test CurrentActionCharacter->GetActorLocation()*/))
+		FVector MouseLocation = InTacticPlayerController->MouseHoveringCursorOverLocation;
+		FVector CharacterLocation = CurrentActionCharacter->GetActorLocation();
+
+		if (BaseAbility->bAimWithMouse)
 		{
+			if (BaseAbility->GetPotentialTargets(this, MouseLocation))
+			{
+				if (OnCancelMove.IsBound())
+				{
+					OnCancelMove.Broadcast();
+				}
+			}
+			else if (BaseAbility->GetPotentialTargets(
+				this, MouseLocation, true))
+			{
+				if (OnPreMove.IsBound())
+				{
+					OnPreMove.Broadcast(InTacticPlayerController);
+				}
+			}
+			else
+			{
+				
+			}
 			
 		}
-		// 进行鼠标指针检测
-		else if (BaseAbility->GetPotentialTargets(
-			GlobalPotentialTargets,
-			CurrentActionCharacter, this, InTacticPlayerController->MouseHoveringCursorOverLocation))
-		{
-			{
-				FString TempStr = FString::Printf(TEXT("进行鼠标指针检测"));
-				if (GEngine)
-					GEngine->
-						AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-			}
-			//OnPreMove.Broadcast(BaseCharacter)
-			//todo move broadcast
-		}
-		//超出最远距离检测的实现, 所有技能变红
 		else
 		{
+			// 调用并传递参数
+			if (BaseAbility->GetPotentialTargets(
+				this,
+				UThisProjectFunctionLibrary::FVectorZToGround(CharacterLocation)))
+			{
+				{
+					FString TempStr = FString::Printf(TEXT("1"));
+					if (GEngine)
+						GEngine->
+							AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+					UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+				}
+			}
+			// 进行鼠标指针检测
+			else if (BaseAbility->GetPotentialTargets(
+				this, MouseLocation))
+			{
+				//todo 加鼠标范围，
+				{
+					FString TempStr = FString::Printf(TEXT("进行鼠标指针检测"));
+					if (GEngine)
+						GEngine->
+							AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+					UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+				}
+				//OnPreMove.Broadcast(BaseCharacter)
+				//todo move broadcast
+			}
+			//超出最远距离检测的实现, 所有技能变红
+			else
+			{
+				{
+					FString TempStr = FString::Printf(TEXT("2"));
+					if (GEngine)
+						GEngine->
+							AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+					UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+				}
+			}
 		}
 	}
 
-	ShowGlobalTargetsOutline();
+	CheckGlobalPotentialTargetsOutline();
 }
 
 

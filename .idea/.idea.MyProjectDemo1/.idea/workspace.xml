@@ -22,7 +22,6 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Intermediate/Build/Win64/UnrealEditor/Inc/MyProjectDemo1/UHT/TacticSubsystem.gen.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Abilities/GameplayAbility.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Abilities/Tasks/AbilityTask.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/AbilitySystemBlueprintLibrary.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -41,9 +40,16 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/AssetTools/Public/PackageMigrationContext.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/BSPUtils/Private/BSPOps.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Classes/FunctionalAITest.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Classes/FunctionalTestUtilityLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Classes/FunctionalTestingManager.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Private/AutomationBlueprintFunctionLibrary.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Private/FunctionalTest.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Private/FunctionalUIScreenshotTest.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Private/ScreenshotFunctionalTest.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Private/TakeScreenshotAfterTimeLatentAction.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/FunctionalTesting/Public/AutomationBlueprintFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/LauncherServices/Private/Profiles/LauncherProfileManager.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/LauncherServices/Public/ILauncherProfileManager.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/LogVisualizer/Private/VisualLoggerTimeSliderController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MassEntityTestSuite/Private/MassSystemRequirementTest.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MassEntityTestSuite/Public/MassEntityTestFarmPlot.h" root0="FORCE_HIGHLIGHTING" />
@@ -51,16 +57,41 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/ProfileVisualizer/Private/SGraphBar.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/ToolMenus/Public/ToolMenuSection.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AIGraph/Classes/AIGraphSchema.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AnimGraph/Private/AnimBlueprintCompiler.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AnimGraph/Private/AnimBlueprintPinInfoDetails.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AnimGraph/Private/AnimBlueprintPinInfoDetails.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AnimationBlueprintLibrary/Public/AnimPose.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AnimationBlueprintLibrary/Public/AnimationAttributeBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AnimationBlueprintLibrary/Public/AnimationBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/AudioEditor/Private/AssetTypeActions/AssetDefinition_SoundBase.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/BlueprintEditorLibrary/Public/BlueprintEditorLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/BlueprintGraph/Classes/K2Node_SpawnActor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/BlueprintGraph/Private/K2Node_BaseAsyncTask.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Blutility/Private/EditorFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Blutility/Public/EditorUtilityLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/ContentBrowserData/Public/ContentBrowserItem.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/ContentBrowserData/Public/ContentBrowserItemPath.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/FoliageEdit/Public/ProceduralFoliageEditorLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/InternationalizationSettings/Private/InternationalizationSettingsModule.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Kismet/Private/BlueprintDebugger.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Kismet/Private/Blueprints/JsonObjectGraphFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/LandscapeEditor/Private/LandscapeEdModeXYOffset.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/LandscapeEditor/Private/LandscapeEditorDetailCustomization_ImportExport.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/LandscapeEditor/Private/LandscapeEditorDetailCustomization_NewLandscape.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/MaterialEditor/Public/MaterialEditingLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/SequenceRecorder/Public/SequenceRecorderBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/SequencerCore/Public/Scripting/ViewModelScriptingStruct.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/SubobjectDataInterface/Public/SubobjectDataBlueprintFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Classes/Factories/TextureFactory.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Private/CameraController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Private/DebugToolExec.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/UnrealEd/Public/Subsystems/EditorSubsystemBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/VREditor/Private/VREditorMode.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Android/AndroidFileClient.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/Framework/Utils/Gauntlet.InputActions.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/Gauntlet.Automation.csproj" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/SelfTest/TestData/LogParser/LinuxAssert.txt" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/SelfTest/TestData/LogParser/LinuxFatalError.txt" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Gauntlet/SelfTest/TestData/LogParser/Win64Assert.txt" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Mac/Mac.Automation.csproj" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Mac/MacPlatform.Automation.cs" root0="FORCE_HIGHLIGHTING" />
@@ -73,17 +104,23 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Turnkey/Commands/InstallSdk.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Turnkey/CopyProvider.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/Turnkey/TurnkeySettings.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/AutomationTool/XLocLocalization/XLocLocalization.Automation.csproj" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.BuildGraph/BgObjectDef.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/AsyncThreadPoolWorkQueue.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/Clock.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/DirectoryReference.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/JsonSchemaFactory.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/ThreadPoolWorkQueue.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/UnrealEngineTypes.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Horde/BinaryIdConverter.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Horde/Compute/Clients/ServerComputeClient.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.OIDC/OidcTokenManager.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Perforce.Managed/StreamTreeReader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Perforce/EpicGames.Perforce.csproj" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Serialization/CbConverter.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Slack/SlackOption.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Exporters/CodeGen/UhtHeaderCodeGenerator.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Exporters/CodeGen/UhtHeaderCodeGeneratorHFile.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Parsers/UhtNativeInterfaceClassParser.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Types/Properties/UhtClassProperty.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Types/Properties/UhtClassPtrProperties.cs" root0="FORCE_HIGHLIGHTING" />
@@ -94,9 +131,31 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Types/Properties/UhtSetProperty.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Types/UhtProperty.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.UHT/Types/UhtType.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/UnrealBuildTool/Platform/IOS/IOSCodeSigning.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/UnrealBuildTool/Platform/IOS/UEDeployIOS.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/UnrealBuildTool/ProjectFiles/Xcode/XcodeFrameworkWrapperProject.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/UnrealBuildTool/UnrealBuildTool.csproj" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AIModule/Classes/BehaviorTree/BTFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AIModule/Classes/Blueprint/AIBlueprintHelperLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AIModule/Private/BehaviorTree/ValueOrBBKeyBlueprintUtility.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AIModule/Private/EnvironmentQuery/Generators/EnvQueryGenerator_OnCircle.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AIModule/Private/GameplayDebugger/GameplayDebuggerCategory_NavLocalGrid.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/AnimExecutionContextLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/AnimationStateMachineLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/BlendListBaseLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/BlendSpaceLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/BlendSpacePlayerLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/BoneControllers/AnimNode_RigidBody_Library.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/KismetAnimationLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/LayeredBoneBlendLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/LinkedAnimGraphLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/MirrorAnimLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/ModifyCurveLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/SequenceEvaluatorLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/SequencePlayerLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AnimGraphRuntime/Public/SkeletalControlLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AudioMixer/Public/AudioMixerBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/AugmentedReality/Public/ARBlueprintLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Private/Math/UnrealMath.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Containers/Array.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Containers/Set.h" root0="FORCE_HIGHLIGHTING" />
@@ -106,22 +165,37 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Math/UnrealMathUtility.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Math/Vector.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Templates/UnrealTemplate.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/Templates/UnrealTypeTraits.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/UObject/ScriptDelegates.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Core/Public/UObject/WeakObjectPtrTemplates.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Private/Blueprint/BlueprintSupport.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Private/UObject/ScriptCore.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Private/UObject/UObjectBase.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Private/UObject/UObjectClusters.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/Blueprint/BlueprintSupport.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/Templates/SubclassOf.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/Interface.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/Object.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectPtr.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectBase.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectBaseUtility.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/AI/Navigation/NavAgentInterface.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Animation/AnimData/AnimDataNotifications.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Animation/AnimData/AttributeIdentifier.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Animation/AnimData/CurveIdentifier.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Animation/AnimationAssetExtensions.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Animation/BuiltInAttributeTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Camera/CameraLensEffectInterface.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Camera/PlayerCameraManager.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/ActorComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/PrimitiveComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/SceneComponent.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/SphereComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Components/StaticMeshComponent.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Debug/DebugDrawService.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/Engine.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/EngineTypes.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/GameInstance.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/LocalPlayer.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Engine/World.h" root0="FORCE_HIGHLIGHTING" />
@@ -130,23 +204,43 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/Controller.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/GameModeBase.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/GameState.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/InputDeviceLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/LightWeightInstanceBlueprintFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/Pawn.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/PlayerController.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/SpectatorPawn.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/BlueprintInstancedStructLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/BlueprintMapLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/BlueprintPathsLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/BlueprintPlatformLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/BlueprintSetLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/DataTableFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/GameplayStatics.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/ImportanceSamplingLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Classes/Kismet/KismetArrayLibrary.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Actor.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Components/SceneComponent.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Components/StaticMeshComponent.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Controller.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/DebugCameraController.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/GameInstance.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/GameModeBase.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/GameplayStatics.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/LocalPlayer.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstance.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstanceDynamic.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Materials/MaterialInstanceSupport.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Pawn.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/Player.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/PlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/PrimitiveComponentPhysics.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/TimerManager.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/UnrealEngine.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Private/World.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/CollisionQueryParams.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/Materials/MaterialInstance.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/Materials/MaterialInstanceDynamic.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/Subsystems/GameInstanceSubsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/Subsystems/Subsystem.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/Engine/Public/Subsystems/SubsystemCollection.h" root0="FORCE_HIGHLIGHTING" />
@@ -191,6 +285,7 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;C/C++ Project.MyProjectDemo1.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
@@ -316,6 +411,10 @@
       <workItem from="1742780904644" duration="27181000" />
       <workItem from="1742866754618" duration="12321000" />
       <workItem from="1742957657540" duration="18297000" />
+      <workItem from="1743039003698" duration="22950000" />
+      <workItem from="1743068227512" duration="1642000" />
+      <workItem from="1743125635988" duration="6410000" />
+      <workItem from="1743132622661" duration="10950000" />
     </task>
     <servers />
   </component>
