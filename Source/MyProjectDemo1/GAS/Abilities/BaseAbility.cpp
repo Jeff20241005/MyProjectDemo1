@@ -3,6 +3,7 @@
 
 #include "BaseAbility.h"
 
+#include "Components/CapsuleComponent.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
@@ -101,29 +102,31 @@ bool UBaseAbility::GetPotentialTargets(
 	FVector ForwardVector;
 
 
-	if (bAimWithMouse)
+	float TotalRange =
+		(bAimWithMouse ? SkillPlacementRadius : Owner_Caster->GetCapsuleComponent()->GetScaledCapsuleRadius())
+		+ (bAddMovingRange ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() : 0);
+
+
+	const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
+	// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
+	if (!bInfiniteRange && DistanceToMouse > TotalRange)
 	{
-		const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
-		// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
-		if (!bInfiniteRange && DistanceToMouse > (SkillPlacementRadius
-			+ (bAddMovingRange ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() : 0)))
+		if (bAddMovingRange)
 		{
-			// 鼠标是否在施法范围内
-			if (bAddMovingRange)
-			{
-				float RangeToMove = Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() + SkillPlacementRadius;
-				FVector ClampedLocation = AdjustTargetLocation; // 由于是引用，所以这步不能删
-				UThisProjectFunctionLibrary::ClampMoveRange(AdjustOwnerSourceLocation, RangeToMove,
-				                                            ClampedLocation);
-
-				//再次检测，让它沿着边缘走
-				GetPotentialTargets(InTacticSubsystem, ClampedLocation, true);
-			}
-			return false;
+			FVector ClampedLocation = AdjustTargetLocation; // 由于是引用，所以这步不能删
+			UThisProjectFunctionLibrary::ClampMoveRange2D(AdjustOwnerSourceLocation, TotalRange,
+			                                              ClampedLocation);
+			//再次检测，让它沿着边缘走
+			GetPotentialTargets(InTacticSubsystem, ClampedLocation, true);
 		}
+		// 鼠标不在施法范围内
+		return false;
+	}
 
+
+	if (bAimWithMouse || bAddMovingRange)
+	{
 		AbilityCenter = AdjustTargetLocation;
-		//ForwardVector = (MouseLocation - AdjustOwnerSourceLocation).GetSafeNormal();
 	}
 	else
 	{
@@ -176,19 +179,6 @@ bool UBaseAbility::GetPotentialTargets(
 		if (bInRange)
 		{
 			OutTargets.AddUnique(Character);
-		}
-	}
-
-	for (ABaseCharacter*
-	     OutTarget : OutTargets)
-	{
-		{
-			FString
-				TempStr = FString::Printf(TEXT("%s"), *OutTarget->GetName());
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true,
-				                                 FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
 		}
 	}
 

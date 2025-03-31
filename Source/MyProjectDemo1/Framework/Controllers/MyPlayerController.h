@@ -44,6 +44,11 @@ public:
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 
+
+	FCollisionObjectQueryParams CurrentObjectQueryParams;
+	FCollisionObjectQueryParams DefaultObjectQueryParams;
+	FCollisionObjectQueryParams GroundObjectQueryParams;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float TraceDistance = 100000;
@@ -91,10 +96,6 @@ protected:
 	ASpectatorPawn* GetMySpectatorPawn();
 	UPROPERTY()
 	ASpectatorPawn* MySpectatorPawn;
-
-	FCollisionObjectQueryParams CurrentObjectQueryParams;
-	FCollisionObjectQueryParams DefaultObjectQueryParams;
-	FCollisionObjectQueryParams GroundObjectQueryParams;
 };
 
 template <class TClass, class TMemberFunc, class... TArgs>

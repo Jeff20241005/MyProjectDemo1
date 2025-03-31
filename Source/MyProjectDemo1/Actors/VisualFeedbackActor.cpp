@@ -9,7 +9,7 @@
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
 
-void AVisualFeedbackActor::CancelVisualFeedback(UBaseAbility* InBaseAbility)
+void AVisualFeedbackActor::CancelSkill()
 {
 	SkillPlacementRadiusStaticMeshComponent->SetVisibility(false);
 	CircleStaticMeshComponent->SetVisibility(false);
@@ -88,6 +88,9 @@ void AVisualFeedbackActor::ShowStaticMesh(UStaticMeshComponent* InStaticMeshComp
 
 void AVisualFeedbackActor::BeginPlay()
 {
+	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+	TacticSubsystem->OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
+	TacticSubsystem->OnCancelSkill.AddUObject(this, &ThisClass::CancelSkill);
 	Super::BeginPlay();
 }
 

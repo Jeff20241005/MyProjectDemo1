@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "VisualFeedbackActor.generated.h"
 
 class UBaseAbility;
@@ -26,7 +27,7 @@ public:
 	FName MaterialName = FName("Angle");
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	float AdjustedSkillProperty = 1.f / 100.f * 2.f;
+	float AdjustedSkillProperty = 1.f / 100.f * 2.f;	
 
 	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ABaseCharacter*>& InPotentialTargets);
 
@@ -53,11 +54,13 @@ public:
 	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
 	UStaticMeshComponent* GetSphereStaticMeshComponent() const { return CircleStaticMeshComponent; }
 
-	UFUNCTION(BlueprintCallable)
-	void CancelVisualFeedback(UBaseAbility* InBaseAbility);
+	void CancelSkill();
 
 	void CancelMove();
 protected:
+	UPROPERTY()
+	UTacticSubsystem* TacticSubsystem;
+	
 	virtual void OnConstruction(const FTransform& Transform) override;
 	AVisualFeedbackActor();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)

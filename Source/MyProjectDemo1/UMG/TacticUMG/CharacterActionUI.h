@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "CharacterActionUI.generated.h"
 
 class USkillListUI;
@@ -40,5 +41,14 @@ protected:
 	void ActionButton_SkillFunction();
 	UFUNCTION()
 	void TestSwitchCharac();
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_PreMove();
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_CancelMove();
+	
+	void PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void CancelPreMove();
+	UFUNCTION()
+	void ActionButton_MoveOnClick();
 	virtual void NativeConstruct() override;
 };

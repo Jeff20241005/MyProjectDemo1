@@ -74,7 +74,7 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	// 如果不是自由移动且有范围限制，则检查距离
 	if (!IsFreeToMove && RangeToMove > 0.0f)
 	{
-		UThisProjectFunctionLibrary::ClampMoveRange(CurrentLocation, RangeToMove, TargetLocation);
+		UThisProjectFunctionLibrary::ClampMoveRange2D(CurrentLocation, RangeToMove, TargetLocation);
 	}
 
 	// 在目标点周围找一个可到达的点

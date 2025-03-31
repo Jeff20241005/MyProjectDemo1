@@ -8,7 +8,7 @@ FVector UThisProjectFunctionLibrary::FVectorZToGround(const FVector& Source)
 	return FVector(Source.X, Source.Y, 5.f);
 }
 
-void UThisProjectFunctionLibrary::ClampMoveRange(const FVector& CurrentLocation, float RangeToMove,
+void UThisProjectFunctionLibrary::ClampMoveRange2D(const FVector& CurrentLocation, float RangeToMove,
                                                  FVector& TargetLocation)
 {
 	// 计算2D距离（忽略高度差异）

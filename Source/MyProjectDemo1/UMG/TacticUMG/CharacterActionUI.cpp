@@ -32,6 +32,31 @@ void UCharacterActionUI::TestSwitchCharac()
 	}
 }
 
+void UCharacterActionUI::PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+{
+	BP_PreMove();
+}
+
+void UCharacterActionUI::CancelPreMove()
+{
+	BP_CancelMove();
+}
+
+void UCharacterActionUI::ActionButton_MoveOnClick()
+{
+	if (TacticSubsystem->OnCancelSkill.IsBound())
+	{
+		TacticSubsystem->OnCancelSkill.Broadcast();
+	}
+
+	if (TacticSubsystem->OnPreMove.IsBound())
+	{
+		ATacticPlayerController* TacticPlayerController =
+			GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+		TacticSubsystem->OnPreMove.Broadcast(TacticPlayerController, nullptr);
+	}
+}
+
 void UCharacterActionUI::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -39,7 +64,7 @@ void UCharacterActionUI::NativeConstruct()
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 
 	//todo better or not to put show move / BeginDrawVisualFeedBack in userwidgets
-	//ActionButton_Move->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
+	ActionButton_Move->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButton_MoveOnClick);
 	// we may move the tactic "real" move function, to ability base
 
 	//ActionButton_Move->Button->OnClicked.AddDynamic(this, &ThisClass::SetCurrent);
@@ -50,6 +75,9 @@ void UCharacterActionUI::NativeConstruct()
 
 	ActionButton_Skill->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButton_SkillFunction);
 
+
+	TacticSubsystem->OnPreMove.AddUObject(this, &ThisClass::PreMove);
+	TacticSubsystem->OnCancelMove.AddUObject(this, &ThisClass::CancelPreMove);
 	//AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	//ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode, &AMyGameMode::SwitchControlMode);
 }

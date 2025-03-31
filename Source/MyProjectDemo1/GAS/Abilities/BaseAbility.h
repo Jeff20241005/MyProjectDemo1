@@ -4,13 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "BaseAbility.generated.h"
 
 class UBaseEffect;
-class ATacticPlayerController;
 class ABaseCharacter;
 class AVisualFeedbackActor;
+class UTacticSubsystem;
 
 UENUM()
 enum EAttackRangeType : uint8
@@ -28,6 +27,7 @@ UCLASS()
 class MYPROJECTDEMO1_API UBaseAbility : public UGameplayAbility
 {
 public:
+	//如果Controller参数为真，则移动，参与鼠标检测，看看出界没有
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
 	bool GetPotentialTargets(
 		UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation, bool bAddMovingRange = false);

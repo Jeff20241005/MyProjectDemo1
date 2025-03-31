@@ -19,6 +19,7 @@ class UMaterialInstanceDynamic;
 
 DECLARE_MULTICAST_DELEGATE(FOnCharacterStateChange)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterMove, ATacticPlayerController*)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterPreMove, ATacticPlayerController*, UBaseAbility*)
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FSkillStateChange, UBaseAbility*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillLocationChange, ATacticPlayerController*, UBaseAbility*)
@@ -39,7 +40,7 @@ public:
 	//一个角色回合结束的时候
 	FOnCharacterStateChange OnRoundFinish;
 	//取消移动,技能的选择
-	FOnCharacterStateChange OnCancelMoveAndSkill;
+	FOnCharacterStateChange OnCancelSkill;
 	FOnCharacterStateChange OnCancelMove;
 
 	//全局的，查看某一个角色的信息的时候，显示移动范围。
@@ -48,7 +49,7 @@ public:
 
 
 	// 预先准备移动： 显示角色移动路径，让bCanMove为True
-	FOnCharacterMove OnPreMove;
+	FOnCharacterPreMove OnPreMove;
 	// 执行移动： 检测bCanMove，然后bCanMove为False
 	FOnCharacterMove OnMove;
 
@@ -56,6 +57,7 @@ public:
 	FSkillStateChange OnPreSkillSelection;
 	//正在选择，显示Visual FeedBack等
 	FOnSkillLocationChange OnPostSkillSelected;
+	FOnSkillLocationChange OnPostSkillSelectedTimer;
 	//技能释放了
 	FOnSkillLocationChange OnSkillRelease;
 
@@ -111,11 +113,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	AVisualFeedbackActor* GetVisualFeedbackActor();
+	void CancelMoveAndSkill();
 
 protected:
 	TArray<FVector> MovePoints;
 
 	void SwitchToNextCharacterAction();
+	void PreMove_IfHasSkillRadius(ATacticPlayerController* InTacticPlayerController, float SkillPlacementRadius = 0);
 
 
 	FTimerHandle VisualFeedBackTimeHandle;
@@ -130,10 +134,11 @@ protected:
 
 	void MyMouseEndCursorOver(ABaseCharacter* BaseCharacter);
 	void MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter);
-	void CancelMoveAndSkillThenClearVisualFeedback();
+	void CancelSkill();
 	void Move(ATacticPlayerController* InTacticPlayerController);
-	void CharacterPreMove(ATacticPlayerController* TacticPlayerController);
+	void PreMove(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
 	void SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void DoPostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void PreSkillSelection(UBaseAbility* BaseAbility);
 	void CancelMove();
@@ -146,8 +151,7 @@ protected:
 	void CheckGlobalPotentialTargetsOutline();
 	void PostSkillSelectedTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* BaseAbility);
 
-	UFUNCTION()
-	void PreMove(ATacticPlayerController* InTacticPlayerController);
+	void PreMoveTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
 
 	// Path visualization settings
 	FVector2D PathScale = FVector2D(10.0f, 10.0f);

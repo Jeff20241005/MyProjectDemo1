@@ -190,9 +190,11 @@ void ATacticPlayerController::BeginPlay()
 	SetControlRotation(TargetCameraRotation);
 
 	// 绑定委托到子系统
-	TacticSubsystem->OnPostSkillSelected.AddUObject(this, &ATacticPlayerController::PostSkillSelected);
-	TacticSubsystem->OnCancelMoveAndSkill.AddUObject(
-		this, &ATacticPlayerController::CancelMoveAndSkill);
+	TacticSubsystem->OnPreMove.AddUObject(this, &ATacticPlayerController::PreMove);
+
+	TacticSubsystem->OnCancelSkill.AddUObject(this, &ATacticPlayerController::CancelSkill);
+	TacticSubsystem->OnCancelMove.AddUObject(this, &ATacticPlayerController::CancelMove);
+	TacticSubsystem->OnPostSkillSelectedTimer.AddUObject(this, &ATacticPlayerController::PostSkillSelectedTimer);
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
@@ -268,15 +270,9 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 	ZoomCameraTick(DeltaSeconds);
 }
 
-void ATacticPlayerController::CancelMoveAndSkill()
+void ATacticPlayerController::CancelSkill()
 {
 	CurrentObjectQueryParams = DefaultObjectQueryParams;
-}
-
-void ATacticPlayerController::PostSkillSelected(ATacticPlayerController* TacticPlayerController,
-                                                UBaseAbility* BaseAbility)
-{
-	CurrentObjectQueryParams = GroundObjectQueryParams;
 }
 
 void ATacticPlayerController::SwitchToNextCharacterAction()
@@ -288,6 +284,23 @@ void ATacticPlayerController::SwitchToNextCharacterAction()
 }
 
 
+void ATacticPlayerController::PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+{
+	CurrentObjectQueryParams = GroundObjectQueryParams;
+}
+
+void ATacticPlayerController::PostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
+                                                     UBaseAbility* BaseAbility)
+{
+	CurrentObjectQueryParams = GroundObjectQueryParams;
+}
+
+void ATacticPlayerController::CancelMove()
+{
+	CurrentObjectQueryParams = GroundObjectQueryParams;
+}
+
+
 void ATacticPlayerController::MoveRight(float Value)
 {
 	Super::MoveRight(Value);
@@ -296,6 +309,11 @@ void ATacticPlayerController::MoveRight(float Value)
 
 void ATacticPlayerController::OnLeftMouseButtonDown()
 {
+	//todo skill release broadcast!
+	// if (TacticSubsystem->OnSkillRelease.IsBound())
+	// {
+	// TacticSubsystem->OnSkillRelease.Broadcast(this,);
+	// }
 	Super::OnLeftMouseButtonDown();
 }
 
@@ -303,6 +321,9 @@ void ATacticPlayerController::OnLeftMouseButtonDown()
 void ATacticPlayerController::OnRightMouseButtonDown()
 {
 	// Intentionally empty to disable right-click rotation/movement
+
+	//Call CancelSkillAndMovement
+	TacticSubsystem->CancelMoveAndSkill();
 }
 
 // Empty function to disable vertical movement

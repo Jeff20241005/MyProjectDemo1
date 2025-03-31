@@ -23,7 +23,7 @@ public:
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 
 protected:
-	virtual void OnLeftMouseButtonDown() override;//todo skill release broadcast!
+	virtual void OnLeftMouseButtonDown() override;
 	
 	// Camera zoom properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -89,17 +89,16 @@ protected:
 
 	ATacticPlayerController();
 
-	virtual void OnLeftMouseButtonDown() override;
-
-
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
 
 	FTimerHandle CameraTransitionTimerHandle;
 
 	virtual void Tick(float DeltaSeconds) override;
-	void CancelMoveAndSkill();
-	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void CancelSkill();
 	void SwitchToNextCharacterAction();
+	void PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void PostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void CancelMove();
 	virtual void BeginPlay() override;
 };
