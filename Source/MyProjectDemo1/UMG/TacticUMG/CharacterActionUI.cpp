@@ -4,10 +4,12 @@
 #include "CharacterActionUI.h"
 #include "SkillListUI.h"
 #include "Components/Button.h"
-#include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "Components/CheckBox.h"
+#include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
-#include "MyProjectDemo1/UMG/ActionButtonUI.h"
+#include "MyProjectDemo1/UMG/Base/ActionButtonUI.h"
+#include "MyProjectDemo1/UMG/Base/ActionCheckBoxUI.h"
 
 
 void UCharacterActionUI::ActionButton_SkillFunction()
@@ -57,6 +59,14 @@ void UCharacterActionUI::ActionButton_MoveOnClick()
 	}
 }
 
+void UCharacterActionUI::ActionCheckBoxUI_CheckBoxOnCheckStateChange(bool bIsChecked)
+{
+	if (TacticSubsystem->OnChangeAutomaticMoveBySkill.IsBound())
+	{
+		TacticSubsystem->OnChangeAutomaticMoveBySkill.Broadcast(bIsChecked);
+	}
+}
+
 void UCharacterActionUI::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -68,16 +78,13 @@ void UCharacterActionUI::NativeConstruct()
 	// we may move the tactic "real" move function, to ability base
 
 	//ActionButton_Move->Button->OnClicked.AddDynamic(this, &ThisClass::SetCurrent);
-
 	//ActionButton_Attack->Button->OnClicked.AddDynamic(TacticSubsystem, &UTacticSubsystem::);
-
 	ActionButton_SwitchCharacter->Button->OnClicked.AddDynamic(this, &ThisClass::TestSwitchCharac);
-
 	ActionButton_Skill->Button->OnClicked.AddDynamic(this, &ThisClass::ActionButton_SkillFunction);
-
 
 	TacticSubsystem->OnPreMove.AddUObject(this, &ThisClass::PreMove);
 	TacticSubsystem->OnCancelMove.AddUObject(this, &ThisClass::CancelPreMove);
-	//AMyGameMode* MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-	//ActionButton_SwitchGameModeTest->Button->OnClicked.AddDynamic(MyGameMode, &AMyGameMode::SwitchControlMode);
+
+	ActionCheckBoxUI_ChangeAutomaticMoveBySkill->CheckBox->OnCheckStateChanged.AddDynamic(
+		this, &ThisClass::ActionCheckBoxUI_CheckBoxOnCheckStateChange);
 }

@@ -5,7 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/Controllers/BasePlayerController.h"
 
 
 void ABaseItem::NotifyActorBeginCursorOver()
@@ -67,7 +67,7 @@ void ABaseItem::NotifyActorOnClicked(FKey ButtonPressed)
 void ABaseItem::BeginPlay()
 {
 	Super::BeginPlay();
-	MyPlayerController = Cast<AMyPlayerController>(
+	MyPlayerController = Cast<ABasePlayerController>(
 		UGameplayStatics::GetPlayerController(GetWorld(), 0));
 }
 

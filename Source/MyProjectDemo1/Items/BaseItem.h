@@ -6,7 +6,7 @@
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "BaseItem.generated.h"
 
-class AMyPlayerController;
+class ABasePlayerController;
 class UInteractionComp;
 class USphereComponent;
 
@@ -37,7 +37,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UInteractionComp* InteractionComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
-	AMyPlayerController* MyPlayerController;
+	ABasePlayerController* MyPlayerController;
 };
 
 

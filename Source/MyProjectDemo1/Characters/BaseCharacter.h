@@ -12,7 +12,7 @@ class UTacticSubsystem;
 class UPathTracerComp;
 class UTeamComp;
 class UWidgetComponent;
-class AMyPlayerController;
+class ABasePlayerController;
 class ABaseAIController;
 class UBaseAbility;
 class UGameplayEffect;
@@ -44,8 +44,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UInteractionComp* GetInteractionComp() const { return InteractionComp; }
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	UTeamComp* GetTeamComp() const { return TeamComp; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	USpringArmComponent* SpringArmComponent;
@@ -63,9 +61,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UInteractionComp* InteractionComp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UTeamComp* TeamComp;
 
 
 	//todo move to parent
@@ -88,7 +83,7 @@ protected:
 
 	//todo move to parent
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	AMyPlayerController* MyPlayerController;
+	ABasePlayerController* MyPlayerController;
 
 	//	UDataTable* AttributeDT;
 	virtual void NotifyActorOnClicked(FKey ButtonPressed = EKeys::LeftMouseButton) override;

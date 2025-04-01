@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "VisualFeedbackActor.generated.h"
 
+class UTacticSubsystem;
 class UBaseAbility;
 class UPathTracerComp;
-class ABaseCharacter;
+class ATacticBaseCharacter;
 class UStaticMeshComponent;
 
 UCLASS()
@@ -29,9 +29,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	float AdjustedSkillProperty = 1.f / 100.f * 2.f;	
 
-	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ABaseCharacter*>& InPotentialTargets);
+	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ATacticBaseCharacter*>& InPotentialTargets);
 
-	float DrawAttackRange(ABaseCharacter* BaseCharacter);
+	float DrawAttackRange(ATacticBaseCharacter* BaseCharacter);
 
 	UFUNCTION(BlueprintCallable)
 	USceneComponent* GetSceneComponent() const { return SceneComponent; }

@@ -6,7 +6,7 @@
 #include "GameFramework/GameModeBase.h"
 #include "MyGameMode.generated.h"
 
-class AMyPlayerController;
+class ABasePlayerController;
 class ATacticPlayerController;
 class AFreeRoamPlayerController;
 
@@ -57,7 +57,7 @@ protected:
 	TSubclassOf<AFreeRoamPlayerController> FreeRoamControllerClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Controllers")
-	TSubclassOf<AMyPlayerController> LevelControllerClass;
+	TSubclassOf<ABasePlayerController> LevelControllerClass;
 
 private:
 	// 保存当前控制器的状态

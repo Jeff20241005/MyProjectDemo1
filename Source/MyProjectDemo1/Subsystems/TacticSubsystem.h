@@ -10,13 +10,14 @@ class ATacticPlayerCharacter;
 class AMyGameState;
 class AVisualFeedbackActor;
 class UWidgetComponent;
-class ABaseCharacter;
+class ATacticBaseCharacter;
 class ATacticPlayerController;
 class UWidget_CharacterSkill;
 class UBaseAbility;
 class USplineMeshComponent;
 class UMaterialInstanceDynamic;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnSettingChange, bool)
 DECLARE_MULTICAST_DELEGATE(FOnCharacterStateChange)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterMove, ATacticPlayerController*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterPreMove, ATacticPlayerController*, UBaseAbility*)
@@ -24,7 +25,7 @@ DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterPreMove, ATacticPlayerControlle
 DECLARE_MULTICAST_DELEGATE_OneParam(FSkillStateChange, UBaseAbility*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillLocationChange, ATacticPlayerController*, UBaseAbility*)
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ABaseCharacter*)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ATacticBaseCharacter*)
 
 /**
  * 
@@ -35,6 +36,9 @@ class MYPROJECTDEMO1_API UTacticSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
+	//切换智能移动
+	FOnSettingChange OnChangeAutomaticMoveBySkill;
+
 	//切换到另一个角色行动时
 	FOnCharacterStateChange OnSwitchToNextCharacterAction;
 	//一个角色回合结束的时候
@@ -64,12 +68,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	ATacticPlayerCharacter* CurrentControlPlayer;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
-	ABaseCharacter* CurrentActionCharacter;
+	ATacticBaseCharacter* CurrentActionCharacter;
 
 
 	float DebugLifeTime = 0.1f;
 
-	TArray<ABaseCharacter*> GlobalPotentialTargets;
+	TArray<ATacticBaseCharacter*> GlobalPotentialTargets;
+
+	bool bEnableAutomaticMoveBySkill = false;
 
 
 	//Data of Team
@@ -79,10 +85,10 @@ public:
 
 	// Team query functions
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
-	TArray<ABaseCharacter*> GetAllHostileCharacters(const ABaseCharacter* Character) const;
+	TArray<ATacticBaseCharacter*> GetAllHostileCharacters(const ATacticBaseCharacter* Character) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
-	TArray<ABaseCharacter*> GetAllFriendlyCharacters(const ABaseCharacter* Character) const;
+	TArray<ATacticBaseCharacter*> GetAllFriendlyCharacters(const ATacticBaseCharacter* Character) const;
 
 	// Team status check functions
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
@@ -93,28 +99,29 @@ public:
 
 	// Getter functions
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
-	TArray<ABaseCharacter*> GetAllCharactersInOrder() const { return AllCharactersInOrder; }
+	TArray<ATacticBaseCharacter*> GetAllCharactersInOrder() const { return AllCharactersInOrder; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
-	TArray<ABaseCharacter*> GetPlayerTeam() const { return PlayerTeam; }
+	TArray<ATacticBaseCharacter*> GetPlayerTeam() const { return PlayerTeam; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
-	TArray<ABaseCharacter*> GetEnemyTeam() const { return EnemyTeam; }
+	TArray<ATacticBaseCharacter*> GetEnemyTeam() const { return EnemyTeam; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Team Management")
-	TArray<ABaseCharacter*> GetNeutralTeam() const { return NeutralTeam; }
+	TArray<ATacticBaseCharacter*> GetNeutralTeam() const { return NeutralTeam; }
 
 	// Character team management
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
-	void RemoveCharacterFromTeamByType(ABaseCharacter* Character);
+	void RemoveCharacterFromTeamByType(ATacticBaseCharacter* Character);
 
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
-	void AddCharacterToTeamByType(ABaseCharacter* Character);
+	void AddCharacterToTeamByType(ATacticBaseCharacter* Character);
 
 	UFUNCTION(BlueprintCallable)
 	AVisualFeedbackActor* GetVisualFeedbackActor();
 	void CancelMoveAndSkill();
 
+	bool bCanMove = false;
 protected:
 	TArray<FVector> MovePoints;
 
@@ -123,7 +130,6 @@ protected:
 
 
 	FTimerHandle VisualFeedBackTimeHandle;
-	bool bCanMove = false;
 
 	UTacticSubsystem();
 	UPROPERTY()
@@ -132,8 +138,8 @@ protected:
 
 	void RoundFinish();
 
-	void MyMouseEndCursorOver(ABaseCharacter* BaseCharacter);
-	void MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter);
+	void MyMouseEndCursorOver(ATacticBaseCharacter* BaseCharacter);
+	void MyMouseBeginCursorOver(ATacticBaseCharacter* BaseCharacter);
 	void CancelSkill();
 	void Move(ATacticPlayerController* InTacticPlayerController);
 	void PreMove(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
@@ -142,6 +148,7 @@ protected:
 	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void PreSkillSelection(UBaseAbility* BaseAbility);
 	void CancelMove();
+	void ChangeAutomaticMoveBySkill(bool bNew);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -162,17 +169,17 @@ protected:
 
 private:
 	UPROPERTY()
-	TArray<ABaseCharacter*> EnemyTeam;
+	TArray<ATacticBaseCharacter*> EnemyTeam;
 
 	UPROPERTY()
-	TArray<ABaseCharacter*> PlayerTeam;
+	TArray<ATacticBaseCharacter*> PlayerTeam;
 
 	UPROPERTY()
-	TArray<ABaseCharacter*> NeutralTeam;
+	TArray<ATacticBaseCharacter*> NeutralTeam;
 
 	// Character ordering by action values
 	UPROPERTY()
-	TArray<ABaseCharacter*> AllCharactersInOrder;
+	TArray<ATacticBaseCharacter*> AllCharactersInOrder;
 };
 
 template <typename T>

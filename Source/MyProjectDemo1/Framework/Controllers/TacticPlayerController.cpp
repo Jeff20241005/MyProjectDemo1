@@ -3,13 +3,16 @@
 
 #include "TacticPlayerController.h"
 
-#include "Camera/CameraComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpectatorPawn.h"
-#include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
-#include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
+#include "MyProjectDemo1/Framework/HUD/BaseHUD.h"
+#include "MyProjectDemo1/Framework/HUD/TacticHUD.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
+#include "MyProjectDemo1/UMG/Base/ActionCheckBoxUI.h"
+#include "MyProjectDemo1/UMG/TacticUMG/CharacterActionUI.h"
+#include "MyProjectDemo1/UMG/TacticUMG/TacticMainUI.h"
 
 void ATacticPlayerController::MoveForward(float Value)
 {
@@ -207,6 +210,15 @@ void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 	GetPawn()->AddMovementInput(Direction, Value);
 }
 
+void ATacticPlayerController::ToggleAutoMove()
+{
+	ATacticHUD* TacticHUD = Cast<ATacticHUD>(GetHUD());
+	if (TacticHUD)
+	{
+		TacticHUD->ToggleAutomaticMoveBySkill(TacticSubsystem);
+	}
+}
+
 void ATacticPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -218,6 +230,8 @@ void ATacticPlayerController::SetupInputComponent()
 	// Override the vertical movement keys with empty functions to disable them
 	InputComponent->BindAxis("Space", this, &ATacticPlayerController::DisableVerticalMovement);
 	InputComponent->BindAxis("Ctrl", this, &ATacticPlayerController::DisableVerticalMovement);
+
+	InputComponent->BindAction("AlphabetZ", IE_Pressed, this, &ThisClass::ToggleAutoMove);
 }
 
 void ATacticPlayerController::RotateLeft(float Value)

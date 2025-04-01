@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MyGameMode.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/Controllers/BasePlayerController.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "MyProjectDemo1/Framework/Controllers/FreeRoamPlayerController.h"
 #include "Kismet/GameplayStatics.h"
@@ -12,7 +12,7 @@ AMyGameMode::AMyGameMode()
 	// 设置默认控制器类
 	TacticalControllerClass = ATacticPlayerController::StaticClass();
 	FreeRoamControllerClass = AFreeRoamPlayerController::StaticClass();
-	LevelControllerClass = AMyPlayerController::StaticClass();
+	LevelControllerClass = ABasePlayerController::StaticClass();
 	
 	// 设置默认游戏模式
 	CurrentControlMode = EControlMode::FreeRoamMode;

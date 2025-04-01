@@ -3,10 +3,11 @@
 
 #include "VisualFeedbackActor.h"
 
-#include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/Components/PathTracerComp.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 
 void AVisualFeedbackActor::CancelSkill()
@@ -48,7 +49,7 @@ AVisualFeedbackActor::AVisualFeedbackActor()
 
 
 void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility,
-                                                     TArray<ABaseCharacter*>& InPotentialTargets)
+                                                     TArray<ATacticBaseCharacter*>& InPotentialTargets)
 {
 	if (InPotentialTargets.IsEmpty())
 	{
@@ -91,7 +92,7 @@ void AVisualFeedbackActor::BeginPlay()
 	Super::BeginPlay();
 }
 
-float AVisualFeedbackActor::DrawAttackRange(ABaseCharacter* BaseCharacter)
+float AVisualFeedbackActor::DrawAttackRange(ATacticBaseCharacter* BaseCharacter)
 {
 	float AttackRange = BaseCharacter->GetBaseCharacterAttributeSet()->GetAttackRange();
 	//DrawRangeSize(AttackRange);

@@ -4,7 +4,7 @@
 #include "TacticPlayerCharacter.h"
 
 #include "MyProjectDemo1/Components/TeamComp.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/Controllers/BasePlayerController.h"
 
 
 void ATacticPlayerCharacter::NotifyActorOnClicked(FKey ButtonPressed)

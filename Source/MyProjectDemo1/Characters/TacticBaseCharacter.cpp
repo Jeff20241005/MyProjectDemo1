@@ -62,6 +62,8 @@ void ATacticBaseCharacter::CloseWidget()
 
 ATacticBaseCharacter::ATacticBaseCharacter()
 {
+	TeamComp = CreateComponent<UTeamComp>();
+
 	//PrimaryActorTick.bCanEverTick = true;
 
 	HealthWidgetComp = CreateComponent<UWidgetComponent>();

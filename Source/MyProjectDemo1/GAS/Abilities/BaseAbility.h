@@ -7,7 +7,7 @@
 #include "BaseAbility.generated.h"
 
 class UBaseEffect;
-class ABaseCharacter;
+class ATacticBaseCharacter;
 class AVisualFeedbackActor;
 class UTacticSubsystem;
 
@@ -34,11 +34,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
 
-	void SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSubsystem, ABaseCharacter* Owner_Caster,
-	                                      TArray<ABaseCharacter*>& PotentialTargets) const;
+	void SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSubsystem, ATacticBaseCharacter* Owner_Caster,
+	                                      TArray<ATacticBaseCharacter*>& PotentialTargets) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
-	TArray<ABaseCharacter*> GetTargetsInMaxRange(ABaseCharacter* InOwner, UTacticSubsystem* InTacticSubsystem);
+	TArray<ATacticBaseCharacter*> GetTargetsInMaxRange(ATacticBaseCharacter* InOwner, UTacticSubsystem* InTacticSubsystem);
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
@@ -167,27 +167,27 @@ protected:
 
 
 	UPROPERTY(BlueprintReadOnly, Category = AbilitySetup)
-	ABaseCharacter* BaseCharacterOwner;
+	ATacticBaseCharacter* BaseCharacterOwner;
 
 	/**
 	 * 检查角色是否在圆形范围内
 	 */
-	bool IsCharacterInCircleRange(const FVector& Center, ABaseCharacter* Character, float UseCustomRadius = -1.f) const;
+	bool IsCharacterInCircleRange(const FVector& Center, ATacticBaseCharacter* Character, float UseCustomRadius = -1.f) const;
 
 	/**
 	 * 检查角色是否在矩形范围内
 	 */
-	bool IsCharacterInBoxRange(const FVector& Center, const FVector& Forward, ABaseCharacter* Character) const;
+	bool IsCharacterInBoxRange(const FVector& Center, const FVector& Forward, ATacticBaseCharacter* Character) const;
 
 	/**
 	 * 检查角色是否在扇形范围内
 	 */
-	bool IsCharacterInSectorRange(const FVector& Center, const FVector& Forward, ABaseCharacter* Character) const;
+	bool IsCharacterInSectorRange(const FVector& Center, const FVector& Forward, ATacticBaseCharacter* Character) const;
 
 	/**
 	 * 检查角色是否在十字形范围内
 	 */
-	bool IsCharacterInCrossRange(const FVector& Center, const FVector& Forward, ABaseCharacter* Character) const;
+	bool IsCharacterInCrossRange(const FVector& Center, const FVector& Forward, ATacticBaseCharacter* Character) const;
 
 	GENERATED_BODY()
 };

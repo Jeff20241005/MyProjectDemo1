@@ -6,6 +6,7 @@
 #include "MyAbilityComp.h"
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
@@ -22,7 +23,7 @@ UTeamComp::UTeamComp(): Owner_BaseCharacter(nullptr), OriginalTeam()
 void UTeamComp::BeginPlay()
 {
 	Super::BeginPlay();
-	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
+	Owner_BaseCharacter = Cast<ATacticBaseCharacter>(GetOwner());
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 }
 
@@ -54,7 +55,7 @@ void UTeamComp::SetTeam(ETeamType NewTeam)
 	}
 }
 
-bool UTeamComp::IsHostileTo(const ABaseCharacter* Other) const
+bool UTeamComp::IsHostileTo(const ATacticBaseCharacter* Other) const
 {
 	if (!Other || !Owner_BaseCharacter)
 		return false;
@@ -82,7 +83,7 @@ bool UTeamComp::IsHostileTo(const ABaseCharacter* Other) const
 	}
 }
 
-bool UTeamComp::IsFriendlyTo(const ABaseCharacter* Other) const
+bool UTeamComp::IsFriendlyTo(const ATacticBaseCharacter* Other) const
 {
 	if (!Other || !Owner_BaseCharacter)
 		return false;
@@ -110,16 +111,16 @@ bool UTeamComp::IsFriendlyTo(const ABaseCharacter* Other) const
 	}
 }
 
-ABaseCharacter* UTeamComp::GetNearestHostileCharacter() const
+ATacticBaseCharacter* UTeamComp::GetNearestHostileCharacter() const
 {
-	ABaseCharacter* NearestHostile = nullptr;
+	ATacticBaseCharacter* NearestHostile = nullptr;
 	float MinDistance = MAX_FLT;
 
 	// 获取所有敌对角色
-	TArray<ABaseCharacter*> HostileCharacters = TacticSubsystem->GetAllHostileCharacters(Owner_BaseCharacter);
+	TArray<ATacticBaseCharacter*> HostileCharacters = TacticSubsystem->GetAllHostileCharacters(Owner_BaseCharacter);
 
 	// 找出最近的敌对角色
-	for (ABaseCharacter* Hostile : HostileCharacters)
+	for (ATacticBaseCharacter* Hostile : HostileCharacters)
 	{
 		if (Hostile)
 		{
@@ -136,16 +137,16 @@ ABaseCharacter* UTeamComp::GetNearestHostileCharacter() const
 	return NearestHostile;
 }
 
-ABaseCharacter* UTeamComp::GetNearestFriendlyCharacter() const
+ATacticBaseCharacter* UTeamComp::GetNearestFriendlyCharacter() const
 {
-	ABaseCharacter* NearestFriendly = nullptr;
+	ATacticBaseCharacter* NearestFriendly = nullptr;
 	float MinDistance = MAX_FLT;
 
 	// 获取所有友好角色
-	TArray<ABaseCharacter*> FriendlyCharacters = TacticSubsystem->GetAllFriendlyCharacters(Owner_BaseCharacter);
+	TArray<ATacticBaseCharacter*> FriendlyCharacters = TacticSubsystem->GetAllFriendlyCharacters(Owner_BaseCharacter);
 
 	// 找出最近的友好角色（排除自己）
-	for (ABaseCharacter* Friendly : FriendlyCharacters)
+	for (ATacticBaseCharacter* Friendly : FriendlyCharacters)
 	{
 		if (Friendly && Friendly != Owner_BaseCharacter)
 		{
@@ -161,7 +162,7 @@ ABaseCharacter* UTeamComp::GetNearestFriendlyCharacter() const
 	return NearestFriendly;
 }
 
-bool UTeamComp::CanAttackTarget_ByAttackRange(const ABaseCharacter* Target) const
+bool UTeamComp::CanAttackTarget_ByAttackRange(const ATacticBaseCharacter* Target) const
 {
 	if (!Target || !Owner_BaseCharacter->GetBaseCharacterAttributeSet())
 		return false;
@@ -177,16 +178,16 @@ bool UTeamComp::CanAttackTarget_ByAttackRange(const ABaseCharacter* Target) cons
 	return Distance <= AttackRange;
 }
 
-TArray<ABaseCharacter*> UTeamComp::GetHostileCharactersInAttackRange() const
+TArray<ATacticBaseCharacter*> UTeamComp::GetHostileCharactersInAttackRange() const
 {
-	TArray<ABaseCharacter*> HostilesInRange;
+	TArray<ATacticBaseCharacter*> HostilesInRange;
 
 	// 获取所有敌对角色
-	TArray<ABaseCharacter*> HostileCharacters = TacticSubsystem->GetAllHostileCharacters(Owner_BaseCharacter);
+	TArray<ATacticBaseCharacter*> HostileCharacters = TacticSubsystem->GetAllHostileCharacters(Owner_BaseCharacter);
 
 	// 筛选在攻击范围内的敌对角色
 	float AttackRange = Owner_BaseCharacter->GetBaseCharacterAttributeSet()->GetAttackRange();
-	for (ABaseCharacter* Hostile : HostileCharacters)
+	for (ATacticBaseCharacter* Hostile : HostileCharacters)
 	{
 		if (Hostile)
 		{

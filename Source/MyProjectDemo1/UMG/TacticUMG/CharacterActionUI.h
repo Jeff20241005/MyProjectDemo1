@@ -19,6 +19,9 @@ class MYPROJECTDEMO1_API UCharacterActionUI : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
+	UActionCheckBoxUI* ActionCheckBoxUI_ChangeAutomaticMoveBySkill;
+	
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_Attack;
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
@@ -50,5 +53,7 @@ protected:
 	void CancelPreMove();
 	UFUNCTION()
 	void ActionButton_MoveOnClick();
+	UFUNCTION()
+	void ActionCheckBoxUI_CheckBoxOnCheckStateChange(bool bIsChecked);
 	virtual void NativeConstruct() override;
 };

@@ -8,7 +8,7 @@
 
 
 class UTacticSubsystem;
-class ABaseCharacter;
+class ATacticBaseCharacter;
 
 UENUM(BlueprintType)
 enum class ETeamType : uint8
@@ -41,26 +41,26 @@ public:
 	bool IsNeutralTeam() const { return TeamType == ETeamType::ETT_Neutral; }
 
 	UFUNCTION(BlueprintPure, Category = "Team")
-	bool IsHostileTo(const ABaseCharacter* Other) const;
+	bool IsHostileTo(const ATacticBaseCharacter* Other) const;
 
 	UFUNCTION(BlueprintPure, Category = "Team")
-	bool IsFriendlyTo(const ABaseCharacter* Other) const;
+	bool IsFriendlyTo(const ATacticBaseCharacter* Other) const;
 
 	// 获取最近的敌对角色
 	UFUNCTION(BlueprintCallable, Category = "Team")
-	ABaseCharacter* GetNearestHostileCharacter() const;
+	ATacticBaseCharacter* GetNearestHostileCharacter() const;
 
 	// 获取最近的友好角色
 	UFUNCTION(BlueprintCallable, Category = "Team")
-	ABaseCharacter* GetNearestFriendlyCharacter() const;
+	ATacticBaseCharacter* GetNearestFriendlyCharacter() const;
 
 	// 检查是否可以攻击目标角色（基于距离和敌对关系）
 	UFUNCTION(BlueprintCallable, Category = "Team")
-	bool CanAttackTarget_ByAttackRange(const ABaseCharacter* Target) const;
+	bool CanAttackTarget_ByAttackRange(const ATacticBaseCharacter* Target) const;
 
 	// 获取在攻击范围内的敌对角色
 	UFUNCTION(BlueprintCallable, Category = "Team")
-	TArray<ABaseCharacter*> GetHostileCharactersInAttackRange() const;
+	TArray<ATacticBaseCharacter*> GetHostileCharactersInAttackRange() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Team")
 	void Charm();
@@ -72,7 +72,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Team")
 	ETeamType TeamType;
 	UPROPERTY()
-	ABaseCharacter* Owner_BaseCharacter;
+	ATacticBaseCharacter* Owner_BaseCharacter;
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
 

@@ -8,6 +8,7 @@
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
+#include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -15,7 +16,7 @@ void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
                                    const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	BaseCharacterOwner = Cast<ABaseCharacter>(ActorInfo->OwnerActor);
+	BaseCharacterOwner = Cast<ATacticBaseCharacter>(ActorInfo->OwnerActor);
 	//	UMyAbilityComp* AbilityComp = BaseCharacterOwner->MyAbilityComp;
 	//	UBaseCharacterAttributeSet* BaseCharacterAttributeSet = BaseCharacterOwner->BaseCharacterAttributeSet;
 
@@ -34,11 +35,12 @@ void UBaseAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 }
 
 
-void UBaseAbility::SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSubsystem, ABaseCharacter* Owner_Caster,
-                                                    TArray<ABaseCharacter*>& PotentialTargets) const
+void UBaseAbility::SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSubsystem,
+                                                    ATacticBaseCharacter* Owner_Caster,
+                                                    TArray<ATacticBaseCharacter*>& PotentialTargets) const
 {
 	// Get all characters
-	TArray<ABaseCharacter*> AllCharacters = InTacticSubsystem->GetAllCharactersInOrder();
+	TArray<ATacticBaseCharacter*> AllCharacters = InTacticSubsystem->GetAllCharactersInOrder();
 
 	if (bIsNegativeEffect)
 	{
@@ -66,11 +68,13 @@ void UBaseAbility::SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSu
 bool UBaseAbility::GetPotentialTargets(
 	UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation, bool bAddMovingRange)
 {
-	TArray<ABaseCharacter*>& OutTargets = InTacticSubsystem->GlobalPotentialTargets;
+	TArray<ATacticBaseCharacter*>& OutTargets = InTacticSubsystem->GlobalPotentialTargets;
 
-	ABaseCharacter* Owner_Caster = BaseCharacterOwner
-		                               ? BaseCharacterOwner
-		                               : (InTacticSubsystem ? InTacticSubsystem->CurrentActionCharacter : nullptr);
+	ATacticBaseCharacter* Owner_Caster = BaseCharacterOwner
+		                                     ? BaseCharacterOwner
+		                                     : (InTacticSubsystem
+			                                        ? InTacticSubsystem->CurrentActionCharacter
+			                                        : nullptr);
 
 	if (!Owner_Caster)
 	{
@@ -106,7 +110,7 @@ bool UBaseAbility::GetPotentialTargets(
 	// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
 	if (!bInfiniteRange && DistanceToMouse > TotalRange && SkillRangeType != EAR_Sector)
 	{
-		if (bAddMovingRange)
+		if (bAddMovingRange || !InTacticSubsystem->bEnableAutomaticMoveBySkill)
 		{
 			FVector ClampedLocation = AdjustTargetLocation; // 由于是引用，所以这步不能删
 			UThisProjectFunctionLibrary::ClampMoveRange2D(AdjustOwnerSourceLocation, TotalRange,
@@ -117,15 +121,13 @@ bool UBaseAbility::GetPotentialTargets(
 		// 鼠标不在施法范围内
 		return false;
 	}
-
-
+	
 	// 获取技能释放位置
 	FVector ForwardVector;
 	FVector AbilityCenter = AdjustTargetLocation;
 	if (bSkillLookAtMouseHoveringLocation || (!bAimWithMouse && !bAddMovingRange))
 	{
 		// 不使用鼠标指向，以施法者为中心
-
 		AbilityCenter = AdjustOwnerSourceLocation;
 
 		if (bSkillLookAtMouseHoveringLocation)
@@ -141,11 +143,11 @@ bool UBaseAbility::GetPotentialTargets(
 	}
 
 	// Get subsystem instead of game state
-	TArray<ABaseCharacter*> PotentialTargets;
+	TArray<ATacticBaseCharacter*> PotentialTargets;
 	SelectTargetsByTeamAndProperties(InTacticSubsystem, Owner_Caster, PotentialTargets);
 
 	// 根据技能范围类型筛选目标
-	for (ABaseCharacter* Character : PotentialTargets)
+	for (ATacticBaseCharacter* Character : PotentialTargets)
 	{
 		if (!Character) continue;
 
@@ -196,10 +198,11 @@ bool UBaseAbility::GetPotentialTargets(
 	return true;
 }
 
-TArray<ABaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ABaseCharacter* InOwner, UTacticSubsystem* InTacticSubsystem)
+TArray<ATacticBaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ATacticBaseCharacter* InOwner,
+                                                                 UTacticSubsystem* InTacticSubsystem)
 {
-	TArray<ABaseCharacter*> PotentialTargets;
-	ABaseCharacter* Owner_Caster = BaseCharacterOwner ? BaseCharacterOwner : InOwner;
+	TArray<ATacticBaseCharacter*> PotentialTargets;
+	ATacticBaseCharacter* Owner_Caster = BaseCharacterOwner ? BaseCharacterOwner : InOwner;
 	if (!Owner_Caster)
 	{
 		{
@@ -214,7 +217,7 @@ TArray<ABaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ABaseCharacter* InOwn
 	if (PotentialTargets.IsEmpty())return PotentialTargets;
 
 	// 根据技能范围类型筛选目标
-	for (ABaseCharacter* Character : PotentialTargets)
+	for (ATacticBaseCharacter* Character : PotentialTargets)
 	{
 		if (!Character) continue;
 		bool bInRange = false;
@@ -247,7 +250,7 @@ TArray<ABaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ABaseCharacter* InOwn
 	return PotentialTargets;
 }
 
-bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ABaseCharacter* Character,
+bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ATacticBaseCharacter* Character,
                                             float UseCustomRadius) const
 {
 	if (!Character) return false;
@@ -263,7 +266,8 @@ bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ABaseCharacte
 	return bInfiniteRange || Distance <= RadiusToUse;
 }
 
-bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& Forward, ABaseCharacter* Character) const
+bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& Forward,
+                                         ATacticBaseCharacter* Character) const
 {
 	if (!Character) return false;
 
@@ -288,7 +292,7 @@ bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& F
 }
 
 bool UBaseAbility::IsCharacterInSectorRange(const FVector& Center, const FVector& Forward,
-                                            ABaseCharacter* Character) const
+                                            ATacticBaseCharacter* Character) const
 {
 	if (!Character) return false;
 
@@ -318,7 +322,7 @@ bool UBaseAbility::IsCharacterInSectorRange(const FVector& Center, const FVector
 }
 
 bool UBaseAbility::IsCharacterInCrossRange(const FVector& Center, const FVector& Forward,
-                                           ABaseCharacter* Character) const
+                                           ATacticBaseCharacter* Character) const
 {
 	if (!Character) return false;
 

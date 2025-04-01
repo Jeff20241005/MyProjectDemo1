@@ -3,18 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyPlayerController.h"
-#include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
+#include "BasePlayerController.h"
 #include "TacticPlayerController.generated.h"
 
 class UTacticSubsystem;
 class ABaseCharacter;
-
+class UBaseAbility;
 /**
  * 
  */
 UCLASS()
-class MYPROJECTDEMO1_API ATacticPlayerController : public AMyPlayerController
+class MYPROJECTDEMO1_API ATacticPlayerController : public ABasePlayerController
 {
 	GENERATED_BODY()
 
@@ -24,7 +23,7 @@ public:
 
 protected:
 	virtual void OnLeftMouseButtonDown() override;
-	
+
 	// Camera zoom properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float ZoomFactor = 0.3f; // 0 = highest point, 1 = lowest point
@@ -81,6 +80,7 @@ protected:
 	void ZoomCameraTick(float DeltaTime);
 	virtual void ZoomCamera(float Value) override;
 	virtual void PlayerInputMovement(float Value, EAxis::Type Axis) override;
+	void ToggleAutoMove();
 	virtual void SetupInputComponent() override;
 
 	virtual void Destroyed() override;

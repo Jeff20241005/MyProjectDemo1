@@ -18,13 +18,18 @@ public:
 	void Move(FVector MoveLocation);
 	bool CanMove();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	UTeamComp* GetTeamComp() const { return TeamComp; }
 protected:
 	virtual void NotifyActorOnClicked(FKey ButtonPressed = EKeys::LeftMouseButton) override;
 	virtual void NotifyActorEndCursorOver() override;
 
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
-
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UTeamComp* TeamComp;
+	
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UWidgetComponent* HealthWidgetComp;

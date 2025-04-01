@@ -23,11 +23,11 @@
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 
 
-void UTacticSubsystem::MyMouseEndCursorOver(ABaseCharacter* BaseCharacter)
+void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* BaseCharacter)
 {
 }
 
-void UTacticSubsystem::MyMouseBeginCursorOver(ABaseCharacter* BaseCharacter)
+void UTacticSubsystem::MyMouseBeginCursorOver(ATacticBaseCharacter* BaseCharacter)
 {
 	//if () todo 如果按下技能，则只显示自身的移动范围：  全局就一个圈，我们只调用VisualFeedBackActor就可以了
 	{
@@ -44,7 +44,7 @@ void UTacticSubsystem::CancelSkill()
 
 void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
 {
-	if (CurrentActionCharacter&&CurrentActionCharacter->CanMove())
+	if (CurrentActionCharacter && CurrentActionCharacter->CanMove())
 	{
 		CurrentActionCharacter->Move(InTacticPlayerController->LastClickLocation);
 	}
@@ -70,7 +70,7 @@ void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerControl
 {
 	//todo bug 可能 GlobalPotentialTargets会为空，因为此变量总是改变着
 	//所以可能需要先取消，然后0.2s延迟执行	
-	for (ABaseCharacter*
+	for (ATacticBaseCharacter*
 	     TempPotentialTarget : GlobalPotentialTargets)
 	{
 		{
@@ -132,10 +132,24 @@ void UTacticSubsystem::CancelMove()
 	bCanMove = false;
 }
 
+void UTacticSubsystem::ChangeAutomaticMoveBySkill(bool bNew)
+{
+	bEnableAutomaticMoveBySkill = bNew;
+
+
+	if (!bEnableAutomaticMoveBySkill)
+	{
+		if (OnCancelMove.IsBound())
+		{
+			OnCancelMove.Broadcast();
+		}
+	}
+}
 
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	OnChangeAutomaticMoveBySkill.AddUObject(this, &ThisClass::ChangeAutomaticMoveBySkill);
 
 	OnSwitchToNextCharacterAction.AddUObject(this, &ThisClass::SwitchToNextCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
@@ -165,6 +179,9 @@ void UTacticSubsystem::Deinitialize()
 
 void UTacticSubsystem::BeginSwitchCharacter()
 {
+	//Spawn VisualFeedback actor
+	GetVisualFeedbackActor();
+
 	// 在这里初始化 CurrentActionCharacter
 	if (AllCharactersInOrder.Num() > 0)
 	{
@@ -309,7 +326,7 @@ void UTacticSubsystem::RoundFinish()
 
 void UTacticSubsystem::CheckGlobalPotentialTargetsOutline()
 {
-	for (ABaseCharacter*
+	for (ATacticBaseCharacter*
 	     CharactersInOrder :
 	     AllCharactersInOrder)
 	{
@@ -319,7 +336,7 @@ void UTacticSubsystem::CheckGlobalPotentialTargetsOutline()
 			                   UnSetAsSkillTarget();
 		}
 	}
-	for (ABaseCharacter* Target : GlobalPotentialTargets)
+	for (ATacticBaseCharacter* Target : GlobalPotentialTargets)
 	{
 		if (Target && Target->GetInteractionComp())
 		{
@@ -334,20 +351,27 @@ void UTacticSubsystem::PostSkillSelectedTimer(ATacticPlayerController* InTacticP
 	if (InTacticPlayerController && BaseAbility && CurrentActionCharacter)
 	{
 		FVector MouseLocation = InTacticPlayerController->MouseHoveringCursorOverLocation;
-		if (BaseAbility->GetPotentialTargets(this, MouseLocation))
+		if (bEnableAutomaticMoveBySkill)
 		{
-			if (OnCancelMove.IsBound())
+			if (BaseAbility->GetPotentialTargets(this, MouseLocation))
 			{
-				OnCancelMove.Broadcast();
+				if (OnCancelMove.IsBound())
+				{
+					OnCancelMove.Broadcast();
+				}
+			}
+			else
+			{
+				BaseAbility->GetPotentialTargets(this, MouseLocation, true);
+				if (OnPreMove.IsBound())
+				{
+					OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
+				}
 			}
 		}
 		else
 		{
-			BaseAbility->GetPotentialTargets(this, MouseLocation, true);
-			if (OnPreMove.IsBound())
-			{
-				OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
-			}
+			BaseAbility->GetPotentialTargets(this, MouseLocation);
 		}
 	}
 
@@ -357,7 +381,7 @@ void UTacticSubsystem::PostSkillSelectedTimer(ATacticPlayerController* InTacticP
 
 void UTacticSubsystem::SortCharactersByActionValues()
 {
-	AllCharactersInOrder.Sort([](const ABaseCharacter& A, const ABaseCharacter& B) -> bool
+	AllCharactersInOrder.Sort([](const ATacticBaseCharacter& A, const ATacticBaseCharacter& B) -> bool
 	{
 		const float ValueA = A.GetBaseCharacterAttributeSet()->GetActionValues();
 		const float ValueB = B.GetBaseCharacterAttributeSet()->GetActionValues();
@@ -365,7 +389,7 @@ void UTacticSubsystem::SortCharactersByActionValues()
 	});
 }
 
-void UTacticSubsystem::AddCharacterToTeamByType(ABaseCharacter* Character)
+void UTacticSubsystem::AddCharacterToTeamByType(ATacticBaseCharacter* Character)
 {
 	if (!Character)
 		return;
@@ -390,15 +414,15 @@ void UTacticSubsystem::AddCharacterToTeamByType(ABaseCharacter* Character)
 	}
 }
 
-TArray<ABaseCharacter*> UTacticSubsystem::GetAllHostileCharacters(const ABaseCharacter* Character) const
+TArray<ATacticBaseCharacter*> UTacticSubsystem::GetAllHostileCharacters(const ATacticBaseCharacter* Character) const
 {
 	if (!Character)
-		return TArray<ABaseCharacter*>();
+		return TArray<ATacticBaseCharacter*>();
 
-	TArray<ABaseCharacter*> HostileCharacters;
+	TArray<ATacticBaseCharacter*> HostileCharacters;
 
 	// 筛选敌对角色
-	for (ABaseCharacter* OtherCharacter : AllCharactersInOrder)
+	for (ATacticBaseCharacter* OtherCharacter : AllCharactersInOrder)
 	{
 		if (Character->GetTeamComp()->IsHostileTo(OtherCharacter))
 		{
@@ -409,15 +433,15 @@ TArray<ABaseCharacter*> UTacticSubsystem::GetAllHostileCharacters(const ABaseCha
 	return HostileCharacters;
 }
 
-TArray<ABaseCharacter*> UTacticSubsystem::GetAllFriendlyCharacters(const ABaseCharacter* Character) const
+TArray<ATacticBaseCharacter*> UTacticSubsystem::GetAllFriendlyCharacters(const ATacticBaseCharacter* Character) const
 {
 	if (!Character)
-		return TArray<ABaseCharacter*>();
+		return TArray<ATacticBaseCharacter*>();
 
-	TArray<ABaseCharacter*> FriendlyCharacters;
+	TArray<ATacticBaseCharacter*> FriendlyCharacters;
 
 	// 筛选友好角色
-	for (ABaseCharacter* OtherCharacter : AllCharactersInOrder)
+	for (ATacticBaseCharacter* OtherCharacter : AllCharactersInOrder)
 	{
 		if (Character->GetTeamComp()->IsFriendlyTo(OtherCharacter))
 		{
@@ -431,7 +455,7 @@ TArray<ABaseCharacter*> UTacticSubsystem::GetAllFriendlyCharacters(const ABaseCh
 bool UTacticSubsystem::AreAllEnemiesDefeated() const
 {
 	// 检查敌人队伍是否为空或所有敌人都已死亡
-	for (const ABaseCharacter* Enemy : EnemyTeam)
+	for (const ATacticBaseCharacter* Enemy : EnemyTeam)
 	{
 		if (Enemy && Enemy->GetBaseCharacterAttributeSet()->GetHealth() > 0)
 		{
@@ -444,7 +468,7 @@ bool UTacticSubsystem::AreAllEnemiesDefeated() const
 bool UTacticSubsystem::AreAllPlayersDefeated() const
 {
 	// 检查玩家队伍是否为空或所有玩家角色都已死亡
-	for (const ABaseCharacter* Player : PlayerTeam)
+	for (const ATacticBaseCharacter* Player : PlayerTeam)
 	{
 		if (Player && Player->GetBaseCharacterAttributeSet()->GetHealth() > 0)
 		{
@@ -454,7 +478,7 @@ bool UTacticSubsystem::AreAllPlayersDefeated() const
 	return true;
 }
 
-void UTacticSubsystem::RemoveCharacterFromTeamByType(ABaseCharacter* Character)
+void UTacticSubsystem::RemoveCharacterFromTeamByType(ATacticBaseCharacter* Character)
 {
 	if (!Character)
 		return;

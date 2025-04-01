@@ -12,7 +12,7 @@
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
-#include "MyProjectDemo1/Framework/Controllers/MyPlayerController.h"
+#include "MyProjectDemo1/Framework/Controllers/BasePlayerController.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
@@ -35,11 +35,12 @@ void ABaseCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 ABaseCharacter::ABaseCharacter()
 {
 	//PrimaryActorTick.bCanEverTick = true;
+	GetMesh()->SetWorldLocation(FVector(0, 0, -88.f));
+	GetMesh()->SetWorldRotation(FRotator(0,-90.f, 0));
 
 	MyAbilityComp = CreateComponent<UMyAbilityComp>();
 	BaseCharacterAttributeSet = CreateComponent<UBaseCharacterAttributeSet>();
 	InteractionComp = CreateComponent<UInteractionComp>();
-	TeamComp = CreateComponent<UTeamComp>();
 
 	// 设置骨骼网格体的碰撞
 	if (GetMesh())
@@ -136,7 +137,7 @@ void ABaseCharacter::BeginPlay()
 		BaseAIController = InBaseAIController;
 	}
 
-	MyPlayerController = Cast<AMyPlayerController>(
+	MyPlayerController = Cast<ABasePlayerController>(
 		UGameplayStatics::GetPlayerController(GetWorld(), 0));
 }
 
