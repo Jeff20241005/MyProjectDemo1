@@ -97,19 +97,14 @@ bool UBaseAbility::GetPotentialTargets(
 	OutTargets.Empty();
 
 
-	// 获取技能释放位置
-	FVector AbilityCenter;
-	FVector ForwardVector;
-
-
 	float TotalRange =
-		(bAimWithMouse ? SkillPlacementRadius : Owner_Caster->GetCapsuleComponent()->GetScaledCapsuleRadius())
-		+ (bAddMovingRange ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() : 0);
-
+		(bAimWithMouse ? SkillPlacementRadius : 0)
+		+ (bAddMovingRange ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() : 0)
+		+ (!bAimWithMouse && !bAddMovingRange ? Owner_Caster->GetCapsuleComponent()->GetScaledCapsuleRadius() : 0);
 
 	const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
 	// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
-	if (!bInfiniteRange && DistanceToMouse > TotalRange)
+	if (!bInfiniteRange && DistanceToMouse > TotalRange && SkillRangeType != EAR_Sector)
 	{
 		if (bAddMovingRange)
 		{
@@ -124,13 +119,13 @@ bool UBaseAbility::GetPotentialTargets(
 	}
 
 
-	if (bAimWithMouse || bAddMovingRange)
-	{
-		AbilityCenter = AdjustTargetLocation;
-	}
-	else
+	// 获取技能释放位置
+	FVector ForwardVector;
+	FVector AbilityCenter = AdjustTargetLocation;
+	if (bSkillLookAtMouseHoveringLocation || (!bAimWithMouse && !bAddMovingRange))
 	{
 		// 不使用鼠标指向，以施法者为中心
+
 		AbilityCenter = AdjustOwnerSourceLocation;
 
 		if (bSkillLookAtMouseHoveringLocation)
@@ -144,7 +139,6 @@ bool UBaseAbility::GetPotentialTargets(
 			ForwardVector = Owner_Caster->GetActorForwardVector();
 		}
 	}
-
 
 	// Get subsystem instead of game state
 	TArray<ABaseCharacter*> PotentialTargets;
@@ -181,11 +175,25 @@ bool UBaseAbility::GetPotentialTargets(
 			OutTargets.AddUnique(Character);
 		}
 	}
-
 	// 更新视觉反馈
 	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, OutTargets);
-	VisualFeedbackActor->SetActorLocation(AdjustTargetLocation);
+	VisualFeedbackActor->SetActorLocation(AbilityCenter);
+	if (bSkillLookAtMouseHoveringLocation)
+	{
+		// 将 ForwardVector 转换为旋转并应用
+		FRotator NewRotation = ForwardVector.Rotation();
+		// 只保留 Yaw 值，保持视觉反馈在地面上（Pitch 和 Roll 为 0）
+		NewRotation.Pitch = 0.0f;
+		NewRotation.Roll = 0.0f;
 
+		// UE5中，顺时针旋转对应Yaw值，所以加半个扇形角度
+
+		if (SkillRangeType == EAR_Sector)
+		{
+			NewRotation.Yaw += SectorAngle / 2.0f;
+		}
+		VisualFeedbackActor->SetActorRotation(NewRotation);
+	}
 	return true;
 }
 

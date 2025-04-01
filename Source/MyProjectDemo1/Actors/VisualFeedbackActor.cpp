@@ -38,7 +38,7 @@ AVisualFeedbackActor::AVisualFeedbackActor()
 
 	SceneComponent = CreateComponent<USceneComponent>();
 	SetRootComponent(SceneComponent);
-	
+
 	PathTracerComponent = CreateComponent<UPathTracerComponent>();
 	SkillPlacementRadiusStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 	CircleStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
@@ -47,7 +47,8 @@ AVisualFeedbackActor::AVisualFeedbackActor()
 }
 
 
-void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ABaseCharacter*>& InPotentialTargets)
+void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility,
+                                                     TArray<ABaseCharacter*>& InPotentialTargets)
 {
 	if (InPotentialTargets.IsEmpty())
 	{
@@ -61,16 +62,12 @@ void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility
 	{
 	case EAR_Circle:
 		ShowStaticMesh(CircleStaticMeshComponent, FVector(InBaseAbility->CircleTargetingRange));
+		CircleStaticMeshComponent->SetScalarParameterValueOnMaterials(MaterialName, 1.f);
 		break;
 	case EAR_Box:
 		break;
 	case EAR_Sector:
 		ShowStaticMesh(CircleStaticMeshComponent, FVector(InBaseAbility->CircleTargetingRange));
-		{
-			FString TempStr = FString::Printf(TEXT("?fwo1ei"));
-			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
 		CircleStaticMeshComponent->SetScalarParameterValueOnMaterials(MaterialName, InBaseAbility->SectorAngle / 360.f);
 		break;
 	case EAR_Cross:

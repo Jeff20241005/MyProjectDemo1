@@ -44,18 +44,9 @@ void UTacticSubsystem::CancelSkill()
 
 void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
 {
-	if (bCanMove && CurrentActionCharacter)
+	if (CurrentActionCharacter&&CurrentActionCharacter->CanMove())
 	{
-		UBaseCharacterAttributeSet* BaseCharacterAttributeSet = CurrentActionCharacter->GetBaseCharacterAttributeSet();
-		float CurrentActionValues = BaseCharacterAttributeSet->GetActionValues();
-		if (CurrentActionCharacter->GetMyAbilityComp() && CurrentActionValues >= 1)
-		{
-			float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
-			CurrentActionCharacter->BaseAIController->MoveToLocationWithPathFinding(
-				InTacticPlayerController->LastClickLocation, false, MoveRange);
-			// 修改ActionValues属性值
-			BaseCharacterAttributeSet->SetActionValues(CurrentActionValues - 1.0f);
-		}
+		CurrentActionCharacter->Move(InTacticPlayerController->LastClickLocation);
 	}
 }
 

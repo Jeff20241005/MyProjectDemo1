@@ -193,6 +193,24 @@ void ABaseCharacter::HandleHealthChanged(float DeltaValue, const struct FGamepla
 	}
 }
 
+void ABaseCharacter::Move(FVector MoveLocation)
+{
+	if (GetMyAbilityComp() && CanMove())
+	{
+		float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
+		BaseAIController->MoveToLocationWithPathFinding(
+			MoveLocation, false, MoveRange);
+		
+		// 修改ActionValues属性值
+		BaseCharacterAttributeSet->SetActionValues(BaseCharacterAttributeSet->GetActionValues() - 1.0f);
+	}
+}
+
+bool ABaseCharacter::CanMove()
+{
+	return BaseCharacterAttributeSet->GetActionValues() >= 1;
+}
+
 
 void ABaseCharacter::NotifyActorBeginCursorOver()
 {

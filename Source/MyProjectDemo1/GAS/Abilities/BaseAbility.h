@@ -107,7 +107,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
 		ToolTip="扇形技能的角度范围（度），仅当SkillRangeType为扇形时有效",
-		EditCondition = "SkillRangeType == EAR_Sector",
+		EditCondition = "SkillRangeType == EAttackRangeType::EAR_Sector",
 		ClampMin = "1.0",
 		ClampMax = "360.0",
 		UIMin = "1.0",
@@ -120,7 +120,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
 		ToolTip="矩形技能的宽度（单位：厘米），仅当SkillRangeType为矩形时有效",
-		EditCondition = "SkillRangeType == EAR_Box",
+		EditCondition = "SkillRangeType == EAttackRangeType::EAR_Box",
 		ClampMin = "1.0",
 		EditConditionHides
 	))
@@ -130,7 +130,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
 		ToolTip="矩形技能的长度（单位：厘米），仅当SkillRangeType为矩形时有效",
-		EditCondition = "SkillRangeType == EAR_Box",
+		EditCondition = "SkillRangeType == EAttackRangeType::EAR_Box",
 		ClampMin = "1.0",
 		EditConditionHides
 	))
@@ -140,7 +140,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
 		ToolTip="十字技能的宽度（单位：厘米），仅当SkillRangeType为十字时有效",
-		EditCondition = "SkillRangeType == EAR_Cross",
+		EditCondition = "SkillRangeType == EAttackRangeType::EAR_Cross",
 		ClampMin = "1.0",
 		EditConditionHides
 	))
@@ -150,7 +150,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
 		ToolTip="十字技能的长度（单位：厘米），仅当SkillRangeType为十字时有效",
-		EditCondition = "SkillRangeType == EAR_Cross",
+		EditCondition = "SkillRangeType == EAttackRangeType::EAR_Cross",
 		ClampMin = "1.0",
 		EditConditionHides
 	))
