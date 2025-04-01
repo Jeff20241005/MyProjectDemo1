@@ -9,8 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class UTacticSubsystem;
-class AMyGameMode;
-class UPathTracerComponent;
+class UPathTracerComp;
 class UTeamComp;
 class UWidgetComponent;
 class AMyPlayerController;
@@ -29,16 +28,9 @@ class MYPROJECTDEMO1_API ABaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	void DrawRangeSize();
-
-	void CloseWidget();
-
 	void HandleDamage(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
 	                  ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
 	void HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
-	void Move(FVector MoveLocation);
-	bool CanMove();
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	ABaseAIController* BaseAIController;
@@ -61,25 +53,29 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
 	UCameraComponent* CameraComponent;
+
 	//custom settings
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UMyAbilityComp* MyAbilityComp;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UBaseCharacterAttributeSet* BaseCharacterAttributeSet;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UInteractionComp* InteractionComp;
 
-	UPROPERTY()
-	AMyGameMode* MyGameMode;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UTeamComp* TeamComp;
 
+
+	//todo move to parent
 	// default Setting默认//
 	// we may want to modify functions (TakeDamage->OnDamaged) to 
 	UFUNCTION(BlueprintNativeEvent)
 	void OnDamaged(float DamageAmount, const FHitResult& HitInfo, const struct FGameplayTagContainer& DamageTags,
 	               ABaseCharacter* InstigatorCharacter, AActor* DamageCauser);
 
+	//todo move to parent
 	/**
 	 * Called when health is changed, either from healing or from being damaged
 	 * For damage this is called in addition to OnDamaged/OnKilled
@@ -90,23 +86,16 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	void OnHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags);
 
+	//todo move to parent
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	AMyPlayerController* MyPlayerController;
 
 	//	UDataTable* AttributeDT;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* HealthWidgetComp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UWidgetComponent* MoveRangeWidgetComp;
-
 	virtual void NotifyActorOnClicked(FKey ButtonPressed = EKeys::LeftMouseButton) override;
 	virtual void NotifyActorBeginCursorOver() override;
 	virtual void NotifyActorEndCursorOver() override;
 
 protected:
-	UPROPERTY()
-	UTacticSubsystem* TacticSubsystem;
 
 	ABaseCharacter();
 	virtual void BeginPlay() override;

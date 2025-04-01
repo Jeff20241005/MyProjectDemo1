@@ -8,7 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 
 void AFreeRoamPlayerController::BeginPlay()
 {
@@ -16,8 +16,8 @@ void AFreeRoamPlayerController::BeginPlay()
 	// Find the player character
 	if (!FreeRoamCurrentControlPlayer)
 	{
-		FreeRoamCurrentControlPlayer = Cast<APlayerCharacter>(
-			UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass()));
+		FreeRoamCurrentControlPlayer = Cast<ATacticPlayerCharacter>(
+			UGameplayStatics::GetActorOfClass(GetWorld(), ATacticPlayerCharacter::StaticClass()));
 
 		if (!FreeRoamCurrentControlPlayer)
 		{

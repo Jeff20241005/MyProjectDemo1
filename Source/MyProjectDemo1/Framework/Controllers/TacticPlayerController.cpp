@@ -7,7 +7,7 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 

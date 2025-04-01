@@ -13,7 +13,7 @@
 void UCharacterActionUI::ActionButton_SkillFunction()
 {
 	SkillListUI->SetVisibility(ESlateVisibility::Visible);
-	if (APlayerCharacter* InCurrentControlPlayer = TacticSubsystem->CurrentControlPlayer)
+	if (ATacticPlayerCharacter* InCurrentControlPlayer = TacticSubsystem->CurrentControlPlayer)
 	{
 		SkillListUI->GenerateList(InCurrentControlPlayer);
 	}

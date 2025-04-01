@@ -8,7 +8,7 @@
 #include "VisualFeedbackActor.generated.h"
 
 class UBaseAbility;
-class UPathTracerComponent;
+class UPathTracerComp;
 class ABaseCharacter;
 class UStaticMeshComponent;
 
@@ -37,7 +37,7 @@ public:
 	USceneComponent* GetSceneComponent() const { return SceneComponent; }
 
 	UFUNCTION(BlueprintCallable)
-	UPathTracerComponent* GetPathTracerComponent() const { return PathTracerComponent; }
+	UPathTracerComp* GetPathTracerComp() const { return PathTracerComp; }
 
 	UFUNCTION(BlueprintCallable, meta=(ToolTip="鼠标引导模式下，以角色为中心的技能释放位置调整半径（单位：厘米），在此范围内可自由移动技能施放点"))
 	UStaticMeshComponent* GetSkillPlacementRadiusStaticMeshComponent() const
@@ -67,7 +67,7 @@ protected:
 	USceneComponent* SceneComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	UPathTracerComponent* PathTracerComponent;
+	UPathTracerComp* PathTracerComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UStaticMeshComponent* SkillPlacementRadiusStaticMeshComponent;

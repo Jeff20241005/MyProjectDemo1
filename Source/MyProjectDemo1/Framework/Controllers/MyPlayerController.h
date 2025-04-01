@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "MyPlayerController.generated.h"
 
-class UPathTracerComponent;
+class UPathTracerComp;
 class AMyGameMode;
 class UInteractionComp;
 class ABaseCharacter;
@@ -14,8 +14,8 @@ class ABaseAIController;
 struct FPathFollowingResult;
 struct FAIRequestID;
 class AAIController;
-class AEnemyCharacter;
-class APlayerCharacter;
+class ATacticEnemyCharacter;
+class ATacticPlayerCharacter;
 /**
  * 
  */

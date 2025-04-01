@@ -187,7 +187,6 @@ bool UBaseAbility::GetPotentialTargets(
 		NewRotation.Roll = 0.0f;
 
 		// UE5中，顺时针旋转对应Yaw值，所以加半个扇形角度
-
 		if (SkillRangeType == EAR_Sector)
 		{
 			NewRotation.Yaw += SectorAngle / 2.0f;

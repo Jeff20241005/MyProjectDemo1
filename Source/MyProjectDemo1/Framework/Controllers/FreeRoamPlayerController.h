@@ -16,7 +16,7 @@ class MYPROJECTDEMO1_API AFreeRoamPlayerController : public AMyPlayerController
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
-	APlayerCharacter* FreeRoamCurrentControlPlayer;
+	ATacticPlayerCharacter* FreeRoamCurrentControlPlayer;
 	float CurrentSpringArmLength;
 
 	void OnFreeModeLeftMouseButtonDown(FHitResult HitResult);

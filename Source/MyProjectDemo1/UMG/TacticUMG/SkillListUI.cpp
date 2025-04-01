@@ -5,12 +5,12 @@
 
 #include "SkillUI.h"
 #include "Components/ScrollBox.h"
-#include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 
 
-void USkillListUI::GenerateList(APlayerCharacter* PlayerCharacter)
+void USkillListUI::GenerateList(ATacticPlayerCharacter* PlayerCharacter)
 {
 	TArray<FGameplayAbilitySpecHandle> OutAbilityHandles;
 	TArray<FGameplayAbilitySpec> AllAbilities = PlayerCharacter->GetMyAbilityComp()->GetActivatableAbilities();

@@ -8,7 +8,7 @@
 
 class UScrollBox;
 class USkillUI;
-class APlayerCharacter;
+class ATacticPlayerCharacter;
 /**
  * 
  */
@@ -20,7 +20,7 @@ class MYPROJECTDEMO1_API USkillListUI : public UUserWidget
 public:
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)	
 	UScrollBox* ScrollBox;
-	void GenerateList(APlayerCharacter* PlayerCharacter);
+	void GenerateList(ATacticPlayerCharacter* PlayerCharacter);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	TSubclassOf<USkillUI> SkillUIClass;
 

@@ -67,8 +67,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup,
 		meta=(ToolTip="技能是否为负面效果，影响目标选择逻辑（敌对/友好）"))
 	bool bIsNegativeEffect = true;
-
-
+	
 	/** 是否使用鼠标指向来确定技能释放位置 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup,
 		meta=(ToolTip="是否使用鼠标位置来确定技能释放点，而不是直接以施法者为中心"))
@@ -81,7 +80,7 @@ public:
 		EditCondition = "bAimWithMouse",
 		EditConditionHides
 	))
-	float SkillPlacementRadius = 0.0f;
+	float SkillPlacementRadius = 300.0f;
 
 	/** 技能是否朝向鼠标位置 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip=
@@ -91,11 +90,13 @@ public:
 	bool bSkillLookAtMouseHoveringLocation = false;
 
 	/** 是否包含自身作为目标 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否将施法者自身包含在目标列表中"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否将施法者自身包含在目标列表中"),
+		AdvancedDisplay="true")
 	bool bIncludeSelf = false;
 
 	/** 是否无视距离限制 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否无视距离限制，适用于全图技能"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否无视距离限制，适用于全图技能"),
+		AdvancedDisplay="true")
 	bool bInfiniteRange = false;
 
 	/** 技能作用范围 */

@@ -4,7 +4,7 @@
 #include "VisualFeedbackActor.h"
 
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Components/PathTracerComponent.h"
+#include "MyProjectDemo1/Components/PathTracerComp.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 
@@ -19,7 +19,7 @@ void AVisualFeedbackActor::CancelSkill()
 
 void AVisualFeedbackActor::CancelMove()
 {
-	PathTracerComponent->Deactivate();
+	PathTracerComp->Deactivate();
 }
 
 void AVisualFeedbackActor::OnConstruction(const FTransform& Transform)
@@ -39,7 +39,7 @@ AVisualFeedbackActor::AVisualFeedbackActor()
 	SceneComponent = CreateComponent<USceneComponent>();
 	SetRootComponent(SceneComponent);
 
-	PathTracerComponent = CreateComponent<UPathTracerComponent>();
+	PathTracerComp = CreateComponent<UPathTracerComp>();
 	SkillPlacementRadiusStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 	CircleStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 	BoxStaticMeshComponent = CreateComponent<UStaticMeshComponent>();

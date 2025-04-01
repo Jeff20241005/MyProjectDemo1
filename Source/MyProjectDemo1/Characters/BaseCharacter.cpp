@@ -34,8 +34,7 @@ void ABaseCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 
 ABaseCharacter::ABaseCharacter()
 {
-	// 设置这个角色每帧都tick
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 
 	MyAbilityComp = CreateComponent<UMyAbilityComp>();
 	BaseCharacterAttributeSet = CreateComponent<UBaseCharacterAttributeSet>();
@@ -102,29 +101,6 @@ ABaseCharacter::ABaseCharacter()
 	//GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Overlap);
 	//GetMesh()->SetNotifyRigidBodyCollision(true);
 	//GetMesh()->SetGenerateOverlapEvents(true);
-
-	HealthWidgetComp = CreateComponent<UWidgetComponent>();
-	HealthWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	HealthWidgetComp->SetVisibility(false);
-
-
-	MoveRangeWidgetComp = CreateComponent<UWidgetComponent>();
-	MoveRangeWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	MoveRangeWidgetComp->SetVisibility(false);
-	MoveRangeWidgetComp->SetRelativeLocation(FVector(0, 0, -85));
-	MoveRangeWidgetComp->SetRelativeRotation(FRotator(90, 0, 0));
-}
-
-void ABaseCharacter::DrawRangeSize()
-{
-	MoveRangeWidgetComp->SetDrawSize(FVector2D(GetBaseCharacterAttributeSet()->GetMoveRange()));
-	MoveRangeWidgetComp->SetVisibility(true);
-}
-
-
-void ABaseCharacter::CloseWidget()
-{
-	MoveRangeWidgetComp->SetVisibility(false);
 }
 
 
@@ -134,12 +110,6 @@ void ABaseCharacter::BeginPlay()
 
 	// Try to get GameState
 
-	if (GetWorld())
-	{
-		TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
-	}
-
-	MyGameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 
 	if (MyAbilityComp)
 	{
@@ -193,24 +163,6 @@ void ABaseCharacter::HandleHealthChanged(float DeltaValue, const struct FGamepla
 	}
 }
 
-void ABaseCharacter::Move(FVector MoveLocation)
-{
-	if (GetMyAbilityComp() && CanMove())
-	{
-		float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
-		BaseAIController->MoveToLocationWithPathFinding(
-			MoveLocation, false, MoveRange);
-		
-		// 修改ActionValues属性值
-		BaseCharacterAttributeSet->SetActionValues(BaseCharacterAttributeSet->GetActionValues() - 1.0f);
-	}
-}
-
-bool ABaseCharacter::CanMove()
-{
-	return BaseCharacterAttributeSet->GetActionValues() >= 1;
-}
-
 
 void ABaseCharacter::NotifyActorBeginCursorOver()
 {
@@ -227,12 +179,6 @@ void ABaseCharacter::NotifyActorBeginCursorOver()
 	{
 		MyPlayerController->HoveredActor = this;
 	}
-
-	// 添加空指针检查
-	if (TacticSubsystem)
-	{
-		TacticSubsystem->OnMyMouseBeginCursorOver.Broadcast(this);
-	}
 }
 
 void ABaseCharacter::NotifyActorEndCursorOver()
@@ -248,11 +194,5 @@ void ABaseCharacter::NotifyActorEndCursorOver()
 	if (MyPlayerController && MyPlayerController->HoveredActor == this)
 	{
 		MyPlayerController->HoveredActor = nullptr;
-	}
-
-	// 添加空指针检查
-	if (TacticSubsystem && TacticSubsystem->OnMyMouseEndCursorOver.IsBound())
-	{
-		TacticSubsystem->OnMyMouseEndCursorOver.Broadcast(this);
 	}
 }

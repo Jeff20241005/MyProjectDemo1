@@ -6,7 +6,7 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "TacticSubsystem.generated.h"
 
-class APlayerCharacter;
+class ATacticPlayerCharacter;
 class AMyGameState;
 class AVisualFeedbackActor;
 class UWidgetComponent;
@@ -62,7 +62,7 @@ public:
 	FOnSkillLocationChange OnSkillRelease;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	APlayerCharacter* CurrentControlPlayer;
+	ATacticPlayerCharacter* CurrentControlPlayer;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
 	ABaseCharacter* CurrentActionCharacter;
 

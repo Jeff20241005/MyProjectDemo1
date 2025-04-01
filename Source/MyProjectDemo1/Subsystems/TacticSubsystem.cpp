@@ -11,12 +11,12 @@
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
-#include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
-#include "MyProjectDemo1/Components/PathTracerComponent.h"
+#include "MyProjectDemo1/Components/PathTracerComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
@@ -54,9 +54,9 @@ void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController
 {
 	bCanMove = true;
 
-	if (!ShowVisualFeedbackActor->GetPathTracerComponent()->IsActive())
+	if (!ShowVisualFeedbackActor->GetPathTracerComp()->IsActive())
 	{
-		ShowVisualFeedbackActor->GetPathTracerComponent()->Activate();
+		ShowVisualFeedbackActor->GetPathTracerComp()->Activate();
 
 		GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
 
@@ -193,7 +193,7 @@ void UTacticSubsystem::SwitchToNextCharacterAction()
 {
 	if (!IsValid(AllCharactersInOrder[0])) return;
 	CurrentActionCharacter = AllCharactersInOrder[0];
-	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CurrentActionCharacter))
+	if (ATacticPlayerCharacter* PlayerCharacter = Cast<ATacticPlayerCharacter>(CurrentActionCharacter))
 	{
 		CurrentControlPlayer = PlayerCharacter;
 	}
@@ -246,7 +246,7 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		if (NaviValue != nullptr)
 		{
 			MovePoints = NaviValue->PathPoints;
-			GetVisualFeedbackActor()->GetPathTracerComponent()->DrawPath(MovePoints);
+			GetVisualFeedbackActor()->GetPathTracerComp()->DrawPath(MovePoints);
 		}
 	}
 }

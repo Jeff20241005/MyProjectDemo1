@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "BaseAbility.h"
-#include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "PassiveAbility.generated.h"
 
 

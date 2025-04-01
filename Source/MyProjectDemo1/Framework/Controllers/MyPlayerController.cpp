@@ -7,7 +7,7 @@
 #include "DrawDebugHelpers.h"
 #include "Camera/CameraComponent.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
-#include "MyProjectDemo1/Characters/PlayerCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "GameFramework/FloatingPawnMovement.h"
