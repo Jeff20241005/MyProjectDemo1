@@ -7,6 +7,8 @@
 #include "ActionCheckBoxUI.generated.h"
 
 class UCheckBox;
+struct FSlateBrush;
+
 /**
  * 
  */
@@ -19,6 +21,16 @@ public:
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UCheckBox* CheckBox;
 	
+	/** 复选框大小缩放因子 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance|Checkbox", meta=(
+		ExposeOnSpawn=true, 
+		ClampMin="0.1", 
+		ClampMax="5.0", 
+		UIMin="0.1", 
+		UIMax="5.0"
+	))
+	float CheckBoxScale = 1.5f;
+	
 	/** 切换复选框状态（选中/未选中） */
 	UFUNCTION(BlueprintCallable, Category="UI|Checkbox")
 	void ToggleCheckBox();
@@ -30,4 +42,10 @@ public:
 	/** 获取复选框是否选中 */
 	UFUNCTION(BlueprintPure, Category="UI|Checkbox")
 	bool IsChecked() const;
+	
+	virtual void NativePreConstruct() override;
+
+private:
+	/** 缩放复选框图像 */
+	void ScaleCheckBoxImage(FSlateBrush& Brush, const FVector2D& NewSize);
 };

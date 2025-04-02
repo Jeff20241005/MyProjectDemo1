@@ -97,20 +97,22 @@ bool UBaseAbility::GetPotentialTargets(
 	FVector AdjustTargetLocation = UThisProjectFunctionLibrary::FVectorZToGround(TargetLocation);
 	FVector AdjustOwnerSourceLocation = UThisProjectFunctionLibrary::FVectorZToGround(Owner_Caster->GetActorLocation());
 
+	const bool bAutomaticMoveBySkill = InTacticSubsystem->bEnableAutomaticMoveBySkill;
 	// 清空输出数组
 	OutTargets.Empty();
 
-
 	float TotalRange =
-		(bAimWithMouse ? SkillPlacementRadius : 0)
+		GetSkillPlacementRadiusByAimWithMouse()
 		+ (bAddMovingRange ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() : 0)
-		+ (!bAimWithMouse && !bAddMovingRange ? Owner_Caster->GetCapsuleComponent()->GetScaledCapsuleRadius() : 0);
+		+ (!bAimWithMouse && !bAddMovingRange && bAutomaticMoveBySkill
+			   ? Owner_Caster->GetCapsuleComponent()->GetScaledCapsuleRadius()
+			   : 0);
 
 	const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
 	// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
 	if (!bInfiniteRange && DistanceToMouse > TotalRange && SkillRangeType != EAR_Sector)
 	{
-		if (bAddMovingRange || !InTacticSubsystem->bEnableAutomaticMoveBySkill)
+		if (bAddMovingRange || !bAutomaticMoveBySkill)
 		{
 			FVector ClampedLocation = AdjustTargetLocation; // 由于是引用，所以这步不能删
 			UThisProjectFunctionLibrary::ClampMoveRange2D(AdjustOwnerSourceLocation, TotalRange,
@@ -121,7 +123,7 @@ bool UBaseAbility::GetPotentialTargets(
 		// 鼠标不在施法范围内
 		return false;
 	}
-	
+
 	// 获取技能释放位置
 	FVector ForwardVector;
 	FVector AbilityCenter = AdjustTargetLocation;
@@ -224,7 +226,7 @@ TArray<ATacticBaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ATacticBaseChar
 
 		float SelectDistanceByType = 0;
 		float DistanceByProperty = Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() +
-			(bAimWithMouse ? SkillPlacementRadius : 0);
+			GetSkillPlacementRadiusByAimWithMouse();
 
 		switch (SkillRangeType)
 		{

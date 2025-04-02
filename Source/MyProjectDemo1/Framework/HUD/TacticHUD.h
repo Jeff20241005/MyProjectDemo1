@@ -25,5 +25,5 @@ public:
 	
 	/** 切换自动移动选项 */
 	UFUNCTION(BlueprintCallable, Category="Tactic|UI")
-	void ToggleAutomaticMoveBySkill(UTacticSubsystem* TacticSubsystem);
+	void ToggleAutomaticMoveBySkill();
 };

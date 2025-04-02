@@ -57,7 +57,8 @@ void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility
 	}
 	if (InBaseAbility->bAimWithMouse)
 	{
-		ShowStaticMesh(SkillPlacementRadiusStaticMeshComponent, FVector(InBaseAbility->SkillPlacementRadius));
+		ShowStaticMesh(SkillPlacementRadiusStaticMeshComponent,
+		               FVector(InBaseAbility->GetSkillPlacementRadiusByAimWithMouse()));
 	}
 	switch (InBaseAbility->SkillRangeType)
 	{

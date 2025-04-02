@@ -38,7 +38,8 @@ public:
 	                                      TArray<ATacticBaseCharacter*>& PotentialTargets) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
-	TArray<ATacticBaseCharacter*> GetTargetsInMaxRange(ATacticBaseCharacter* InOwner, UTacticSubsystem* InTacticSubsystem);
+	TArray<ATacticBaseCharacter*> GetTargetsInMaxRange(ATacticBaseCharacter* InOwner,
+	                                                   UTacticSubsystem* InTacticSubsystem);
 
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
@@ -67,12 +68,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup,
 		meta=(ToolTip="技能是否为负面效果，影响目标选择逻辑（敌对/友好）"))
 	bool bIsNegativeEffect = true;
-	
+
 	/** 是否使用鼠标指向来确定技能释放位置 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=AbilitySetup,
 		meta=(ToolTip="是否使用鼠标位置来确定技能释放点，而不是直接以施法者为中心"))
 	bool bAimWithMouse;
 
+private:
 	/** 技能释放位置调整半径 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
@@ -82,6 +84,12 @@ public:
 	))
 	float SkillPlacementRadius = 300.0f;
 
+public:
+	UFUNCTION(BlueprintCallable)
+	float GetSkillPlacementRadiusByAimWithMouse()
+	{
+		return bAimWithMouse ? SkillPlacementRadius : 0;
+	};
 	/** 技能是否朝向鼠标位置 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip=
 		"技能是否看向鼠标位置（玩家可自由选择角度），注意：只旋转Yaw。当bAimWithMouse开启时，这个自动为false",
@@ -172,7 +180,8 @@ protected:
 	/**
 	 * 检查角色是否在圆形范围内
 	 */
-	bool IsCharacterInCircleRange(const FVector& Center, ATacticBaseCharacter* Character, float UseCustomRadius = -1.f) const;
+	bool IsCharacterInCircleRange(const FVector& Center, ATacticBaseCharacter* Character,
+	                              float UseCustomRadius = -1.f) const;
 
 	/**
 	 * 检查角色是否在矩形范围内

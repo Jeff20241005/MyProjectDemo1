@@ -283,7 +283,8 @@ void UTacticSubsystem::PreMoveTimer(ATacticPlayerController* InTacticPlayerContr
 
 	if (InBaseAbility)
 	{
-		PreMove_IfHasSkillRadius(InTacticPlayerController, InBaseAbility->SkillPlacementRadius);
+		PreMove_IfHasSkillRadius(InTacticPlayerController,
+		                         InBaseAbility->GetSkillPlacementRadiusByAimWithMouse());
 	}
 	else
 	{

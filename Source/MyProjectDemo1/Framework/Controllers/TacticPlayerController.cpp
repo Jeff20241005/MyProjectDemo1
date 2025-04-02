@@ -215,7 +215,7 @@ void ATacticPlayerController::ToggleAutoMove()
 	ATacticHUD* TacticHUD = Cast<ATacticHUD>(GetHUD());
 	if (TacticHUD)
 	{
-		TacticHUD->ToggleAutomaticMoveBySkill(TacticSubsystem);
+		TacticHUD->ToggleAutomaticMoveBySkill();
 	}
 }
 
