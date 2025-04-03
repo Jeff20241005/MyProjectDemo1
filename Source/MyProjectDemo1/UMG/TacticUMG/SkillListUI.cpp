@@ -12,6 +12,7 @@
 
 void USkillListUI::GenerateList(ATacticPlayerCharacter* PlayerCharacter)
 {
+	ScrollBox->ClearChildren();
 	TArray<FGameplayAbilitySpecHandle> OutAbilityHandles;
 	TArray<FGameplayAbilitySpec> AllAbilities = PlayerCharacter->GetMyAbilityComp()->GetActivatableAbilities();
 	for (FGameplayAbilitySpec

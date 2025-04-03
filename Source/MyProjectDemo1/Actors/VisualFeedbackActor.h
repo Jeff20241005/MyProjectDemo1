@@ -21,15 +21,29 @@ class MYPROJECTDEMO1_API AVisualFeedbackActor : public AActor
 public:
 	//UFUNCTION(BlueprintCallable)
 	//UBaseAbility* GetBaseAbility() const { return BaseAbility; }
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
-	float AngleOfSphereSM = 1;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	FName MaterialName = FName("Angle");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance|Test")
+	float TestScale = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	float AdjustedSkillProperty = 1.f / 100.f * 2.f;	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance|Test",
+		meta=(UIMax=1, UIMin=0))
+	float TestAngleValueOfSphereSM = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance|Test")
+	bool bTestIsValidColor = true;
 
-	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ATacticBaseCharacter*>& InPotentialTargets);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance)
+	FVector DefaultColorValueOfSphereSM = FVector(1, 1, 1);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance)
+	FVector UnselectableColorValueOfSphereSM = FVector(1, 1, 1);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Appearance)
+	FName MaterialName_Angle = FName("Angle");
+	FName MaterialName_Color = FName("Color");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance")
+	float AdjustedSkillProperty = 1.f / 100.f * 2.f;
+
+
+	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ATacticBaseCharacter*>& InPotentialTargets, bool bIsValid);
 
 	float DrawAttackRange(ATacticBaseCharacter* BaseCharacter);
 
@@ -54,29 +68,31 @@ public:
 	UFUNCTION(BlueprintCallable, meta=(ToolTip="技能生效的大小，影响攻击/治疗/Buff等效果的作用范围"))
 	UStaticMeshComponent* GetSphereStaticMeshComponent() const { return CircleStaticMeshComponent; }
 
-	void CancelSkill();
+	void CancelSkill_SetAllVisibilitiesToFalse();
 
 	void CancelMove();
+	void ResetCircleStaticMeshComponentWithVariables(bool InbHasValidTargets, float InAngleValueOfSphereSM);
+
 protected:
 	UPROPERTY()
 	UTacticSubsystem* TacticSubsystem;
-	
+
 	virtual void OnConstruction(const FTransform& Transform) override;
 	AVisualFeedbackActor();
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USceneComponent* SceneComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UPathTracerComp* PathTracerComp;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* SkillPlacementRadiusStaticMeshComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* CircleStaticMeshComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* BoxStaticMeshComponent;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* BoxStaticMeshComponentForCross;
 
 
@@ -110,7 +126,7 @@ Comp* AVisualFeedbackActor::CreateComponent()
 
 	// 创建组件
 	Comp* TheComp = CreateDefaultSubobject<Comp>(CompName);
-	
+
 	if (USceneComponent* TempSceneComponentTemp = Cast<USceneComponent>(TheComp))
 	{
 		if (TempSceneComponentTemp)
@@ -119,7 +135,6 @@ Comp* AVisualFeedbackActor::CreateComponent()
 			if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(TempSceneComponentTemp))
 			{
 				StaticMeshComponent->SetCollisionProfileName("NoCollision");
-				StaticMeshComponent->SetVisibility(false);
 				//StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			}
 		}

@@ -19,7 +19,7 @@ public:
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButtonUI;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
+	UPROPERTY()
 	UBaseAbility* BaseAbility;
 
 protected:

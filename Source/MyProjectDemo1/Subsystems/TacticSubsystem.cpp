@@ -8,18 +8,17 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
-#include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
-#include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
 #include "MyProjectDemo1/Components/PathTracerComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
 #include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
+#include "MyProjectDemo1/Framework/HUD/TacticHUD.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 
 
@@ -93,16 +92,16 @@ void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerControl
 	}
 }
 
-void UTacticSubsystem::DoPostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
-                                                UBaseAbility* BaseAbility)
+void UTacticSubsystem::DoSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
+                                            UBaseAbility* BaseAbility)
 {
-	if (OnPostSkillSelectedTimer.IsBound())
+	if (OnSkillSelectedTimer.IsBound())
 	{
-		OnPostSkillSelectedTimer.Broadcast(TacticPlayerController, BaseAbility);
+		OnSkillSelectedTimer.Broadcast(TacticPlayerController, BaseAbility);
 	}
 }
 
-void UTacticSubsystem::PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+void UTacticSubsystem::SkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
 {
 	CancelMoveAndSkill();
 
@@ -111,7 +110,7 @@ void UTacticSubsystem::PostSkillSelected(ATacticPlayerController* TacticPlayerCo
 		GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
 
 		FTimerDelegate TimerDelegate;
-		TimerDelegate.BindUObject(this, &UTacticSubsystem::DoPostSkillSelectedTimer, TacticPlayerController,
+		TimerDelegate.BindUObject(this, &UTacticSubsystem::DoSkillSelectedTimer, TacticPlayerController,
 		                          BaseAbility);
 		GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle, TimerDelegate, 0.02f, true);
 	}
@@ -146,6 +145,19 @@ void UTacticSubsystem::ChangeAutomaticMoveBySkill(bool bNew)
 	}
 }
 
+void UTacticSubsystem::CheckSkillSelected(UBaseAbility* BaseAbility)
+{
+	ATacticPlayerController* TacticPlayerController =
+		GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+	ATacticHUD* TacticHUD = Cast<ATacticHUD>(TacticPlayerController->GetHUD());
+	
+	if (CurrentActionCharacter && BaseAbility && OnSkillSelected.IsBound() &&
+		TacticHUD->CheckHasEnoughResources(CurrentActionCharacter, BaseAbility))
+	{
+		OnSkillSelected.Broadcast(TacticPlayerController, BaseAbility);
+	}
+}
+
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -156,11 +168,12 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
 	OnCancelSkill.AddUObject(this, &ThisClass::CancelSkill);
-
-
+	
 	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
-	OnPostSkillSelected.AddUObject(this, &ThisClass::PostSkillSelected);
-	OnPostSkillSelectedTimer.AddUObject(this, &ThisClass::PostSkillSelectedTimer);
+	OnCheckCharacterActionValueBySkill.AddUObject(this, &ThisClass::CheckSkillSelected);
+
+	OnSkillSelected.AddUObject(this, &ThisClass::SkillSelected);
+	OnSkillSelectedTimer.AddUObject(this, &ThisClass::SkillSelectedTimer);
 	OnSkillRelease.AddUObject(this, &ThisClass::SkillRelease);
 
 	OnPreMove.AddUObject(this, &ThisClass::PreMove);
@@ -319,6 +332,7 @@ void UTacticSubsystem::CancelMoveAndSkill()
 	}
 }
 
+
 void UTacticSubsystem::RoundFinish()
 {
 	// switch to next character 
@@ -346,8 +360,8 @@ void UTacticSubsystem::CheckGlobalPotentialTargetsOutline()
 	}
 }
 
-void UTacticSubsystem::PostSkillSelectedTimer(ATacticPlayerController* InTacticPlayerController,
-                                              UBaseAbility* BaseAbility)
+void UTacticSubsystem::SkillSelectedTimer(ATacticPlayerController* InTacticPlayerController,
+                                          UBaseAbility* BaseAbility)
 {
 	if (InTacticPlayerController && BaseAbility && CurrentActionCharacter)
 	{
@@ -378,7 +392,6 @@ void UTacticSubsystem::PostSkillSelectedTimer(ATacticPlayerController* InTacticP
 
 	CheckGlobalPotentialTargetsOutline();
 }
-
 
 void UTacticSubsystem::SortCharactersByActionValues()
 {

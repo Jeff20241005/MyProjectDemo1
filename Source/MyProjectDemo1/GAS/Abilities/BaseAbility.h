@@ -27,7 +27,6 @@ UCLASS()
 class MYPROJECTDEMO1_API UBaseAbility : public UGameplayAbility
 {
 public:
-	//如果Controller参数为真，则移动，参与鼠标检测，看看出界没有
 	UFUNCTION(BlueprintCallable, Category = "Ability|Targeting")
 	bool GetPotentialTargets(
 		UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation, bool bAddMovingRange = false);
@@ -74,6 +73,7 @@ public:
 		meta=(ToolTip="是否使用鼠标位置来确定技能释放点，而不是直接以施法者为中心"))
 	bool bAimWithMouse;
 
+	//防止其他类直接获取，但是蓝图可编辑（AllowPrivateAccess）
 private:
 	/** 技能释放位置调整半径 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
@@ -91,26 +91,34 @@ public:
 		return bAimWithMouse ? SkillPlacementRadius : 0;
 	};
 	/** 技能是否朝向鼠标位置 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip=
-		"技能是否看向鼠标位置（玩家可自由选择角度），注意：只旋转Yaw。当bAimWithMouse开启时，这个自动为false",
-		EditCondition = "!bAimWithMouse",
-		EditConditionHides))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(ToolTip="技能是否看向鼠标位置（玩家可自由选择角度），注意：只旋转Yaw。当bAimWithMouse开启时，这个自动为false",
+			EditCondition = "!bAimWithMouse",
+			EditConditionHides))
 	bool bSkillLookAtMouseHoveringLocation = false;
 
 	/** 是否包含自身作为目标 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否将施法者自身包含在目标列表中"),
-		AdvancedDisplay="true")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(ToolTip="是否将施法者自身包含在目标列表中", AdvancedDisplay))
 	bool bIncludeSelf = false;
 
 	/** 是否无视距离限制 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(ToolTip="是否无视距离限制，适用于全图技能"),
-		AdvancedDisplay="true")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(ToolTip="是否无视距离限制，适用于全图技能", AdvancedDisplay))
 	bool bInfiniteRange = false;
+
+	/** 药水不分敌我，全部生效 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(ToolTip="药水不分敌我，全部生效", AdvancedDisplay))
+	bool bIsPotion;
 
 	/** 技能作用范围 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
-		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围"))
-	float CircleTargetingRange = 300.0f;
+		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围",
+			EditCondition=
+			"SkillRangeType == EAttackRangeType::EAR_Circle || SkillRangeType == EAttackRangeType::EAR_Sector",
+			EditConditionHides))
+	float CircleOrSectorTargetingRange = 300.0f;
 
 	/** 扇形技能的角度 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
@@ -178,25 +186,35 @@ protected:
 	ATacticBaseCharacter* BaseCharacterOwner;
 
 	/**
-	 * 检查角色是否在圆形范围内
+	 * 检查位置是否在圆形范围内
 	 */
-	bool IsCharacterInCircleRange(const FVector& Center, ATacticBaseCharacter* Character,
-	                              float UseCustomRadius = -1.f) const;
+	bool IsLocationInCircleRange(const FVector& Center, const FVector& CheckedLocation,
+	                             float UseCustomRadius = -1.f) const;
 
 	/**
-	 * 检查角色是否在矩形范围内
+	 * 检查位置是否在矩形范围内
 	 */
-	bool IsCharacterInBoxRange(const FVector& Center, const FVector& Forward, ATacticBaseCharacter* Character) const;
+	bool IsLocationInBoxRange(const FVector& Center, const FVector& Forward, const FVector& CheckedLocation) const;
 
 	/**
-	 * 检查角色是否在扇形范围内
+	 * 检查位置是否在扇形范围内
 	 */
-	bool IsCharacterInSectorRange(const FVector& Center, const FVector& Forward, ATacticBaseCharacter* Character) const;
+	bool IsLocationInSectorRange(const FVector& Center, const FVector& Forward, const FVector& CheckedLocation) const;
 
 	/**
-	 * 检查角色是否在十字形范围内
+	 * 检查位置是否在十字形范围内
 	 */
-	bool IsCharacterInCrossRange(const FVector& Center, const FVector& Forward, ATacticBaseCharacter* Character) const;
+	bool IsLocationInCrossRange(const FVector& Center, const FVector& Forward, const FVector& CheckedLocation) const;
+
+	/**
+	 * 计算角色的调整检测位置（考虑胶囊体半径）
+	 * @param CharacterLocation 角色的位置
+	 * @param AbilityCenter 源点位置（技能中心或施法者位置）
+	 * @param CapsuleRadius 角色胶囊体半径
+	 * @return 调整后的检测位置
+	 */
+	FVector CalculateAdjustedCheckLocation(const FVector& CharacterLocation, const FVector& AbilityCenter,
+	                                       float CapsuleRadius) const;
 
 	GENERATED_BODY()
 };

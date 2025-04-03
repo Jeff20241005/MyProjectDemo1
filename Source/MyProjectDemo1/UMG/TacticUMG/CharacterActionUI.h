@@ -55,5 +55,7 @@ protected:
 	void ActionButton_MoveOnClick();
 	UFUNCTION()
 	void ActionCheckBoxUI_CheckBoxOnCheckStateChange(bool bIsChecked);
+
+	
 	virtual void NativeConstruct() override;
 };

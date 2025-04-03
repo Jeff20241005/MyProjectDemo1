@@ -134,7 +134,7 @@ private:
 	UPROPERTY()
 	UMaterialInstanceDynamic* PathDynamicMaterial;
 	UPROPERTY()
-	UStaticMeshComponent* PathMeshComponent;
+	UStaticMeshComponent* MarkerMeshComponent;
 	TArray<USplineMeshComponent*> SplineMeshes;
 	int32 MainMeshAmount;
 	int32 SplineMeshAmount;

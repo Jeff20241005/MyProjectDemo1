@@ -29,9 +29,9 @@ public:
 
 	//技能相关//
 	//Init Abilities and Effects
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BeginPlayAbilities")
 	TArray<TSubclassOf<UGameplayEffect>> PassiveGameplayEffects;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BeginPlayAbilities")
 	TArray<TSubclassOf<UBaseAbility>> GameplayAbilities;
 
 	//UFUNCTION(BlueprintCallable)

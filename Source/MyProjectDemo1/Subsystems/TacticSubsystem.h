@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyProjectDemo1/UMG/TacticUMG/SkillUI.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TacticSubsystem.generated.h"
 
@@ -22,8 +23,8 @@ DECLARE_MULTICAST_DELEGATE(FOnCharacterStateChange)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnCharacterMove, ATacticPlayerController*)
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCharacterPreMove, ATacticPlayerController*, UBaseAbility*)
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FSkillStateChange, UBaseAbility*)
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillLocationChange, ATacticPlayerController*, UBaseAbility*)
+DECLARE_MULTICAST_DELEGATE_OneParam(FPreSkillSelection, UBaseAbility*)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnSkillStateChange, ATacticPlayerController*, UBaseAbility*)
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMouseEvent, ATacticBaseCharacter*)
 
@@ -58,12 +59,16 @@ public:
 	FOnCharacterMove OnMove;
 
 	//选择技能前，鼠标放上去显示的 : todo Actor显示范围，所有可以打的敌人高亮，一些UI显示。。
-	FSkillStateChange OnPreSkillSelection;
+	FPreSkillSelection OnPreSkillSelection;
+	//检查选择
+	FPreSkillSelection OnCheckCharacterActionValueBySkill;
+
 	//正在选择，显示Visual FeedBack等
-	FOnSkillLocationChange OnPostSkillSelected;
-	FOnSkillLocationChange OnPostSkillSelectedTimer;
+	
+	FOnSkillStateChange OnSkillSelected;
+	FOnSkillStateChange OnSkillSelectedTimer;
 	//技能释放了
-	FOnSkillLocationChange OnSkillRelease;
+	FOnSkillStateChange OnSkillRelease;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	ATacticPlayerCharacter* CurrentControlPlayer;
@@ -122,6 +127,7 @@ public:
 	void CancelMoveAndSkill();
 
 	bool bCanMove = false;
+
 protected:
 	TArray<FVector> MovePoints;
 
@@ -144,11 +150,12 @@ protected:
 	void Move(ATacticPlayerController* InTacticPlayerController);
 	void PreMove(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
 	void SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
-	void DoPostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
-	void PostSkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void DoSkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void SkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void PreSkillSelection(UBaseAbility* BaseAbility);
 	void CancelMove();
 	void ChangeAutomaticMoveBySkill(bool bNew);
+	void CheckSkillSelected(UBaseAbility* BaseAbility);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
@@ -156,7 +163,7 @@ protected:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 
 	void CheckGlobalPotentialTargetsOutline();
-	void PostSkillSelectedTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* BaseAbility);
+	void SkillSelectedTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* BaseAbility);
 
 	void PreMoveTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
 

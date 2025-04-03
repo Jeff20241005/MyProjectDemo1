@@ -5,14 +5,10 @@
 
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpectatorPawn.h"
-#include "Kismet/GameplayStatics.h"
 #include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Framework/HUD/BaseHUD.h"
 #include "MyProjectDemo1/Framework/HUD/TacticHUD.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
-#include "MyProjectDemo1/UMG/Base/ActionCheckBoxUI.h"
-#include "MyProjectDemo1/UMG/TacticUMG/CharacterActionUI.h"
-#include "MyProjectDemo1/UMG/TacticUMG/TacticMainUI.h"
 
 void ATacticPlayerController::MoveForward(float Value)
 {
@@ -197,7 +193,7 @@ void ATacticPlayerController::BeginPlay()
 
 	TacticSubsystem->OnCancelSkill.AddUObject(this, &ATacticPlayerController::CancelSkill);
 	TacticSubsystem->OnCancelMove.AddUObject(this, &ATacticPlayerController::CancelMove);
-	TacticSubsystem->OnPostSkillSelectedTimer.AddUObject(this, &ATacticPlayerController::PostSkillSelectedTimer);
+	TacticSubsystem->OnSkillSelectedTimer.AddUObject(this, &ATacticPlayerController::SkillSelectedTimer);
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
@@ -303,7 +299,7 @@ void ATacticPlayerController::PreMove(ATacticPlayerController* TacticPlayerContr
 	CurrentObjectQueryParams = GroundObjectQueryParams;
 }
 
-void ATacticPlayerController::PostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
+void ATacticPlayerController::SkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
                                                      UBaseAbility* BaseAbility)
 {
 	CurrentObjectQueryParams = GroundObjectQueryParams;
@@ -323,11 +319,10 @@ void ATacticPlayerController::MoveRight(float Value)
 
 void ATacticPlayerController::OnLeftMouseButtonDown()
 {
-	//todo skill release broadcast!
-	// if (TacticSubsystem->OnSkillRelease.IsBound())
-	// {
-	// TacticSubsystem->OnSkillRelease.Broadcast(this,);
-	// }
+	if (TacticSubsystem->OnSkillRelease.IsBound())
+	{
+//		TacticSubsystem->OnSkillRelease.Broadcast(this,);
+	}
 	Super::OnLeftMouseButtonDown();
 }
 

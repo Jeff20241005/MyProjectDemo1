@@ -14,7 +14,7 @@ UPathTracerComp::UPathTracerComp()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	PathMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PathMeshComponent"));
+	MarkerMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PathMeshComponent"));
 }
 
 
@@ -153,7 +153,7 @@ void UPathTracerComp::GenerateRoundCornersPath()
 void UPathTracerComp::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// 获取拥有者以设置附加关系
 	VisualFeedbackActor = Cast<AVisualFeedbackActor>(GetOwner());
 	if (!VisualFeedbackActor || !VisualFeedbackActor->GetRootComponent())
@@ -166,12 +166,14 @@ void UPathTracerComp::SetupMaterials()
 {
 	if (IsValid(PathMaterial))
 	{
-		if (!IsValid(PathMeshComponent)) return;
-		//PathMeshComponent seems to be useless
-		PathMeshComponent->SetStaticMesh(PathMesh);
-		PathMeshComponent->SetMaterial(0, PathMaterial);
-		PathDynamicMaterial = PathMeshComponent/*but it may use on this*/->CreateDynamicMaterialInstance(0);
+		// Configure the mesh component for potential future marker use
+		MarkerMeshComponent->SetStaticMesh(PathMesh);
+		MarkerMeshComponent->SetMaterial(0, PathMaterial);
 
+		// Create the dynamic material instance that will be used by spline meshes
+		PathDynamicMaterial = UMaterialInstanceDynamic::Create(PathMaterial, this);
+
+		// Set the material parameters
 		PathDynamicMaterial->SetVectorParameterValue(DynamicMaterial_NameOfColor, DynamicMaterialColor);
 		PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOpacitgy, DynamicMaterialOpacitgy);
 	}
@@ -234,7 +236,7 @@ float UPathTracerComp::CalculateIndent(float Length_p)
 }
 
 void UPathTracerComp::SetupPathSegments(FVector Start_P, FVector End_P, bool IsSegmentStraight_P,
-                                             FVector StartTangent_P, FVector EndTangent_P)
+                                        FVector StartTangent_P, FVector EndTangent_P)
 {
 	if (bChangePathType) SetSegmentsDotted(Start_P, End_P, IsSegmentStraight_P, StartTangent_P, EndTangent_P);
 	USplineMeshComponent* tempSplineMesh;
@@ -263,7 +265,7 @@ void UPathTracerComp::SetupPathSegments(FVector Start_P, FVector End_P, bool IsS
 }
 
 void UPathTracerComp::SetSegmentsDotted(FVector Start_P, FVector End_P, bool IsSegmentStraight_P,
-                                             FVector StartTangent_P, FVector EndTangent_P)
+                                        FVector StartTangent_P, FVector EndTangent_P)
 {
 	PathDynamicMaterial = GetDottedMaterialInstance();
 
@@ -280,7 +282,7 @@ void UPathTracerComp::SetSegmentsDotted(FVector Start_P, FVector End_P, bool IsS
 		{
 			SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
 			SupporterSpline->RegisterComponentWithWorld(GetWorld());
-			
+
 			SupporterSpline->SetCollisionProfileName("NoCollision");
 		}
 

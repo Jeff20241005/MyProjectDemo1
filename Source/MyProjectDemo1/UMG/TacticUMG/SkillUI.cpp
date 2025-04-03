@@ -3,12 +3,16 @@
 
 #include "SkillUI.h"
 
+
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/TacticUMG/TacticMainUI.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
+#include "MyProjectDemo1/Framework/HUD/BaseHUD.h"
+#include "MyProjectDemo1/UMG/Base/ActionButtonUI.h"
 
 void USkillUI::ActionButtonUIOnHovered()
 {
@@ -22,11 +26,7 @@ void USkillUI::ActionButtonUIOnHovered()
 void USkillUI::ActionButtonUIOnClicked()
 {
 	UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
-	if (ATacticPlayerController* TacticPlayerController = GetWorld()->GetFirstPlayerController<
-		ATacticPlayerController>(); TacticSubsystem->CurrentActionCharacter && BaseAbility)
-	{
-		TacticSubsystem->OnPostSkillSelected.Broadcast(TacticPlayerController, BaseAbility);
-	}
+	TacticSubsystem->OnCheckCharacterActionValueBySkill.Broadcast(BaseAbility);
 }
 
 void USkillUI::ActionButtonUIOnUnhovered()

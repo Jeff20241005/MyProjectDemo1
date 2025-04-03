@@ -20,6 +20,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	UTeamComp* GetTeamComp() const { return TeamComp; }
+
 protected:
 	virtual void NotifyActorOnClicked(FKey ButtonPressed = EKeys::LeftMouseButton) override;
 	virtual void NotifyActorEndCursorOver() override;

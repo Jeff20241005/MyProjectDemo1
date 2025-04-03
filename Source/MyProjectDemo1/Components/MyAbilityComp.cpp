@@ -17,7 +17,7 @@ UMyAbilityComp::UMyAbilityComp()
 void UMyAbilityComp::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	Owner_BaseCharacter = Cast<ABaseCharacter>(GetOwner());
 	AutoGiveAbilitiesAndEffectsAtStart();
 }
@@ -60,9 +60,11 @@ void UMyAbilityComp::AutoGiveAbilitiesAndEffectsAtStart()
 		{
 			FGameplayEffectContextHandle EffectContext = MakeEffectContext();
 			EffectContext.AddSourceObject(this);
-
+			//这个对于玩家来说，因为玩家的等级属性比较复杂，只能是buff。
+			//对于怪物和NPC，由于只是根据等级改变，永久不变，可以是做成一个excel导入
 			FGameplayEffectSpecHandle NewHandle = MakeOutgoingSpec(
-				GameplayEffect, 1, EffectContext // Level 1 and the effect context
+				GameplayEffect, Owner_BaseCharacter->GetBaseCharacterAttributeSet()->GetLevel(),
+				EffectContext // Level 1 and the effect context
 			);
 
 			if (NewHandle.IsValid())
@@ -70,8 +72,7 @@ void UMyAbilityComp::AutoGiveAbilitiesAndEffectsAtStart()
 				FActiveGameplayEffectHandle ActiveGameplayEffectHandle =
 					ApplyGameplayEffectSpecToTarget(
 						*NewHandle.Data.Get(),
-						this
-					);
+						this);
 			}
 		}
 	}

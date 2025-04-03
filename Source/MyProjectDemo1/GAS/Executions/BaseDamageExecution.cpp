@@ -18,7 +18,7 @@ struct BaseDamageStatics
 	{
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UBaseCharacterAttributeSet, Damage, Source, true);
 
-		// Capture the Target's Defence`. Don't snapshot.
+		// Capture the Target's Defence. Don't snapshot.
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UBaseCharacterAttributeSet, Defence, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UBaseCharacterAttributeSet, DamageReduction, Target, false);
 	}
@@ -60,6 +60,22 @@ void UBaseDamageExecution::Execute_Implementation(const FGameplayEffectCustomExe
 	EvaluationParameters.SourceTags = SourceTags;
 	EvaluationParameters.TargetTags = TargetTags;
 
+	for (FGameplayTag
+		SourceGameplayTag : EvaluationParameters.SourceTags->GetGameplayTagArray())
+	{
+		{
+			FString TempStr = FString::Printf(TEXT("%s"),*SourceGameplayTag.GetTagName().ToString());
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
+		//todo	
+	}
+	for (FGameplayTag
+		TargetGameplayTag : EvaluationParameters.TargetTags->GetGameplayTagArray())
+	{
+		//todo	
+	}
+	
 	//Calculation begin
 	float DamageReduction = 0.0f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().DamageReductionDef, EvaluationParameters,
@@ -79,7 +95,6 @@ void UBaseDamageExecution::Execute_Implementation(const FGameplayEffectCustomExe
 	float UnmitigatedDamage = Damage; // Can multiply any damage boosters here
 
 	float MitigatedDamage = (UnmitigatedDamage) * (100 / (100 + DamageReduction));
-
 
 	// Set the Target's damage meta attribute, even the value < 0
 	OutExecutionOutput.AddOutputModifier(

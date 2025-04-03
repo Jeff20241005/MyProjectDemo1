@@ -98,7 +98,7 @@ protected:
 	void CancelSkill();
 	void SwitchToNextCharacterAction();
 	void PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
-	void PostSkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
+	void SkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void CancelMove();
 	virtual void BeginPlay() override;
 };

@@ -36,6 +36,11 @@ public:
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 	ABaseCharacter* GetOwnerCharacter();
 
+public:
+	UPROPERTY(EditAnywhere, Category = "Base")
+	FGameplayAttributeData Level;
+	ATTRIBUTE_ACCESSORS(ThisClass, Level)
+	
 	UPROPERTY(EditAnywhere, Category = "Base")
 	FGameplayAttributeData MaxHealth;
 	

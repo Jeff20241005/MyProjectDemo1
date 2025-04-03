@@ -9,6 +9,7 @@
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
+#include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -39,8 +40,11 @@ void UBaseAbility::SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSu
                                                     ATacticBaseCharacter* Owner_Caster,
                                                     TArray<ATacticBaseCharacter*>& PotentialTargets) const
 {
-	// Get all characters
-	TArray<ATacticBaseCharacter*> AllCharacters = InTacticSubsystem->GetAllCharactersInOrder();
+	if (bIsPotion)
+	{
+		PotentialTargets = InTacticSubsystem->GetAllCharactersInOrder();
+		return;
+	}
 
 	if (bIsNegativeEffect)
 	{
@@ -90,7 +94,6 @@ bool UBaseAbility::GetPotentialTargets(
 		FString TempStr = FString::Printf(TEXT("if (!VisualFeedbackActor)"));
 		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
 		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-
 		return false;
 	}
 
@@ -155,21 +158,28 @@ bool UBaseAbility::GetPotentialTargets(
 
 		bool bInRange = false;
 
+		// 获取角色的位置
+		FVector CharacterLocation = Character->GetActorLocation();
+
+		// 获取角色胶囊体半径，用于调整检测距离
+		float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+
+		// 使用辅助函数计算调整后的检测位置
+		FVector AdjustedCheckLocation = CalculateAdjustedCheckLocation(CharacterLocation, AbilityCenter, CapsuleRadius);
+
 		switch (SkillRangeType)
 		{
 		case EAR_Circle:
-			//test 是否直接设置VisualFeedBackActor里面的组件更好？然后蓝图中，让可视化调整为响应的角度。
-			//还是说，都一样，蓝图中设置一个跟collision一样大，形状的，都是一样的难。。主要看扇形，测试扇形吧！
-			bInRange = IsCharacterInCircleRange(AbilityCenter, Character);
+			bInRange = IsLocationInCircleRange(AbilityCenter, AdjustedCheckLocation);
 			break;
 		case EAR_Box:
-			bInRange = IsCharacterInBoxRange(AbilityCenter, ForwardVector, Character);
+			bInRange = IsLocationInBoxRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
 			break;
 		case EAR_Sector:
-			bInRange = IsCharacterInSectorRange(AbilityCenter, ForwardVector, Character);
+			bInRange = IsLocationInSectorRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
 			break;
 		case EAR_Cross:
-			bInRange = IsCharacterInCrossRange(AbilityCenter, ForwardVector, Character);
+			bInRange = IsLocationInCrossRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
 			break;
 		default: ;
 		}
@@ -179,8 +189,10 @@ bool UBaseAbility::GetPotentialTargets(
 			OutTargets.AddUnique(Character);
 		}
 	}
+
+
 	// 更新视觉反馈
-	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, OutTargets);
+	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, OutTargets,!OutTargets.IsEmpty());
 	VisualFeedbackActor->SetActorLocation(AbilityCenter);
 	if (bSkillLookAtMouseHoveringLocation)
 	{
@@ -224,26 +236,44 @@ TArray<ATacticBaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ATacticBaseChar
 		if (!Character) continue;
 		bool bInRange = false;
 
-		float SelectDistanceByType = 0;
 		float DistanceByProperty = Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange() +
 			GetSkillPlacementRadiusByAimWithMouse();
 
+		// 获取角色的位置
+		FVector CharacterLocation = Character->GetActorLocation();
+
+		// 获取角色胶囊体半径，用于调整检测距离
+		float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+
+		// 使用辅助函数计算调整后的检测位置
+		FVector AdjustedCheckLocation = CalculateAdjustedCheckLocation(CharacterLocation,
+		                                                               Owner_Caster->GetActorLocation(), CapsuleRadius);
+
+		float SelectDistanceByType = 0;
 		switch (SkillRangeType)
 		{
 		case EAR_Circle:
 		case EAR_Sector:
-			SelectDistanceByType = CircleTargetingRange + DistanceByProperty;
-			bInRange = IsCharacterInCircleRange(Owner_Caster->GetActorLocation(), Character, SelectDistanceByType);
+			SelectDistanceByType = CircleOrSectorTargetingRange + DistanceByProperty;
+			bInRange = IsLocationInCircleRange(Owner_Caster->GetActorLocation(), AdjustedCheckLocation,
+			                                   SelectDistanceByType);
 			break;
 
 		case EAR_Box:
-			//todo bInRange = IsCharacterInBoxRange(Owner_Caster->GetActorLocation(), ForwardVector, Character);
+			// 使用Owner_Caster的前向量
+			bInRange = IsLocationInBoxRange(Owner_Caster->GetActorLocation(),
+			                                Owner_Caster->GetActorForwardVector(),
+			                                AdjustedCheckLocation);
 			break;
 		case EAR_Cross:
-			//todo bInRange = IsCharacterInCrossRange(Owner_Caster->GetActorLocation(), ForwardVector, Character);
+			// 使用Owner_Caster的前向量
+			bInRange = IsLocationInCrossRange(Owner_Caster->GetActorLocation(),
+			                                  Owner_Caster->GetActorForwardVector(),
+			                                  AdjustedCheckLocation);
 			break;
 		default: ;
 		}
+
 		if (!bInRange)
 		{
 			PotentialTargets.Remove(Character);
@@ -252,37 +282,29 @@ TArray<ATacticBaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ATacticBaseChar
 	return PotentialTargets;
 }
 
-bool UBaseAbility::IsCharacterInCircleRange(const FVector& Center, ATacticBaseCharacter* Character,
-                                            float UseCustomRadius) const
+bool UBaseAbility::IsLocationInCircleRange(const FVector& Center, const FVector& CheckedLocation,
+                                           float UseCustomRadius) const
 {
-	if (!Character) return false;
-
 	// 计算2D距离（忽略高度差异）
-	float Distance = FVector::Dist2D(Center, Character->GetActorLocation());
-
+	float Distance = FVector::Dist2D(Center, CheckedLocation);
 
 	// 使用的半径：如果 UseCustomRadius 大于 0，则使用它，否则使用 CircleTargetingRange
-	float RadiusToUse = (UseCustomRadius > 0.0f) ? UseCustomRadius : CircleTargetingRange;
+	float RadiusToUse = (UseCustomRadius > 0.0f) ? UseCustomRadius : CircleOrSectorTargetingRange;
 
 	// 检查是否在圆形范围内
 	return bInfiniteRange || Distance <= RadiusToUse;
 }
 
-bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& Forward,
-                                         ATacticBaseCharacter* Character) const
+bool UBaseAbility::IsLocationInBoxRange(const FVector& Center, const FVector& Forward,
+                                        const FVector& CheckedLocation) const
 {
-	if (!Character) return false;
-
-	// 获取角色位置
-	FVector CharacterLocation = Character->GetActorLocation();
-
-	// 计算角色相对于中心点的位置
-	FVector RelativeLocation = CharacterLocation - Center;
+	// 计算位置相对于中心点的向量
+	FVector RelativeLocation = CheckedLocation - Center;
 
 	// 计算右向量（垂直于前向量）
 	FVector RightVector = FVector::CrossProduct(Forward, FVector::UpVector);
 
-	// 计算角色在前向和右向上的投影
+	// 计算位置在前向和右向上的投影
 	float ForwardProjection = FVector::DotProduct(RelativeLocation, Forward);
 	float RightProjection = FVector::DotProduct(RelativeLocation, RightVector);
 
@@ -293,29 +315,29 @@ bool UBaseAbility::IsCharacterInBoxRange(const FVector& Center, const FVector& F
 	return bInfiniteRange || (bInForwardRange && bInRightRange);
 }
 
-bool UBaseAbility::IsCharacterInSectorRange(const FVector& Center, const FVector& Forward,
-                                            ATacticBaseCharacter* Character) const
+bool UBaseAbility::IsLocationInSectorRange(const FVector& Center, const FVector& Forward,
+                                           const FVector& CheckedLocation) const
 {
-	if (!Character) return false;
-
-	// 获取角色位置
-	FVector CharacterLocation = Character->GetActorLocation();
-
-	// 计算角色相对于中心点的位置
-	FVector RelativeLocation = CharacterLocation - Center;
+	// 计算位置相对于中心点的向量
+	FVector RelativeLocation = CheckedLocation - Center;
 
 	// 计算2D距离
 	float Distance = RelativeLocation.Size2D();
 
 	// 检查距离
-	if (!bInfiniteRange && Distance > CircleTargetingRange)
+	if (!bInfiniteRange && Distance > CircleOrSectorTargetingRange)
 	{
 		return false;
 	}
 
-	// 计算角色方向与前向量的夹角
-	RelativeLocation.Normalize();
-	float DotProduct = FVector::DotProduct(Forward, RelativeLocation);
+	// 计算位置方向与前向量的夹角
+	FVector NormalizedLocation = RelativeLocation;
+	NormalizedLocation.Normalize();
+	float DotProduct = FVector::DotProduct(Forward, NormalizedLocation);
+
+	// 限制点积值在[-1,1]范围内，防止精度问题导致acos出错
+	DotProduct = FMath::Clamp(DotProduct, -1.0f, 1.0f);
+
 	float AngleRadians = FMath::Acos(DotProduct);
 	float AngleDegrees = FMath::RadiansToDegrees(AngleRadians);
 
@@ -323,21 +345,16 @@ bool UBaseAbility::IsCharacterInSectorRange(const FVector& Center, const FVector
 	return AngleDegrees <= SectorAngle / 2.0f;
 }
 
-bool UBaseAbility::IsCharacterInCrossRange(const FVector& Center, const FVector& Forward,
-                                           ATacticBaseCharacter* Character) const
+bool UBaseAbility::IsLocationInCrossRange(const FVector& Center, const FVector& Forward,
+                                          const FVector& CheckedLocation) const
 {
-	if (!Character) return false;
-
-	// 获取角色位置
-	FVector CharacterLocation = Character->GetActorLocation();
-
-	// 计算角色相对于中心点的位置
-	FVector RelativeLocation = CharacterLocation - Center;
+	// 计算位置相对于中心点的向量
+	FVector RelativeLocation = CheckedLocation - Center;
 
 	// 计算右向量（垂直于前向量）
 	FVector RightVector = FVector::CrossProduct(Forward, FVector::UpVector);
 
-	// 计算角色在前向和右向上的投影
+	// 计算位置在前向和右向上的投影
 	float ForwardProjection = FMath::Abs(FVector::DotProduct(RelativeLocation, Forward));
 	float RightProjection = FMath::Abs(FVector::DotProduct(RelativeLocation, RightVector));
 
@@ -346,4 +363,21 @@ bool UBaseAbility::IsCharacterInCrossRange(const FVector& Center, const FVector&
 	bool bInRightArm = RightProjection <= CrossLength && ForwardProjection <= CrossWidth / 2.0f;
 
 	return bInfiniteRange || bInForwardArm || bInRightArm;
+}
+
+FVector UBaseAbility::CalculateAdjustedCheckLocation(const FVector& CharacterLocation, const FVector& AbilityCenter,
+                                                     float CapsuleRadius) const
+{
+	FVector TempVector = CharacterLocation - AbilityCenter;
+	// 计算从源位置到角色位置的方向
+	FVector DirectionToCharacter = TempVector.GetSafeNormal();
+
+	//如果距离太小，则使用本来的角色自身坐标，这样倒是保证了，比如扇形后方，距离近的目标，不会被标记
+	if (TempVector.Length() < CapsuleRadius)
+	{
+		return CharacterLocation;
+	}
+
+	// 调整检查位置，考虑目标的胶囊体大小
+	return CharacterLocation - DirectionToCharacter * CapsuleRadius;
 }
