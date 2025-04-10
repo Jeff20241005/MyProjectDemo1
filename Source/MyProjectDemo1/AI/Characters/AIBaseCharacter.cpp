@@ -11,6 +11,7 @@ AAIBaseCharacter::AAIBaseCharacter(): ABaseCharacter()
 
 void AAIBaseCharacter::BeginPlay()
 {
+	
 	Super::BeginPlay();
 }
 

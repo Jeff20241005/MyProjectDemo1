@@ -34,7 +34,7 @@ public:
 	
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-	ABaseCharacter* GetOwnerCharacter();
+	ABaseCharacter* GetOwnerBaseCharacter();
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Base")
@@ -90,6 +90,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Base")
 	FGameplayAttributeData MoveRange;
 	ATTRIBUTE_ACCESSORS(ThisClass, MoveRange)
+
+
+	UPROPERTY(EditAnywhere, Category = "Base")
+	FGameplayAttributeData Intelligence;
+	ATTRIBUTE_ACCESSORS(ThisClass, Intelligence)
 
 protected:
 	UPROPERTY()

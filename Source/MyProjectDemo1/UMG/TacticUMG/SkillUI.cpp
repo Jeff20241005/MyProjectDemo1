@@ -26,7 +26,14 @@ void USkillUI::ActionButtonUIOnHovered()
 void USkillUI::ActionButtonUIOnClicked()
 {
 	UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
-	TacticSubsystem->OnCheckCharacterActionValueBySkill.Broadcast(BaseAbility);
+	bool TempBool;
+	TacticSubsystem->OnCheckHasEnoughResourceToReleseSkill.Broadcast(BaseAbility, TempBool);
+	if (TempBool)
+	{
+		ATacticPlayerController* TacticPlayerController =
+			GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+		TacticSubsystem->OnSkillSelected.Broadcast(TacticPlayerController, BaseAbility);
+	}
 }
 
 void USkillUI::ActionButtonUIOnUnhovered()

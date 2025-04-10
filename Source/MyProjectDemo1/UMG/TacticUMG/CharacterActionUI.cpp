@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "Components/CheckBox.h"
 #include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
+#include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "MyProjectDemo1/UMG/Base/ActionButtonUI.h"
@@ -15,9 +16,9 @@
 void UCharacterActionUI::ActionButton_SkillFunction()
 {
 	SkillListUI->SetVisibility(ESlateVisibility::Visible);
-	if (ATacticPlayerCharacter* InCurrentControlPlayer = TacticSubsystem->CurrentControlPlayer)
+	if (ATacticPlayerCharacter* TacticPlayerCharacter = TacticSubsystem->TryGetActionPlayer())
 	{
-		SkillListUI->GenerateList(InCurrentControlPlayer);
+		SkillListUI->GenerateList(TacticPlayerCharacter);
 	}
 }
 
@@ -26,7 +27,7 @@ void UCharacterActionUI::TestSwitchCharac()
 	TacticSubsystem->SortCharactersByActionValues();
 
 	auto FirstCharacter = TacticSubsystem->GetAllCharactersInOrder()[0];
-	if (TacticSubsystem->OnSwitchToNextCharacterAction.IsBound() && FirstCharacter)
+	if (FirstCharacter)
 	{
 		TacticSubsystem->OnSwitchToNextCharacterAction.Broadcast();
 		//直接设置ActionValue，代表执行完毕Action。
@@ -46,25 +47,16 @@ void UCharacterActionUI::CancelPreMove()
 
 void UCharacterActionUI::ActionButton_MoveOnClick()
 {
-	if (TacticSubsystem->OnCancelSkill.IsBound())
-	{
-		TacticSubsystem->OnCancelSkill.Broadcast();
-	}
+	TacticSubsystem->OnCancelSkill.Broadcast();
 
-	if (TacticSubsystem->OnPreMove.IsBound())
-	{
-		ATacticPlayerController* TacticPlayerController =
-			GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
-		TacticSubsystem->OnPreMove.Broadcast(TacticPlayerController, nullptr);
-	}
+	ATacticPlayerController* TacticPlayerController =
+		GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+	TacticSubsystem->OnPreMove.Broadcast(TacticPlayerController, nullptr);
 }
 
 void UCharacterActionUI::ActionCheckBoxUI_CheckBoxOnCheckStateChange(bool bIsChecked)
 {
-	if (TacticSubsystem->OnChangeAutomaticMoveBySkill.IsBound())
-	{
-		TacticSubsystem->OnChangeAutomaticMoveBySkill.Broadcast(bIsChecked);
-	}
+	TacticSubsystem->OnChangeAutomaticMoveBySkill.Broadcast(bIsChecked);
 }
 
 void UCharacterActionUI::NativeConstruct()

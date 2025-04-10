@@ -4,7 +4,10 @@
 #include "TacticHUD.h"
 
 #include "GameplayEffect.h"
+#include "GameplayModMagnitudeCalculation.h"
 #include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
+#include "MyProjectDemo1/Components/MyAbilityComp.h"
+#include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "MyProjectDemo1/UMG/TacticUMG/TacticMainUI.h"
 #include "MyProjectDemo1/UMG/TacticUMG/CharacterActionUI.h"
@@ -24,127 +27,174 @@ void ATacticHUD::ToggleAutomaticMoveBySkill()
 	}
 }
 
-template<typename T>
-bool ATacticHUD::CheckResourceForAttribute(ATacticBaseCharacter* SourceCharacter, 
-                                          UBaseAbility* BaseAbility,
-                                          const FGameplayAttribute& Attribute, 
-                                          T (UBaseCharacterAttributeSet::*GetValueFunc)() const,
-                                          float& OutResourceCost)
-{
-    // 获取当前资源值
-    float SourceValue = (SourceCharacter->GetBaseCharacterAttributeSet()->*GetValueFunc)();
-    OutResourceCost = 0.0f;
-    bool bFoundModifier = false;
-    
-    // 从GameplayEffect中获取Modifier
-    UGameplayEffect* CostGE = BaseAbility->GetCostGameplayEffect();
-    if (!CostGE) return true; // 如果没有消耗效果，默认资源足够
-    
-    for (const FGameplayModifierInfo& ModInfo : CostGE->Modifiers)
-    {
-        // 检查是否是修改指定属性的Modifier
-        if (ModInfo.Attribute == Attribute)
-        {
-            bFoundModifier = true;
-            
-            // 检查修改类型
-            if (ModInfo.ModifierOp != EGameplayModOp::Additive)
-            {
-                FString TempStr = FString::Printf(TEXT("资源消耗必须使用加法修改器 (Additive)"));
-                if (GEngine)
-                    GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(2, 2));
-                UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-                continue;
-            }
-            
-            // 根据不同的计算类型获取消耗值
-            switch (ModInfo.ModifierMagnitude.GetMagnitudeCalculationType())
-            {
-            case EGameplayEffectMagnitudeCalculation::ScalableFloat:
-                {
-                    float Cost = 0.0f;
-                    // 获取修改值（通常是负数，表示消耗）
-                    if (ModInfo.ModifierMagnitude.GetStaticMagnitudeIfPossible(BaseAbility->GetAbilityLevel(), Cost))
-                    {
-                        OutResourceCost = FMath::Abs(Cost); // 取绝对值，因为消耗是负数
-                    }
-                }
-                break;
-                
-            case EGameplayEffectMagnitudeCalculation::AttributeBased:
-            case EGameplayEffectMagnitudeCalculation::CustomCalculationClass:
-            case EGameplayEffectMagnitudeCalculation::SetByCaller:
-                {
-                    FString TempStr = FString::Printf(TEXT("暂不支持的消耗计算类型"));
-                    if (GEngine)
-                        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TempStr, true, FVector2D(2, 2));
-                    UE_LOG(LogTemp, Warning, TEXT("%s"), *TempStr);
-                }
-                break;
-            }
-            
-            // 找到了对应的Modifier，不需要继续循环
-            break;
-        }
-    }
-    
-    // 如果没有找到对应的Modifier，则认为不需要消耗这种资源
-    if (!bFoundModifier) return true;
-    
-    // 检查资源是否足够
-    return SourceValue >= OutResourceCost;
-}
 
 bool ATacticHUD::CheckHasEnoughResources(ATacticBaseCharacter* SourceCharacter, UBaseAbility* BaseAbility)
 {
-    if (!SourceCharacter || !BaseAbility) return false;
-    
-    float ActionCost = 0.0f;
-    float ManaCost = 0.0f;
-    
-    // 检查行动点是否足够
-    bool bHasEnoughAction = CheckResourceForAttribute(
-        SourceCharacter, 
-        BaseAbility, 
-        UBaseCharacterAttributeSet::GetActionValuesAttribute(),
-        &UBaseCharacterAttributeSet::GetActionValues,
-        ActionCost);
-    
-    // 检查魔法值是否足够
-    bool bHasEnoughMana = CheckResourceForAttribute(
-        SourceCharacter, 
-        BaseAbility, 
-        UBaseCharacterAttributeSet::GetManaAttribute(),
-        &UBaseCharacterAttributeSet::GetMana,
-        ManaCost);
-    
-    // 如果资源不足，显示提示信息
-    if (!bHasEnoughAction || !bHasEnoughMana)
-    {
-        FString Message;
-        if (!bHasEnoughAction)
-        {
-            Message = FString::Printf(TEXT("行动点不足! 需要: %.0f, 当前: %.0f"), 
-                ActionCost, SourceCharacter->GetBaseCharacterAttributeSet()->GetActionValues());
-                
-            // 这里可以添加UI变化代码，比如闪烁行动点显示等
-            // Todo: 行动点UI变化
-        }
-        
-        if (!bHasEnoughMana)
-        {
-            if (!Message.IsEmpty()) Message.Append(TEXT("\n"));
-            Message.Append(FString::Printf(TEXT("魔法值不足! 需要: %.0f, 当前: %.0f"), 
-                ManaCost, SourceCharacter->GetBaseCharacterAttributeSet()->GetMana()));
-                
-            // 这里可以添加UI变化代码，比如闪烁魔法值显示等
-            // Todo: 魔法值UI变化
-        }
-        
-        if (GEngine && !Message.IsEmpty())
-            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, Message, true, FVector2D(1.5, 1.5));
-    }
-    
-    // 只有当两种资源都足够时才返回true
-    return bHasEnoughAction && bHasEnoughMana;
+	if (!SourceCharacter || !BaseAbility) return false;
+
+	float ActionCost = 0.0f;
+	float ManaCost = 0.0f;
+
+	// 检查行动点是否足够
+	bool bHasEnoughAction = CheckResourceForAttribute(
+		SourceCharacter,
+		BaseAbility,
+		UBaseCharacterAttributeSet::GetActionValuesAttribute(),
+		&UBaseCharacterAttributeSet::GetActionValues,
+		ActionCost);
+
+	// 检查魔法值是否足够
+	bool bHasEnoughMana = CheckResourceForAttribute(
+		SourceCharacter,
+		BaseAbility,
+		UBaseCharacterAttributeSet::GetManaAttribute(),
+		&UBaseCharacterAttributeSet::GetMana,
+		ManaCost);
+
+	// 如果资源不足，显示提示信息
+	if (!bHasEnoughAction || !bHasEnoughMana)
+	{
+		FString Message;
+		if (!bHasEnoughAction)
+		{
+			Message = FString::Printf(TEXT("行动点不足! 需要: %.0f, 当前: %.0f"),
+			                          ActionCost, SourceCharacter->GetBaseCharacterAttributeSet()->GetActionValues());
+
+			// 这里可以添加UI变化代码，比如闪烁行动点显示等
+		}
+
+		if (!bHasEnoughMana)
+		{
+			if (!Message.IsEmpty()) Message.Append(TEXT("\n"));
+			Message.Append(FString::Printf(TEXT("魔法值不足! 需要: %.0f, 当前: %.0f"),
+			                               ManaCost, SourceCharacter->GetBaseCharacterAttributeSet()->GetMana()));
+
+			// 这里可以添加UI变化代码，比如闪烁魔法值显示等
+		}
+
+		if (GEngine && !Message.IsEmpty())
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, Message, true, FVector2D(1.5, 1.5));
+	}
+
+	// 只有当两种资源都足够时才返回true
+	return bHasEnoughAction && bHasEnoughMana;
+}
+
+template <class T>
+bool ATacticHUD::CheckResourceForAttribute(ATacticBaseCharacter* Character, UBaseAbility* Ability,
+                                           const FGameplayAttribute& Attribute, T GetterFunc, float& OutCost)
+{
+	if (!Character || !Ability) return false;
+
+	UGameplayEffect* CostEffect = Ability->GetCostGameplayEffect();
+	if (!CostEffect) return true; // 没有消耗效果，视为资源足够
+	// 从GE中获取消耗值
+	if (!GetModifierMagnitudeForAttribute(CostEffect, Attribute, OutCost))
+	{
+		// 如果不能从GE直接获取，则尝试使用计算类
+		TSubclassOf<UGameplayModMagnitudeCalculation> CalculationClass = nullptr;
+
+		// 遍历ModifierInfos找到对应属性的计算类
+		for (const FGameplayModifierInfo& ModInfo : CostEffect->Modifiers)
+		{
+			if (ModInfo.Attribute == Attribute)
+			{
+				CalculationClass = ModInfo.ModifierMagnitude.GetCustomMagnitudeCalculationClass();
+				break;
+			}
+		}
+
+		if (CalculationClass)
+		{
+			if (!PredictResourceCost(Character, Ability, CalculationClass, OutCost))
+			{
+				// 如果预测失败，使用默认值
+				OutCost = 0;
+			}
+		}
+		else
+		{
+			// 找不到计算类，使用默认值
+			OutCost = 0;
+		}
+	}
+
+	OutCost = FMath::Abs(OutCost); // 确保消耗为正值
+
+	const UBaseCharacterAttributeSet* AttributeSet = Character->GetBaseCharacterAttributeSet();
+	if (!AttributeSet) return false;
+
+	float CurrentValue = (AttributeSet->*GetterFunc)();
+	{
+		FString TempStr = FString::Printf(
+			TEXT("current %s ,%f,Need %f"), *Attribute.AttributeName, CurrentValue, OutCost);
+		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+	}
+	return CurrentValue >= OutCost;
+}
+
+bool ATacticHUD::GetModifierMagnitudeForAttribute(const UGameplayEffect* GameplayEffect,
+                                                  const FGameplayAttribute& Attribute, float& OutMagnitude)
+{
+	if (!GameplayEffect) return false;
+
+	for (const FGameplayModifierInfo& ModInfo : GameplayEffect->Modifiers)
+	{
+		if (ModInfo.Attribute == Attribute)
+		{
+			// 尝试获取静态幅度值
+			if (ModInfo.ModifierMagnitude.GetStaticMagnitudeIfPossible(1.0f, OutMagnitude))
+			{
+				// 确保返回的是消耗的绝对值（通常GE中是负值）
+				OutMagnitude = FMath::Abs(OutMagnitude);
+				return true;
+			}
+			break;
+		}
+	}
+
+	return false;
+}
+
+bool ATacticHUD::PredictResourceCost(ATacticBaseCharacter* SourceCharacter, UBaseAbility* BaseAbility,
+                                     TSubclassOf<UGameplayModMagnitudeCalculation> CalculationClass, float& OutCost)
+{
+	if (!SourceCharacter || !BaseAbility || !CalculationClass) return false;
+
+	// 创建计算类实例
+	UGameplayModMagnitudeCalculation* Calculator = NewObject<UGameplayModMagnitudeCalculation>(
+		GetTransientPackage(), CalculationClass);
+	if (!Calculator) return false;
+
+	// 创建一个临时的GameplayEffectSpec
+	UMyAbilityComp* SourceASC = SourceCharacter->GetMyAbilityComp();
+	if (!SourceASC) return false;
+
+	UGameplayEffect* CostEffect = BaseAbility->GetCostGameplayEffect();
+	if (!CostEffect) return false;
+
+	// 创建一个临时的GameplayEffectSpec用于计算
+	FGameplayEffectSpec TempSpec(CostEffect, FGameplayEffectContextHandle(), /*todo level*/1.0f);
+
+	// 设置源和目标
+	TempSpec.GetContext().AddInstigator(SourceCharacter, SourceCharacter);
+
+	// 如果是行动点计算
+	/*if (CalculationClass->IsChildOf(UCostActionValueCalculation::StaticClass()))
+	{
+		float BaseCost = 1.0f; // 默认值
+		TempSpec.SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Data.ActionCost"), BaseCost);
+	}*/
+
+	// 捕获源和目标的Tags
+	SourceASC->GetOwnedGameplayTags(TempSpec.CapturedSourceTags.GetSpecTags());
+
+	// 调用计算类的计算方法
+	float CalculatedMagnitude = Calculator->CalculateBaseMagnitude_Implementation(TempSpec);
+
+	// 通常消耗是负值，我们取绝对值
+	OutCost = FMath::Abs(CalculatedMagnitude);
+
+	return true;
 }

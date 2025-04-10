@@ -3,6 +3,7 @@
 #include "BaseCharacter.h"
 #include "AbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -12,6 +13,7 @@
 #include "MyProjectDemo1/Components/InteractionComp.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
+#include "MyProjectDemo1/FilePaths/DefaultPropertyValue.h"
 #include "MyProjectDemo1/Framework/Controllers/BasePlayerController.h"
 #include "MyProjectDemo1/Framework/GameModes/MyGameMode.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
@@ -35,19 +37,26 @@ void ABaseCharacter::NotifyActorOnClicked(FKey ButtonPressed)
 ABaseCharacter::ABaseCharacter()
 {
 	//PrimaryActorTick.bCanEverTick = true;
-	GetMesh()->SetWorldLocation(FVector(0, 0, -88.f));
+	GetMesh()->SetWorldLocation(FVector(0, 0, CharacterDefaultZHeight_FloatValue));
 	GetMesh()->SetWorldRotation(FRotator(0,-90.f, 0));
 
 	MyAbilityComp = CreateComponent<UMyAbilityComp>();
 	BaseCharacterAttributeSet = CreateComponent<UBaseCharacterAttributeSet>();
 	InteractionComp = CreateComponent<UInteractionComp>();
 
-	// 设置骨骼网格体的碰撞
+	// 设置骨骼网格体的碰撞为NoCollision
 	if (GetMesh())
 	{
-		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		GetMesh()->SetCollisionObjectType(ECC_Pawn);
-		GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+	}
+
+	// 设置胶囊体组件为Channel2（自定义游戏轨道），配合线追踪检测
+	if (GetCapsuleComponent())
+	{
+		GetCapsuleComponent()->SetCollisionObjectType(ECC_GameTraceChannel2);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
 	}
 
 	// 确保角色可以在导航网格上移动
@@ -154,6 +163,7 @@ void ABaseCharacter::HandleDamage(float DamageAmount, const FHitResult& HitInfo,
 
 void ABaseCharacter::OnHealthChanged_Implementation(float DeltaValue, const struct FGameplayTagContainer& EventTags)
 {
+	
 }
 
 void ABaseCharacter::HandleHealthChanged(float DeltaValue, const struct FGameplayTagContainer& EventTags)

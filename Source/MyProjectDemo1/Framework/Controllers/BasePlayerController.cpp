@@ -46,6 +46,7 @@ ASpectatorPawn* ABasePlayerController::GetMySpectatorPawn()
 			Movement->Acceleration = 2000.0f;
 			Movement->Deceleration = 2000.0f;
 		}
+		
 	}
 
 	return MySpectatorPawn;
@@ -71,14 +72,19 @@ void ABasePlayerController::BeginPlay()
 	*/
 
 	FTimerHandle TempHandle;
-	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::GetMouseLocation, 0.02f, true);
+	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::PerformTraceTimer, 0.02f, true);
 
-	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn); // 检测Pawn
+	//注意，不能加Pawn，SpecPawn也是Pawn。。
 	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic); // 检测静态物体
 	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic); // 检测动态物体
 	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_PhysicsBody); // 检测物理物体
+	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1); // 检测地面（虚幻自带自定义
+	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2); // 检测角色（虚幻自带自定义
 
 	GroundObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+
+	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2);
 
 	CurrentObjectQueryParams = DefaultObjectQueryParams;
 }
@@ -103,29 +109,38 @@ void ABasePlayerController::SetupInputComponent()
 	InputComponent->BindAction("TabClick", IE_Pressed, this, &ABasePlayerController::TabClick);
 }
 
-void ABasePlayerController::GetMouseLocation()
+void ABasePlayerController::PerformTraceTimer()
 {
-	PerformLineTrace(this, &ThisClass::MouseLocationTraceExecute);
+	PerformLineTrace([&](const FHitResult& HitResult)
+	{
+		HoveredLocation = HitResult.Location;
+		if (ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(HitResult.GetActor()))
+		{
+			HoveredBaseCharacter = BaseCharacter;
+		}
+		else
+		{
+			HoveredBaseCharacter = nullptr;
+		}
+	});
 }
 
 void ABasePlayerController::OnLeftMouseButtonDown()
 {
-	PerformLineTrace(this, &ThisClass::LeftMouseLineTraceExecute);
-}
-
-void ABasePlayerController::LeftMouseLineTraceExecute(FHitResult HitResult)
-{
-	if (const AActor* ClickedActor = HitResult.GetActor())
+	PerformLineTrace([&](const FHitResult& HitResult)
 	{
-		if (UInteractionComp* InteractionComp = Cast<UInteractionComp>(
-			ClickedActor->GetComponentByClass(UInteractionComp::StaticClass())))
+		if (const AActor* ClickedActor = HitResult.GetActor())
 		{
-			InteractionComp->OnClickedActor();
-			return;
+			if (UInteractionComp* InteractionComp = Cast<UInteractionComp>(
+				ClickedActor->GetComponentByClass(UInteractionComp::StaticClass())))
+			{
+				InteractionComp->OnClickedActor();
+				return;
+			}
 		}
-	}
-	FVector AdjustedLocation = HitResult.Location; //+ FVector(0, 0, 20.0f);
-	LastClickLocation = AdjustedLocation;
+		FVector AdjustedLocation = HitResult.Location; //+ FVector(0, 0, 20.0f);
+		//LastClickLocation = AdjustedLocation;
+	});
 }
 
 
@@ -150,11 +165,6 @@ void ABasePlayerController::MoveForward(float Value)
 void ABasePlayerController::MoveRight(float Value)
 {
 	if (Value == 0.0f)return;
-}
-
-void ABasePlayerController::MouseLocationTraceExecute(FHitResult HitResult)
-{
-	MouseHoveringCursorOverLocation = HitResult.Location;
 }
 
 void ABasePlayerController::SetViewTarget(class AActor* NewViewTarget, FViewTargetTransitionParams TransitionParams)

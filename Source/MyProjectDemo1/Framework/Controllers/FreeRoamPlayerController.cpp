@@ -31,22 +31,21 @@ void AFreeRoamPlayerController::BeginPlay()
 	}
 }
 
-void AFreeRoamPlayerController::OnFreeModeLeftMouseButtonDown(FHitResult HitResult)
-{
-	if (FreeRoamCurrentControlPlayer)
-	{
-		// 暂时取消玩家控制
-		UnPossess();
-		FreeRoamCurrentControlPlayer->BaseAIController->Possess(FreeRoamCurrentControlPlayer);
-		FreeRoamCurrentControlPlayer->BaseAIController->MoveToLocationWithPathFinding(LastClickLocation);
-		PossesSpawnedSpectatorPawn();
-	}
-}
 
 void AFreeRoamPlayerController::OnLeftMouseButtonDown()
 {
 	Super::OnLeftMouseButtonDown();
-	PerformLineTrace(this, &AFreeRoamPlayerController::OnFreeModeLeftMouseButtonDown);
+	PerformLineTrace([&](const FHitResult& HitResult)
+	{
+		if (FreeRoamCurrentControlPlayer)
+		{
+			// 暂时取消玩家控制
+			UnPossess();
+			FreeRoamCurrentControlPlayer->BaseAIController->Possess(FreeRoamCurrentControlPlayer);
+			FreeRoamCurrentControlPlayer->BaseAIController->MoveToLocationWithPathFinding(HoveredLocation);
+			PossesSpawnedSpectatorPawn();
+		}
+	});
 }
 
 void AFreeRoamPlayerController::ZoomCamera(float Value)

@@ -38,7 +38,6 @@ void UTeamComp::SetTeam(ETeamType NewTeam)
 
 	TeamType = NewTeam;
 
-
 	// Add to new team	
 	TacticSubsystem->AddCharacterToTeamByType(Owner_BaseCharacter);
 

@@ -2,17 +2,19 @@
 
 
 #include "PathTracerComp.h"
-
-#include "Components/SplineComponent.h"
-#include "Components/SplineMeshComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Components/SplineComponent.h"
+#include "Components/SplineMeshComponent.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 
 // Sets default values for this component's properties
 UPathTracerComp::UPathTracerComp()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	// 在构造函数中设置默认值而不是在UPROPERTY声明中
+	DotterAnimSpeed = -0.6f;
 
 	MarkerMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PathMeshComponent"));
 }

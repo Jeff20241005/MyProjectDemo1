@@ -57,10 +57,7 @@ void UActionCheckBoxUI::ToggleCheckBox()
 		CheckBox->SetIsChecked(!IsChecked());
 
 		// 手动广播状态变化事件
-		if (CheckBox->OnCheckStateChanged.IsBound())
-		{
 			CheckBox->OnCheckStateChanged.Broadcast(IsChecked());
-		}
 	}
 }
 

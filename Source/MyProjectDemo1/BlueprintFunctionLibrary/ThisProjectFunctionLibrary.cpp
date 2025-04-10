@@ -3,9 +3,11 @@
 
 #include "ThisProjectFunctionLibrary.h"
 
+#include "MyProjectDemo1/FilePaths/DefaultPropertyValue.h"
+
 FVector UThisProjectFunctionLibrary::FVectorZToGround(const FVector& Source)
 {
-	return FVector(Source.X, Source.Y, 5.f);
+	return FVector(Source.X, Source.Y, VectorToGround_FloatValue);
 }
 
 void UThisProjectFunctionLibrary::ClampMoveRange2D(const FVector& CurrentLocation, float RangeToMove,

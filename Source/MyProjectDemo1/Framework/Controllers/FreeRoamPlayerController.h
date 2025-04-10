@@ -19,7 +19,6 @@ protected:
 	ATacticPlayerCharacter* FreeRoamCurrentControlPlayer;
 	float CurrentSpringArmLength;
 
-	void OnFreeModeLeftMouseButtonDown(FHitResult HitResult);
 	virtual void OnLeftMouseButtonDown() override;
 
 	virtual void ZoomCamera(float Value) override;

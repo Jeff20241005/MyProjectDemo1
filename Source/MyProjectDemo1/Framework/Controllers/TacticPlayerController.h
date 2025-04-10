@@ -20,6 +20,19 @@ class MYPROJECTDEMO1_API ATacticPlayerController : public ABasePlayerController
 public:
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
+	
+
+	// 暴露摄像机组件给蓝图
+	UPROPERTY(BlueprintReadWrite, Category = "Camera")
+	UCameraComponent* CameraComponent;
+	
+	// 设置相机为16:9比例
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
+	bool bUse16By9Ratio = true;
+	
+	// 正交宽度设置(可在蓝图中调整)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta=(EditCondition="CameraComponent != nullptr"))
+	float OrthoWidth = 2000.0f;
 
 protected:
 	virtual void OnLeftMouseButtonDown() override;
@@ -101,4 +114,39 @@ protected:
 	void SkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void CancelMove();
 	virtual void BeginPlay() override;
+
+	void CameraSetting(ASpectatorPawn* SpecPawn);
+	template <class Comp>
+	Comp* CreateComponent();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance")
+	UCameraComponent* TheCamera;
 };
+
+//记得包含头文件在C++文件
+template <typename Comp>
+Comp* ATacticPlayerController::CreateComponent()
+{
+	TArray<UActorComponent*> ExistingComponents;
+	GetComponents(ExistingComponents);
+	int32 CompCount = 0;
+	for (UActorComponent* CompInstance : ExistingComponents)
+	{
+		if (CompInstance->IsA<Comp>())
+		{
+			CompCount++;
+		}
+	}
+
+	FName CompName = FName(*(Comp::StaticClass()->GetName() + TEXT("_") + FString::FromInt(CompCount)));
+
+	Comp* TheComp = CreateDefaultSubobject<Comp>(CompName);
+	if (USceneComponent* TempSceneComponentTemp = Cast<USceneComponent>(TheComp))
+	{
+		if (TempSceneComponentTemp)
+		{
+			TempSceneComponentTemp->SetupAttachment(RootComponent);
+		}
+	}
+
+	return TheComp;
+}

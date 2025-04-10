@@ -8,5 +8,10 @@ inline const FString PathMaterial_Path = TEXT(
 //         /Game/A1_zhStuffs/TacticMode/VisualFeedback/BP_VisualFeedbackActor
 inline const FString VisualFeedbackActor_Path = TEXT(
 	"/Game/A1_zhStuffs/ATacticMode/Blueprints/VisualFeedback/BP_VisualFeedbackActor");
+inline const FString MoveRangeCircleStaticMeshVisualFeedback_Path = TEXT(
+	"/Script/Engine.StaticMesh'/Game/Bp/Mesh/Mesh.Mesh'");
+
+inline const FString WBP_HealthWidget_Path = TEXT(
+	"/Game/A1_zhStuffs/ATacticMode/UMG/Healthbar/WBP_Healthbar");
 
 inline const FString Charm_Path = TEXT("CharmTest");

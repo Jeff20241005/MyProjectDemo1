@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "CharacterActionUI.generated.h"
 
 class USkillListUI;
 class UTacticSubsystem;
 class UActionButtonUI;
+class UActionCheckBoxUI;
+class ATacticPlayerController;
 /**
  * 
  */
@@ -19,8 +20,6 @@ class MYPROJECTDEMO1_API UCharacterActionUI : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-	UActionCheckBoxUI* ActionCheckBoxUI_ChangeAutomaticMoveBySkill;
 	
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_Attack;
@@ -28,6 +27,9 @@ public:
 	UActionButtonUI* ActionButton_Skill;
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_Move;
+	
+	UPROPERTY(meta = (BindWidget))
+	UActionCheckBoxUI* ActionCheckBoxUI_ChangeAutomaticMoveBySkill;
 
 	UPROPERTY(meta=(BindWidget), BlueprintReadWrite)
 	UActionButtonUI* ActionButton_SwitchGameModeTest;

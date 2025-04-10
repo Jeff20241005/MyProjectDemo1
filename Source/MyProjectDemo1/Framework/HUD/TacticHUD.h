@@ -11,6 +11,7 @@ class UTacticMainUI;
 class UTacticSubsystem;
 class UGameplayEffect;
 class UBaseAbility;
+class UGameplayModMagnitudeCalculation;
 
 /**
  * 
@@ -20,6 +21,7 @@ class MYPROJECTDEMO1_API ATacticHUD : public ABaseHUD
 {
 	GENERATED_BODY()
 	virtual void BeginPlay() override;
+		
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	TSubclassOf<UTacticMainUI> MainUIClass;
@@ -29,6 +31,8 @@ public:
 	/** 切换自动移动选项 */
 	UFUNCTION(BlueprintCallable, Category="Tactic|UI")
 	void ToggleAutomaticMoveBySkill();
+
+	
 	/**
 	 * 检查是否有足够的资源使用此技能，如果没有，比如行动点缺乏
 	 * 就给行动点的UI做一些变化，
@@ -38,20 +42,38 @@ public:
 	 */
 	bool CheckHasEnoughResources(ATacticBaseCharacter* SourceCharacter, UBaseAbility* BaseAbility);
 
+	/**
+	 * 预测技能的资源消耗值
+	 * @param SourceCharacter 技能施放者
+	 * @param BaseAbility 要使用的技能
+	 * @param CalculationClass 用于计算消耗的计算类
+	 * @param OutCost 输出参数，计算得到的消耗值
+	 * @return 是否成功计算出消耗值
+	 */
+	bool PredictResourceCost(ATacticBaseCharacter* SourceCharacter, UBaseAbility* BaseAbility, 
+	                         TSubclassOf<UGameplayModMagnitudeCalculation> CalculationClass, float& OutCost);
+
+	/**
+	 * 从Gameplay Effect中获取修改特定属性的Modifier的幅度
+	 * @param GameplayEffect 要检查的效果
+	 * @param Attribute 要寻找的属性
+	 * @param OutMagnitude 输出参数，找到的幅度值
+	 * @return 是否找到对应的Modifier
+	 */
+	bool GetModifierMagnitudeForAttribute(const UGameplayEffect* GameplayEffect, const FGameplayAttribute& Attribute, float& OutMagnitude);
+
 protected:
 	/**
-	 * 检查特定属性资源是否足够
-	 * @param SourceCharacter 角色
-	 * @param BaseAbility 技能
-	 * @param Attribute 要检查的属性
-	 * @param GetValueFunc 获取当前值的函数指针
-	 * @param OutResourceCost 输出参数，返回消耗值
+	 * 检查角色是否有足够的特定资源
+	 * @param Character 要检查的角色
+	 * @param Ability 使用的技能
+	 * @param Attribute 资源属性
+	 * @param GetterFunc 获取当前资源值的函数
+	 * @param OutCost 输出参数，计算得到的消耗值
 	 * @return 是否有足够的资源
 	 */
-	template<typename T>
-	bool CheckResourceForAttribute(ATacticBaseCharacter* SourceCharacter, 
-								  UBaseAbility* BaseAbility,
-								  const FGameplayAttribute& Attribute, 
-								  T (UBaseCharacterAttributeSet::*GetValueFunc)() const,
-								  float& OutResourceCost);
+	template<class T>
+	bool CheckResourceForAttribute(ATacticBaseCharacter* Character, UBaseAbility* Ability,
+		const FGameplayAttribute& Attribute, T GetterFunc, float& OutCost);
+	
 };

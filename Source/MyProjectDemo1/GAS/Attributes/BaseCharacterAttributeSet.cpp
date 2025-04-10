@@ -5,6 +5,7 @@
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
+#include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
@@ -76,7 +77,7 @@ void UBaseCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffect
 			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, DebugMsg);
 
 			TargetCharacter->HandleHealthChanged(ActualDelta, SourceTags);
-
+			
 			if (ActualDelta < 0)
 			{
 				//TargetCharacter->HandleDamage(ActualDelta, whyHitResult, SourceTags, BaseCharacter, SourceActor);
@@ -85,7 +86,7 @@ void UBaseCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffect
 	}
 }
 
-ABaseCharacter* UBaseCharacterAttributeSet::GetOwnerCharacter()
+ABaseCharacter* UBaseCharacterAttributeSet::GetOwnerBaseCharacter()
 {
 	if (!OwnerCharacter)
 	{
@@ -112,17 +113,26 @@ void UBaseCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& At
 	{
 	}
 }
-
 void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue,
                                                      float NewValue)
 {
 	Super::PostAttributeChange(Attribute, OldValue, NewValue);
 
-	if (Attribute == GetActionValuesAttribute() && GetOwnerCharacter()->GetMyAbilityComp()->bAbilitiesInitialized)
+	if (Attribute == GetActionValuesAttribute() && GetOwnerBaseCharacter()->GetMyAbilityComp()->bAbilitiesInitialized)
 	{
 		if (UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>())
 		{
 			TacticSubsystem->SortCharactersByActionValues();
 		}
+	}
+	
+	// Clamp health between 0 and max health
+	if (Attribute == GetHealthAttribute())
+	{
+		if (ATacticBaseCharacter* TacticBaseCharacter = Cast<ATacticBaseCharacter>(GetOwnerBaseCharacter()))
+		{
+			TacticBaseCharacter->SetWidgetHealth(NewValue,GetMaxHealth());	
+		}
+		//NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
 	}
 }

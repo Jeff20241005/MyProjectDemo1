@@ -93,9 +93,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Setup|Dynamic")
 	FName DynamicMaterial_NameOfAnimSpeed = "AnimSpeed";
-
-	UPROPERTY(EditDefaultsOnly, Category="Setup|Dynamic")
-	float DotterAnimSpeed = -0.5f;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Setup|Dynamic", meta=(ClampMin="-10.0", ClampMax="10.0"))
+	float DotterAnimSpeed;
 	/*	
 		//---寻路系统图标类
 		UPROPERTY(EditDefaultsOnly,Category="Setup|Marker")

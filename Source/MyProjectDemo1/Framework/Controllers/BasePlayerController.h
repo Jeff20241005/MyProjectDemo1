@@ -27,10 +27,7 @@ class MYPROJECTDEMO1_API ABasePlayerController : public APlayerController
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	FVector LastClickLocation;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	FVector MouseHoveringCursorOverLocation;
+	FVector HoveredLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* HoveredActor;
@@ -39,7 +36,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* ClickedItem;
 
-	void MouseLocationTraceExecute(FHitResult HitResult);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MouseAction")
+	ABaseCharacter* HoveredBaseCharacter;
 
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
@@ -48,6 +46,7 @@ public:
 	FCollisionObjectQueryParams CurrentObjectQueryParams;
 	FCollisionObjectQueryParams DefaultObjectQueryParams;
 	FCollisionObjectQueryParams GroundObjectQueryParams;
+	FCollisionObjectQueryParams GroundPlusBaseCharcterObjectQueryParams;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -64,22 +63,15 @@ protected:
 	float CameraZoomSpeed = 100.0f;
 
 
-	// 射线检测相关函数
-	template <class TClass, class TMemberFunc, class... TArgs>
-	UFUNCTION(BlueprintCallable)
-	void PerformLineTrace(TClass* Instance, TMemberFunc Func, TArgs&&... Args);
-
 	// 处理鼠标左键点击
 	virtual void OnLeftMouseButtonDown();
-
-	void LeftMouseLineTraceExecute(FHitResult HitResult);
 
 	virtual void OnRightMouseButtonDown();
 	virtual void TabClick();
 	// 绑定输入事件
 	virtual void SetupInputComponent() override;
 
-	void GetMouseLocation();
+	void PerformTraceTimer();
 	virtual void BeginPlay() override;
 
 	ABasePlayerController();
@@ -96,10 +88,13 @@ protected:
 	ASpectatorPawn* GetMySpectatorPawn();
 	UPROPERTY()
 	ASpectatorPawn* MySpectatorPawn;
+
+	template <class TMemberFunc>
+	void PerformLineTrace(TMemberFunc Function);
 };
 
-template <class TClass, class TMemberFunc, class... TArgs>
-void ABasePlayerController::PerformLineTrace(TClass* Instance, TMemberFunc Func, TArgs&&... Args)
+template <class TLambdaFunc>
+void ABasePlayerController::PerformLineTrace(TLambdaFunc Function)
 {
 	float MouseX, MouseY;
 	if (GetMousePosition(MouseX, MouseY))
@@ -121,7 +116,7 @@ void ABasePlayerController::PerformLineTrace(TClass* Instance, TMemberFunc Func,
 				HitResult,
 				TraceStart,
 				TraceEnd,
-				CurrentObjectQueryParams,
+				CurrentObjectQueryParams/*变量，可调整*/,
 				QueryParams
 			);
 			/*
@@ -141,7 +136,7 @@ void ABasePlayerController::PerformLineTrace(TClass* Instance, TMemberFunc Func,
 			*/
 			if (bHit)
 			{
-				(Instance->*Func)(HitResult, std::forward<TArgs>(Args)...);
+				Function(HitResult);
 			}
 		}
 	}

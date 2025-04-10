@@ -7,6 +7,7 @@
 #include "Navigation/PathFollowingComponent.h"
 #include "NavigationSystem.h"
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
+#include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 #include "Perception/AIPerceptionComponent.h"
 
 
@@ -71,11 +72,15 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	// 计算目标位置
 	FVector TargetLocation = MouseClickLocation;
 
+	
+	bIsTacticModMove = false;
 	// 如果不是自由移动且有范围限制，则检查距离
 	if (!IsFreeToMove && RangeToMove > 0.0f)
 	{
+		bIsTacticModMove = true;
 		UThisProjectFunctionLibrary::ClampMoveRange2D(CurrentLocation, RangeToMove, TargetLocation);
 	}
+		
 
 	// 在目标点周围找一个可到达的点
 	/*
@@ -103,7 +108,7 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	FNavPathSharedPtr NavPath;
 	MoveTo(MoveRequest, &NavPath);
 
-
+	/*
 	// 可视化 --Debug
 	if (NavPath.IsValid())
 	{
@@ -145,9 +150,15 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 			}
 		}
 	}
+	*/
 }
 
 void ABaseAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
 	Super::OnMoveCompleted(RequestID, Result);
+	UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+	if (TacticSubsystem && bIsTacticModMove)
+	{
+		TacticSubsystem->TryReleaseSkillAfterMove();
+	}
 }

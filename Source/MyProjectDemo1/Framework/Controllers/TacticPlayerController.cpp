@@ -3,6 +3,7 @@
 
 #include "TacticPlayerController.h"
 
+#include "Camera/CameraComponent.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
@@ -76,9 +77,9 @@ void ATacticPlayerController::ZoomCamera(float Value)
 
 void ATacticPlayerController::RefocusToCurrentActionCharacter()
 {
-	if (TacticSubsystem && TacticSubsystem->CurrentActionCharacter)
+	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter)
 	{
-		SetViewTarget(TacticSubsystem->CurrentActionCharacter);
+		SetViewTarget(TacticSubsystem->CurrentActionBaseCharacter);
 	}
 }
 
@@ -147,6 +148,7 @@ void ATacticPlayerController::SetViewTarget(AActor* NewViewTarget, FViewTargetTr
 
 ATacticPlayerController::ATacticPlayerController()
 {
+	TheCamera = CreateComponent<UCameraComponent>();
 }
 
 void ATacticPlayerController::BeginPlay()
@@ -167,6 +169,8 @@ void ATacticPlayerController::BeginPlay()
 	// Create and possess the spectator pawn
 	ASpectatorPawn* SpecPawn = GetMySpectatorPawn();
 	Possess(SpecPawn);
+
+	CameraSetting(SpecPawn);
 
 	// Disable vertical movement in the pawn's movement component
 	if (UPawnMovementComponent* MovementComp = SpecPawn->GetMovementComponent())
@@ -227,7 +231,7 @@ void ATacticPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("Space", this, &ATacticPlayerController::DisableVerticalMovement);
 	InputComponent->BindAxis("Ctrl", this, &ATacticPlayerController::DisableVerticalMovement);
 
-	InputComponent->BindAction("AlphabetZ", IE_Pressed, this, &ThisClass::ToggleAutoMove);
+	//InputComponent->BindAction("AlphabetZ", IE_Pressed, this, &ThisClass::ToggleAutoMove);
 }
 
 void ATacticPlayerController::RotateLeft(float Value)
@@ -287,9 +291,9 @@ void ATacticPlayerController::CancelSkill()
 
 void ATacticPlayerController::SwitchToNextCharacterAction()
 {
-	if (TacticSubsystem->CurrentActionCharacter)
+	if (TacticSubsystem->CurrentActionBaseCharacter)
 	{
-		SetViewTarget(TacticSubsystem->CurrentActionCharacter);
+		SetViewTarget(TacticSubsystem->CurrentActionBaseCharacter);
 	}
 }
 
@@ -300,14 +304,15 @@ void ATacticPlayerController::PreMove(ATacticPlayerController* TacticPlayerContr
 }
 
 void ATacticPlayerController::SkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
-                                                     UBaseAbility* BaseAbility)
+                                                 UBaseAbility* BaseAbility)
 {
+	//todo if BaseAbility->bIsSingleTarget
 	CurrentObjectQueryParams = GroundObjectQueryParams;
 }
 
 void ATacticPlayerController::CancelMove()
 {
-	CurrentObjectQueryParams = GroundObjectQueryParams;
+	//	CurrentObjectQueryParams = GroundObjectQueryParams;
 }
 
 
@@ -319,10 +324,7 @@ void ATacticPlayerController::MoveRight(float Value)
 
 void ATacticPlayerController::OnLeftMouseButtonDown()
 {
-	if (TacticSubsystem->OnSkillRelease.IsBound())
-	{
-//		TacticSubsystem->OnSkillRelease.Broadcast(this,);
-	}
+	TacticSubsystem->TryReleaseSkillOrMove(this);
 	Super::OnLeftMouseButtonDown();
 }
 
@@ -339,4 +341,27 @@ void ATacticPlayerController::OnRightMouseButtonDown()
 void ATacticPlayerController::DisableVerticalMovement(float Value)
 {
 	// Intentionally empty to prevent movement
+}
+
+void ATacticPlayerController::CameraSetting(ASpectatorPawn* SpecPawn)
+{
+	if (!SpecPawn) return;
+
+	if (TheCamera)
+	{
+		// 设置为正交投影
+		TheCamera->SetProjectionMode(ECameraProjectionMode::Orthographic);
+		TheCamera->OrthoWidth = OrthoWidth;
+
+		// 设置16:9比例
+		if (bUse16By9Ratio)
+		{
+			TheCamera->bConstrainAspectRatio = true;
+			TheCamera->AspectRatio = 16.0f / 9.0f;
+		}
+		else
+		{
+			TheCamera->bConstrainAspectRatio = false;
+		}
+	}
 }

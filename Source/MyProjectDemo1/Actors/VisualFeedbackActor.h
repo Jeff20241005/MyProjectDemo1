@@ -16,11 +16,7 @@ UCLASS()
 class MYPROJECTDEMO1_API AVisualFeedbackActor : public AActor
 {
 	GENERATED_BODY()
-	//AbilityTargetingRange;
-	//SkillPlacementRadius;
 public:
-	//UFUNCTION(BlueprintCallable)
-	//UBaseAbility* GetBaseAbility() const { return BaseAbility; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance|Test")
 	float TestScale = 1;
 
@@ -31,19 +27,21 @@ public:
 	bool bTestIsValidColor = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance)
-	FVector DefaultColorValueOfSphereSM = FVector(1, 1, 1);
+	FVector DefaultColorValueOfSphereSM = FVector(1, 1, 7);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance)
-	FVector UnselectableColorValueOfSphereSM = FVector(1, 1, 1);
+	FVector UnselectableColorValueOfSphereSM = FVector(7, 1, 1);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance")
+	float In_Radius = 0.96f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Appearance)
 	FName MaterialName_Angle = FName("Angle");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Appearance)
 	FName MaterialName_Color = FName("Color");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Appearance)
+	FName MaterialName_Radius = FName("Radius");
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance")
-	float AdjustedSkillProperty = 1.f / 100.f * 2.f;
-
-
-	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, TArray<ATacticBaseCharacter*>& InPotentialTargets, bool bIsValid);
+	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, const FVector& AbilityCenter, bool bIsValid,
+	                               const FVector& SourceCharacterLocation, const FVector& ForwardVector);
 
 	float DrawAttackRange(ATacticBaseCharacter* BaseCharacter);
 
@@ -79,6 +77,8 @@ protected:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	AVisualFeedbackActor();
+	template <class T>
+	bool FindMyObject(T*& YourObject, const TCHAR* Path);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USceneComponent* SceneComponent;
 

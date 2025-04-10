@@ -5,6 +5,7 @@
 
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
@@ -12,46 +13,87 @@
 #include "MyProjectDemo1/Characters/BaseCharacter.h"
 #include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Components/InteractionComp.h"
+#include "MyProjectDemo1/Components/MyAbilityComp.h"
 #include "MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.h"
 #include "NavFilters/NavigationQueryFilter.h"
 #include "MyProjectDemo1/Components/PathTracerComp.h"
 #include "MyProjectDemo1/Components/TeamComp.h"
+#include "MyProjectDemo1/FilePaths/DefaultPropertyValue.h"
 #include "MyProjectDemo1/FilePaths/FilePaths.h"
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "MyProjectDemo1/Framework/HUD/TacticHUD.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 
 
-void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* BaseCharacter)
+void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* TacticBaseCharacter)
 {
+	HoveredTacticBaseCharacter = nullptr;
+	if (!CurrentSelectedBaseAbility)
+	{
+		TacticBaseCharacter->CloseMoveRange();
+	}
 }
 
-void UTacticSubsystem::MyMouseBeginCursorOver(ATacticBaseCharacter* BaseCharacter)
+void UTacticSubsystem::MyMouseBeginCursorOver(ATacticBaseCharacter* TacticBaseCharacter)
 {
-	//if () todo 如果按下技能，则只显示自身的移动范围：  全局就一个圈，我们只调用VisualFeedBackActor就可以了
+	HoveredTacticBaseCharacter = TacticBaseCharacter;
+	if (!CurrentSelectedBaseAbility)
 	{
+		TacticBaseCharacter->ShowMoveRange();
 	}
 }
 
 void UTacticSubsystem::CancelSkill()
 {
+	if (!CurrentActionBaseCharacter) { return; }
 	GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
 
 	GlobalPotentialTargets.Empty();
 	CheckGlobalPotentialTargetsOutline();
+
+	CurrentActionBaseCharacter->CloseMoveRange();
+
+	CurrentSelectedBaseAbility = nullptr;
 }
 
 void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
 {
-	if (CurrentActionCharacter && CurrentActionCharacter->CanMove())
+	if (CurrentActionBaseCharacter && CurrentActionBaseCharacter->CanMove() && bIsAttemptToMove)
 	{
-		CurrentActionCharacter->Move(InTacticPlayerController->LastClickLocation);
+		if (bCanMove)
+		{
+			CurrentActionBaseCharacter->Move(CachedPremoveFinalLocation);
+			SetbCanMove(false);
+		}
+		else
+		{
+			{
+				FString TempStr = FString::Printf(TEXT("回合已经移动：TODO UI display"));
+				if (GEngine)
+					GEngine->
+						AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+			}
+		}
+	}
+	else
+	{
+		{
+			FString TempStr = FString::Printf(TEXT("行动点不足：TODO UI display"));
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
 	}
 }
 
 void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility)
 {
-	bCanMove = true;
+	bIsAttemptToMove = true;
+
+	if (CurrentActionBaseCharacter)
+	{
+		CurrentActionBaseCharacter->ShowMoveRange();
+	}
 
 	if (!ShowVisualFeedbackActor->GetPathTracerComp()->IsActive())
 	{
@@ -65,45 +107,99 @@ void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController
 	}
 }
 
+void UTacticSubsystem::ReleaseSkillActiveAbility(UMyAbilityComp* MyAbilityComp, UBaseAbility* BaseAbility)
+{
+	if (MyAbilityComp->TryActivateAbilityByClass(BaseAbility->GetClass(), true))
+	{
+		CachedMyAbilityComp = nullptr;
+		CachedBaseAbility = nullptr;
+		Cached_GlobalPotentialTargets_SkillReleased.Empty();
+
+		CheckAllCharacterIsDeath();
+	}
+	else
+	{
+		FString TempStr = FString::Printf(TEXT("技能释放失败: 未找到技能类"));
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(1.5, 1.5));
+	}
+}
+
+void UTacticSubsystem::CheckAllCharacterIsDeath()
+{
+	for (ATacticBaseCharacter*& CharactersInOrder : AllCharactersInOrder)
+	{
+		if (CharactersInOrder->GetBaseCharacterAttributeSet()->GetHealth() <= 0)
+		{
+			//	CharactersInOrder->Destroy();
+			RemoveCharacterFromTeamByType(CharactersInOrder);
+			{
+				FString TempStr = FString::Printf(TEXT("TacticSubsystem->RemoveCharacterFromTeamByType(this);"));
+				if (GEngine)GEngine->
+					AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+			}
+		}
+	}
+}
+
 void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
 {
-	//todo bug 可能 GlobalPotentialTargets会为空，因为此变量总是改变着
-	//所以可能需要先取消，然后0.2s延迟执行	
-	for (ATacticBaseCharacter*
-	     TempPotentialTarget : GlobalPotentialTargets)
+	if (!BaseAbility || !CurrentActionBaseCharacter) { return; }
+	CachedMyAbilityComp = CurrentActionBaseCharacter->GetMyAbilityComp();
+	if (!CachedMyAbilityComp) return;
+
+	Cached_GlobalPotentialTargets_SkillReleased = GlobalPotentialTargets;
+	CachedBaseAbility = BaseAbility;
+
+	// 如果没有目标，显示提示信息
+	if (GlobalPotentialTargets.IsEmpty())
 	{
-		{
-			FString TempStr = FString::Printf(TEXT("Todo here!"));
-			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
-		//BaseAbility->BaseEffect.GetDefaultObject();
+		FString TempStr = FString::Printf(TEXT("技能释放失败: 没有选择目标//todo UI display"));
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, TempStr, true, FVector2D(1.5, 1.5));
+		return;
+	}
+	else if (bIsAttemptToMove)
+	{
+		OnMove.Broadcast(TacticPlayerController);
+		/*
+		float CharacterMovementSpeed = CurrentActionBaseCharacter->GetCharacterMovement()->MaxWalkSpeed;
+		float DelaySkillTime = CachedActualPathLength / CharacterMovementSpeed +
+			SkillAfterMoveDelay_FloatValue;
 
-		//todo cut these to BaseAbility class in Activation function 
-		/*FGameplayEffectSpecHandle SpecHandle = BaseCharacter->GetMyAbilityComp()->MakeOutgoingSpec(
-			UEffectBase::StaticClass(), 1, BaseCharacter->GetMyAbilityComp()->MakeEffectContext()
-		);
+		FTimerDelegate TimerDelegate;
+		TimerDelegate.BindUObject(this, &UTacticSubsystem::ReleaseSkillActiveAbility, AbilityComp, BaseAbility);
+		FTimerHandle CustomTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(CustomTimerHandle, TimerDelegate, DelaySkillTime, false);
+		*/
+	}
+	else
+	{
+		TryReleaseSkillAfterMove();
+	}
 
-		if (SpecHandle.IsValid())
-		{
-			SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(FName("TODO")), NewHealth);
-			BaseCharacter->GetMyAbilityComp()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}*/
+	CancelMoveAndSkill();
+}
+
+void UTacticSubsystem::TryReleaseSkillAfterMove()
+{
+	if (CachedMyAbilityComp && CachedBaseAbility)
+	{
+		ReleaseSkillActiveAbility(CachedMyAbilityComp, CachedBaseAbility);
 	}
 }
 
 void UTacticSubsystem::DoSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
                                             UBaseAbility* BaseAbility)
 {
-	if (OnSkillSelectedTimer.IsBound())
-	{
-		OnSkillSelectedTimer.Broadcast(TacticPlayerController, BaseAbility);
-	}
+	OnSkillSelectedTimer.Broadcast(TacticPlayerController, BaseAbility);
 }
 
-void UTacticSubsystem::SkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+void UTacticSubsystem::SkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* InBaseAbility)
 {
+	if (!CurrentActionBaseCharacter) { return; }
+
 	CancelMoveAndSkill();
+	CurrentSelectedBaseAbility = InBaseAbility;
 
 	if (!SelectedSkillTimerHandle.IsValid())
 	{
@@ -111,16 +207,19 @@ void UTacticSubsystem::SkillSelected(ATacticPlayerController* TacticPlayerContro
 
 		FTimerDelegate TimerDelegate;
 		TimerDelegate.BindUObject(this, &UTacticSubsystem::DoSkillSelectedTimer, TacticPlayerController,
-		                          BaseAbility);
+		                          InBaseAbility);
 		GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle, TimerDelegate, 0.02f, true);
 	}
 }
 
 void UTacticSubsystem::PreSkillSelection(UBaseAbility* BaseAbility)
 {
+	if (!CurrentActionBaseCharacter) { return; }
+	//todo bIsSkill = true;如果UI移出去preSkill。。那就是False
+
 	//一次性的，可以不用SetTimer。。
 	if (BaseAbility && BaseAbility->GetPotentialTargets(
-		this, CurrentActionCharacter->GetActorLocation()))
+		this, CurrentActionBaseCharacter->GetActorLocation()))
 	{
 	}
 	CheckGlobalPotentialTargetsOutline();
@@ -128,34 +227,33 @@ void UTacticSubsystem::PreSkillSelection(UBaseAbility* BaseAbility)
 
 void UTacticSubsystem::CancelMove()
 {
-	bCanMove = false;
+	if (!CurrentActionBaseCharacter) { return; }
+	bIsAttemptToMove = false;
 }
 
 void UTacticSubsystem::ChangeAutomaticMoveBySkill(bool bNew)
 {
+	if (!CurrentActionBaseCharacter) { return; }
 	bEnableAutomaticMoveBySkill = bNew;
-
-
 	if (!bEnableAutomaticMoveBySkill)
 	{
-		if (OnCancelMove.IsBound())
-		{
-			OnCancelMove.Broadcast();
-		}
+		OnCancelMove.Broadcast();
 	}
 }
 
-void UTacticSubsystem::CheckSkillSelected(UBaseAbility* BaseAbility)
+void UTacticSubsystem::CheckHasEnoughResourceToReleseSkill(UBaseAbility* BaseAbility, bool& CanRelease)
 {
 	ATacticPlayerController* TacticPlayerController =
 		GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
 	ATacticHUD* TacticHUD = Cast<ATacticHUD>(TacticPlayerController->GetHUD());
-	
-	if (CurrentActionCharacter && BaseAbility && OnSkillSelected.IsBound() &&
-		TacticHUD->CheckHasEnoughResources(CurrentActionCharacter, BaseAbility))
+
+	if (CurrentActionBaseCharacter && BaseAbility &&
+		TacticHUD->CheckHasEnoughResources(CurrentActionBaseCharacter, BaseAbility))
 	{
-		OnSkillSelected.Broadcast(TacticPlayerController, BaseAbility);
+		CanRelease = true;
+		return;
 	}
+	CanRelease = false;
 }
 
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -168,9 +266,9 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	OnCancelMove.AddUObject(this, &ThisClass::CancelMove);
 	OnCancelSkill.AddUObject(this, &ThisClass::CancelSkill);
-	
+
 	OnPreSkillSelection.AddUObject(this, &ThisClass::PreSkillSelection);
-	OnCheckCharacterActionValueBySkill.AddUObject(this, &ThisClass::CheckSkillSelected);
+	OnCheckHasEnoughResourceToReleseSkill.AddUObject(this, &ThisClass::CheckHasEnoughResourceToReleseSkill);
 
 	OnSkillSelected.AddUObject(this, &ThisClass::SkillSelected);
 	OnSkillSelectedTimer.AddUObject(this, &ThisClass::SkillSelectedTimer);
@@ -178,7 +276,6 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	OnPreMove.AddUObject(this, &ThisClass::PreMove);
 	OnMove.AddUObject(this, &ThisClass::Move);
-
 
 	OnMyMouseBeginCursorOver.AddUObject(this, &ThisClass::MyMouseBeginCursorOver);
 	OnMyMouseEndCursorOver.AddUObject(this, &ThisClass::MyMouseEndCursorOver);
@@ -198,13 +295,10 @@ void UTacticSubsystem::BeginSwitchCharacter()
 	// 在这里初始化 CurrentActionCharacter
 	if (AllCharactersInOrder.Num() > 0)
 	{
-		CurrentActionCharacter = AllCharactersInOrder[0];
+		CurrentActionBaseCharacter = AllCharactersInOrder[0];
 
 		// 手动触发一次委托，确保 PlayerController 能获取到正确的角色
-		if (OnSwitchToNextCharacterAction.IsBound())
-		{
-			OnSwitchToNextCharacterAction.Broadcast();
-		}
+		OnSwitchToNextCharacterAction.Broadcast();
 	}
 }
 
@@ -219,36 +313,39 @@ void UTacticSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::BeginSwitchCharacter, 1.f);
 }
 
+void UTacticSubsystem::SetbCanMove(bool bNewValue)
+{
+	bCanMove = bNewValue;
+	ChangeAutomaticMoveBySkill(bCanMove);
+}
+
 void UTacticSubsystem::SwitchToNextCharacterAction()
 {
 	if (!IsValid(AllCharactersInOrder[0])) return;
-	CurrentActionCharacter = AllCharactersInOrder[0];
-	if (ATacticPlayerCharacter* PlayerCharacter = Cast<ATacticPlayerCharacter>(CurrentActionCharacter))
-	{
-		CurrentControlPlayer = PlayerCharacter;
-	}
+	CurrentActionBaseCharacter = AllCharactersInOrder[0];
+
+	SetbCanMove(true);
 }
 
+ATacticPlayerCharacter* UTacticSubsystem::TryGetActionPlayer() const
+{
+	if (ATacticPlayerCharacter* PlayerCharacter = Cast<ATacticPlayerCharacter>(CurrentActionBaseCharacter))
+	{
+		return PlayerCharacter;
+	}
+	return nullptr;
+}
 
 void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacticPlayerController,
                                                 float SkillPlacementRadius)
 {
-	if (!CurrentControlPlayer)
-	{
-		{
-			FString
-				TempStr = FString::Printf(TEXT("!CurrentControlPlayer"));
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
-		return;
-	}
+	if (!CurrentActionBaseCharacter) { return; }
 	FVector projectedLoc;
 	//---角色移动范围---
 
-	FVector PlayerLocation = CurrentControlPlayer->GetActorLocation();
-	float RangeToMove = CurrentControlPlayer->GetBaseCharacterAttributeSet()->GetMoveRange();
-	FVector TargetLocation = InTacticPlayerController->MouseHoveringCursorOverLocation;
+	FVector PlayerLocation = CurrentActionBaseCharacter->GetActorLocation();
+	float RangeToMove = CurrentActionBaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange();
+	FVector TargetLocation = InTacticPlayerController->HoveredLocation;
 	if (SkillPlacementRadius)
 	{
 		FVector AdjustTargetLocation = UThisProjectFunctionLibrary::FVectorZToGround(TargetLocation);
@@ -257,7 +354,6 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		float AdjustMoveDistance = DistanceToMouse - SkillPlacementRadius;
 		RangeToMove = RangeToMove < AdjustMoveDistance ? RangeToMove : AdjustMoveDistance;
 	}
-
 	UThisProjectFunctionLibrary::ClampMoveRange2D(PlayerLocation, RangeToMove, TargetLocation);
 
 
@@ -265,6 +361,8 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		TargetLocation - PlayerLocation,
 		0.0f,
 		1000.0f) + PlayerLocation;
+	CachedPremoveFinalLocation = FinalLocation;
+	//CachedActualPathLength = RangeToMove;
 
 	if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), FinalLocation, projectedLoc, nullptr,
 	                                                     UNavigationQueryFilter::StaticClass(),
@@ -273,27 +371,26 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		UNavigationPath* NaviValue = UNavigationSystemV1::FindPathToLocationSynchronously(
 			GetWorld(), PlayerLocation, projectedLoc);
 
+
 		if (NaviValue != nullptr)
 		{
-			MovePoints = NaviValue->PathPoints;
+			TArray<FVector> MovePoints = NaviValue->PathPoints;
 			GetVisualFeedbackActor()->GetPathTracerComp()->DrawPath(MovePoints);
+
+			/*if (MovePoints.Num() > 1)
+			{
+				for (int i = 0; i < MovePoints.Num() - 1; i++)
+				{
+					CachedActualPathLength += FVector::Dist(MovePoints[i], MovePoints[i + 1]);
+				}
+			}
+			*/
 		}
 	}
 }
 
 void UTacticSubsystem::PreMoveTimer(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility)
 {
-	if (!CurrentControlPlayer)
-	{
-		{
-			FString
-				TempStr = FString::Printf(TEXT("!CurrentControlPlayer"));
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
-		return;
-	}
-
 	if (InBaseAbility)
 	{
 		PreMove_IfHasSkillRadius(InTacticPlayerController,
@@ -304,7 +401,6 @@ void UTacticSubsystem::PreMoveTimer(ATacticPlayerController* InTacticPlayerContr
 		PreMove_IfHasSkillRadius(InTacticPlayerController);
 	}
 }
-
 
 UTacticSubsystem::UTacticSubsystem()
 {
@@ -322,13 +418,24 @@ AVisualFeedbackActor* UTacticSubsystem::GetVisualFeedbackActor()
 
 void UTacticSubsystem::CancelMoveAndSkill()
 {
-	if (OnCancelMove.IsBound())
+	OnCancelMove.Broadcast();
+	OnCancelSkill.Broadcast();
+}
+
+void UTacticSubsystem::TryReleaseSkillOrMove(ATacticPlayerController* InTacticPlayerController)
+{
+	if (CurrentSelectedBaseAbility)
 	{
-		OnCancelMove.Broadcast();
+		bool CanRelease;
+		OnCheckHasEnoughResourceToReleseSkill.Broadcast(CurrentSelectedBaseAbility, CanRelease);
+		if (CanRelease)
+		{
+			OnSkillRelease.Broadcast(InTacticPlayerController, CurrentSelectedBaseAbility);
+		}
 	}
-	if (OnCancelSkill.IsBound())
+	else if (bIsAttemptToMove)
 	{
-		OnCancelSkill.Broadcast();
+		OnMove.Broadcast(InTacticPlayerController);
 	}
 }
 
@@ -363,25 +470,19 @@ void UTacticSubsystem::CheckGlobalPotentialTargetsOutline()
 void UTacticSubsystem::SkillSelectedTimer(ATacticPlayerController* InTacticPlayerController,
                                           UBaseAbility* BaseAbility)
 {
-	if (InTacticPlayerController && BaseAbility && CurrentActionCharacter)
+	if (InTacticPlayerController && BaseAbility && CurrentActionBaseCharacter)
 	{
-		FVector MouseLocation = InTacticPlayerController->MouseHoveringCursorOverLocation;
+		FVector MouseLocation = InTacticPlayerController->HoveredLocation;
 		if (bEnableAutomaticMoveBySkill)
 		{
 			if (BaseAbility->GetPotentialTargets(this, MouseLocation))
 			{
-				if (OnCancelMove.IsBound())
-				{
-					OnCancelMove.Broadcast();
-				}
+				OnCancelMove.Broadcast();
 			}
 			else
 			{
 				BaseAbility->GetPotentialTargets(this, MouseLocation, true);
-				if (OnPreMove.IsBound())
-				{
-					OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
-				}
+				OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
 			}
 		}
 		else
@@ -389,7 +490,6 @@ void UTacticSubsystem::SkillSelectedTimer(ATacticPlayerController* InTacticPlaye
 			BaseAbility->GetPotentialTargets(this, MouseLocation);
 		}
 	}
-
 	CheckGlobalPotentialTargetsOutline();
 }
 

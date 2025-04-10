@@ -10,6 +10,7 @@
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/Components/MyAbilityComp.h"
+#include "MyProjectDemo1/GAS/Effects/BaseEffect.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -18,14 +19,92 @@ void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	BaseCharacterOwner = Cast<ATacticBaseCharacter>(ActorInfo->OwnerActor);
-	//	UMyAbilityComp* AbilityComp = BaseCharacterOwner->MyAbilityComp;
-	//	UBaseCharacterAttributeSet* BaseCharacterAttributeSet = BaseCharacterOwner->BaseCharacterAttributeSet;
 
 	if (!BaseCharacterOwner || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
+		return;
 	}
+
 	if (!CurrentActorInfo) return;
+
+	// 获取TacticSubsystem获取目标列表
+	UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+	if (!TacticSubsystem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ActivateAbility: Failed to get TacticSubsystem"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
+		return;
+	}
+
+	// 获取目标列表
+	const TArray<ATacticBaseCharacter*>& Targets = TacticSubsystem->Cached_GlobalPotentialTargets_SkillReleased;
+	if (Targets.IsEmpty())
+	{
+		FString TempStr = FString::Printf(TEXT("ActivateAbility: No targets available"));
+		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
+		return;
+	}
+
+	// 获取源角色的AbilityComp
+	UMyAbilityComp* SourceAbilityComp = BaseCharacterOwner->GetMyAbilityComp();
+	if (!SourceAbilityComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("ActivateAbility: Source character has no AbilityComp"));
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
+		return;
+	}
+
+	bool bAppliedAtLeastOne = false;
+
+
+	//todo do the effect during the animation, we need to set a timer.. add a float value? let's see
+	//can we grab 
+	// 对每个目标应用效果
+	for (ATacticBaseCharacter* Target : Targets)
+	{
+		if (!Target || !EffectForTargets) continue;
+
+		UMyAbilityComp* TargetAbilityComp = Target->GetMyAbilityComp();
+		if (!TargetAbilityComp) continue;
+
+		// 创建效果上下文
+		FGameplayEffectContextHandle EffectContext = SourceAbilityComp->MakeEffectContext();
+		EffectContext.AddSourceObject(BaseCharacterOwner);
+
+		// 创建效果规格
+		FGameplayEffectSpecHandle SpecHandle = SourceAbilityComp->MakeOutgoingSpec(
+			EffectForTargets,
+			/*todo level test*/GetAbilityLevel(),
+			EffectContext
+		);
+
+		if (SpecHandle.IsValid())
+		{
+			// 在这里可以设置自定义参数，比如根据技能等级、角色属性等调整效果强度
+			// SpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Data.Damage"), 50.0f);
+
+			// 应用效果到目标
+			FActiveGameplayEffectHandle ActiveGEHandle = TargetAbilityComp->ApplyGameplayEffectSpecToSelf(
+				*SpecHandle.Data.Get());
+
+			if (ActiveGEHandle.IsValid())
+			{
+				bAppliedAtLeastOne = true;
+				UE_LOG(LogTemp, Log, TEXT("Successfully applied effect to %s"), *Target->GetName());
+			}
+		}
+	}
+
+	if (!bAppliedAtLeastOne)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ActivateAbility: Failed to apply effect to any target"));
+	}
+
+	// 成功应用效果后，结束技能
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UBaseAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -72,12 +151,15 @@ void UBaseAbility::SelectTargetsByTeamAndProperties(UTacticSubsystem* InTacticSu
 bool UBaseAbility::GetPotentialTargets(
 	UTacticSubsystem* InTacticSubsystem, const FVector& TargetLocation, bool bAddMovingRange)
 {
+	//最后。。还是需要和TacticSubsystem交互。
+	//总的来说，避免不了和他们耦合，不可能0耦合，但至少分工明确了
+
 	TArray<ATacticBaseCharacter*>& OutTargets = InTacticSubsystem->GlobalPotentialTargets;
 
 	ATacticBaseCharacter* Owner_Caster = BaseCharacterOwner
 		                                     ? BaseCharacterOwner
 		                                     : (InTacticSubsystem
-			                                        ? InTacticSubsystem->CurrentActionCharacter
+			                                        ? InTacticSubsystem->CurrentActionBaseCharacter
 			                                        : nullptr);
 
 	if (!Owner_Caster)
@@ -99,8 +181,8 @@ bool UBaseAbility::GetPotentialTargets(
 
 	FVector AdjustTargetLocation = UThisProjectFunctionLibrary::FVectorZToGround(TargetLocation);
 	FVector AdjustOwnerSourceLocation = UThisProjectFunctionLibrary::FVectorZToGround(Owner_Caster->GetActorLocation());
-
 	const bool bAutomaticMoveBySkill = InTacticSubsystem->bEnableAutomaticMoveBySkill;
+
 	// 清空输出数组
 	OutTargets.Empty();
 
@@ -147,7 +229,27 @@ bool UBaseAbility::GetPotentialTargets(
 		}
 	}
 
+
+	// 如果是单目标选择，通知PlayerController更改射线检测参数
+	/*todo
+	if (bIsSingleTarget && InTacticSubsystem->GetTacticPlayerController())
+	{
+		InTacticSubsystem->GetTacticPlayerController()->CurrentObjectQueryParams =
+			InTacticSubsystem->GetTacticPlayerController()->GroundPlusBaseCharcterObjectQueryParams;
+	}
+	*/
+
 	// Get subsystem instead of game state
+	TEnumAsByte<EAttackRangeType> EffectType = bIsSingleTarget
+		                                           ? TEnumAsByte<EAttackRangeType>(EAR_Circle)
+		                                           : SkillRangeType;
+
+	if (bIsSingleTarget)
+	{
+		//todo
+		InTacticSubsystem->HoveredTacticBaseCharacter;
+	}
+
 	TArray<ATacticBaseCharacter*> PotentialTargets;
 	SelectTargetsByTeamAndProperties(InTacticSubsystem, Owner_Caster, PotentialTargets);
 
@@ -167,10 +269,10 @@ bool UBaseAbility::GetPotentialTargets(
 		// 使用辅助函数计算调整后的检测位置
 		FVector AdjustedCheckLocation = CalculateAdjustedCheckLocation(CharacterLocation, AbilityCenter, CapsuleRadius);
 
-		switch (SkillRangeType)
+		switch (EffectType)
 		{
 		case EAR_Circle:
-			bInRange = IsLocationInCircleRange(AbilityCenter, AdjustedCheckLocation);
+			bInRange = IsLocationInCircleRange(AbilityCenter, AdjustedCheckLocation, GetEffectiveTargetingRange());
 			break;
 		case EAR_Box:
 			bInRange = IsLocationInBoxRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
@@ -190,10 +292,6 @@ bool UBaseAbility::GetPotentialTargets(
 		}
 	}
 
-
-	// 更新视觉反馈
-	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, OutTargets,!OutTargets.IsEmpty());
-	VisualFeedbackActor->SetActorLocation(AbilityCenter);
 	if (bSkillLookAtMouseHoveringLocation)
 	{
 		// 将 ForwardVector 转换为旋转并应用
@@ -209,6 +307,9 @@ bool UBaseAbility::GetPotentialTargets(
 		}
 		VisualFeedbackActor->SetActorRotation(NewRotation);
 	}
+
+	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, AbilityCenter, !OutTargets.IsEmpty(),
+	                                               AdjustOwnerSourceLocation, ForwardVector);
 	return true;
 }
 
