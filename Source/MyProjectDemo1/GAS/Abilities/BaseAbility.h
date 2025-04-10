@@ -59,14 +59,14 @@ public:
 	 */
 
 	/** 是否只选择单个目标（精确选择模式） */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
 		meta=(ToolTip="开启后将只能选择单个目标，适用于单体技能"))
 	bool bIsSingleTarget = false;
 
 	/** 技能范围类型，决定技能的作用形状 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
-		meta=(AllowPrivateAccess=true, ToolTip="技能的作用范围形状，影响目标选择和视觉反馈", 
-			 EditCondition="!bIsSingleTarget", EditConditionHides))
+		meta=(AllowPrivateAccess=true, ToolTip="技能的作用范围形状，影响目标选择和视觉反馈",
+			EditCondition="!bIsSingleTarget", EditConditionHides))
 	TEnumAsByte<EAttackRangeType> SkillRangeType = EAR_Circle;
 
 	/** 是否为负面效果（伤害、减益等） */
@@ -122,7 +122,8 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
 		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围",
 			EditCondition=
-			"!bIsSingleTarget && (SkillRangeType == EAttackRangeType::EAR_Circle || SkillRangeType == EAttackRangeType::EAR_Sector)",
+			"!bIsSingleTarget && (SkillRangeType == EAttackRangeType::EAR_Circle || SkillRangeType == EAttackRangeType::EAR_Sector)"
+			,
 			EditConditionHides))
 	float CircleOrSectorTargetingRange = 300.0f;
 

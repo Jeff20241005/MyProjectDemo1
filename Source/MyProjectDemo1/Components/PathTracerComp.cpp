@@ -15,8 +15,9 @@ UPathTracerComp::UPathTracerComp()
 
 	// 在构造函数中设置默认值而不是在UPROPERTY声明中
 	DotterAnimSpeed = -0.6f;
-
-	MarkerMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PathMeshComponent"));
+	
+	//MarkerMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PathMeshComponent"));
+	//MarkerMeshComponent->SetCollisionProfileName("NoCollision");
 }
 
 
@@ -169,8 +170,8 @@ void UPathTracerComp::SetupMaterials()
 	if (IsValid(PathMaterial))
 	{
 		// Configure the mesh component for potential future marker use
-		MarkerMeshComponent->SetStaticMesh(PathMesh);
-		MarkerMeshComponent->SetMaterial(0, PathMaterial);
+		//MarkerMeshComponent->SetStaticMesh(PathMesh);
+		//MarkerMeshComponent->SetMaterial(0, PathMaterial);
 
 		// Create the dynamic material instance that will be used by spline meshes
 		PathDynamicMaterial = UMaterialInstanceDynamic::Create(PathMaterial, this);

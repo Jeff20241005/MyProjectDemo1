@@ -156,6 +156,7 @@ protected:
 	void SetbCanMove(bool bNewValue);
 	void SwitchToNextCharacterAction();
 	void PreMove_IfHasSkillRadius(ATacticPlayerController* InTacticPlayerController, float SkillPlacementRadius = 0);
+	void UpdateNavigationMesh();
 
 
 	FTimerHandle VisualFeedBackTimeHandle;

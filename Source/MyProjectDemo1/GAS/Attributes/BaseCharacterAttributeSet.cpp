@@ -77,7 +77,7 @@ void UBaseCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffect
 			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, DebugMsg);
 
 			TargetCharacter->HandleHealthChanged(ActualDelta, SourceTags);
-			
+
 			if (ActualDelta < 0)
 			{
 				//TargetCharacter->HandleDamage(ActualDelta, whyHitResult, SourceTags, BaseCharacter, SourceActor);
@@ -113,6 +113,7 @@ void UBaseCharacterAttributeSet::PreAttributeChange(const FGameplayAttribute& At
 	{
 	}
 }
+
 void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue,
                                                      float NewValue)
 {
@@ -125,13 +126,17 @@ void UBaseCharacterAttributeSet::PostAttributeChange(const FGameplayAttribute& A
 			TacticSubsystem->SortCharactersByActionValues();
 		}
 	}
-	
+
 	// Clamp health between 0 and max health
 	if (Attribute == GetHealthAttribute())
 	{
 		if (ATacticBaseCharacter* TacticBaseCharacter = Cast<ATacticBaseCharacter>(GetOwnerBaseCharacter()))
 		{
-			TacticBaseCharacter->SetWidgetHealth(NewValue,GetMaxHealth());	
+			TacticBaseCharacter->SetWidgetHealth(NewValue, GetMaxHealth());
+			if (NewValue <= 0)
+			{
+				GetOwnerBaseCharacter()->Destroy();
+			}
 		}
 		//NewValue = FMath::Clamp(NewValue, 0.0f, GetMaxHealth());
 	}

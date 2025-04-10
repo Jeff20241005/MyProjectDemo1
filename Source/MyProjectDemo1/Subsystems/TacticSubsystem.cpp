@@ -3,6 +3,7 @@
 
 #include "TacticSubsystem.h"
 
+#include "EngineUtils.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,12 +24,13 @@
 #include "MyProjectDemo1/Framework/Controllers/TacticPlayerController.h"
 #include "MyProjectDemo1/Framework/HUD/TacticHUD.h"
 #include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
+#include "NavMesh/NavMeshBoundsVolume.h"
 
 
 void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* TacticBaseCharacter)
 {
 	HoveredTacticBaseCharacter = nullptr;
-	if (!CurrentSelectedBaseAbility)
+	if (!CurrentSelectedBaseAbility && !bIsAttemptToMove)
 	{
 		TacticBaseCharacter->CloseMoveRange();
 	}
@@ -37,7 +39,7 @@ void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* TacticBaseChar
 void UTacticSubsystem::MyMouseBeginCursorOver(ATacticBaseCharacter* TacticBaseCharacter)
 {
 	HoveredTacticBaseCharacter = TacticBaseCharacter;
-	if (!CurrentSelectedBaseAbility)
+	if (!CurrentSelectedBaseAbility && !bIsAttemptToMove)
 	{
 		TacticBaseCharacter->ShowMoveRange();
 	}
@@ -114,8 +116,12 @@ void UTacticSubsystem::ReleaseSkillActiveAbility(UMyAbilityComp* MyAbilityComp, 
 		CachedMyAbilityComp = nullptr;
 		CachedBaseAbility = nullptr;
 		Cached_GlobalPotentialTargets_SkillReleased.Empty();
+		// FTimerHandle TempHandle;
+		//GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::CheckAllCharacterIsDeath, 0.2f);
 
-		CheckAllCharacterIsDeath();
+		UNavigationSystemV1* NavSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+		NavSystem->Build();
+		//UpdateNavigationMesh();
 	}
 	else
 	{
@@ -130,14 +136,8 @@ void UTacticSubsystem::CheckAllCharacterIsDeath()
 	{
 		if (CharactersInOrder->GetBaseCharacterAttributeSet()->GetHealth() <= 0)
 		{
-			//	CharactersInOrder->Destroy();
 			RemoveCharacterFromTeamByType(CharactersInOrder);
-			{
-				FString TempStr = FString::Printf(TEXT("TacticSubsystem->RemoveCharacterFromTeamByType(this);"));
-				if (GEngine)GEngine->
-					AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-			}
+			CharactersInOrder->Destroy();
 		}
 	}
 }
@@ -229,6 +229,10 @@ void UTacticSubsystem::CancelMove()
 {
 	if (!CurrentActionBaseCharacter) { return; }
 	bIsAttemptToMove = false;
+	if (CurrentActionBaseCharacter && !CurrentSelectedBaseAbility)
+	{
+		CurrentActionBaseCharacter->CloseMoveRange();
+	}
 }
 
 void UTacticSubsystem::ChangeAutomaticMoveBySkill(bool bNew)
@@ -321,10 +325,16 @@ void UTacticSubsystem::SetbCanMove(bool bNewValue)
 
 void UTacticSubsystem::SwitchToNextCharacterAction()
 {
+	if (CurrentActionBaseCharacter)
+	{
+		CurrentActionBaseCharacter->HideHeadIndicator();
+	}
+
 	if (!IsValid(AllCharactersInOrder[0])) return;
 	CurrentActionBaseCharacter = AllCharactersInOrder[0];
-
 	SetbCanMove(true);
+
+	CurrentActionBaseCharacter->ShowRotationHandleIndicator();
 }
 
 ATacticPlayerCharacter* UTacticSubsystem::TryGetActionPlayer() const
@@ -385,6 +395,46 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 				}
 			}
 			*/
+		}
+	}
+}
+
+void UTacticSubsystem::UpdateNavigationMesh()
+{
+	UNavigationSystemV1* NavigationSystemV1 = UNavigationSystemV1::GetNavigationSystem(GetWorld());
+
+	UWorld* World = GetWorld();
+	World->SetNavigationSystem(nullptr);
+
+	AWorldSettings* WorldSettings = World->GetWorldSettings();
+	if (WorldSettings)
+	{
+		UNavigationSystemConfig* NavigationSystemConfig = WorldSettings->GetNavigationSystemConfig();
+		FNavigationSystem::AddNavigationSystemToWorld(*World, FNavigationSystemRunMode::GameMode,
+		                                              NavigationSystemConfig,
+		                                              /*bInitializeForWorld*/true);
+
+		UNavigationSystemV1* NavigationSystemV1Temp = UNavigationSystemV1::GetNavigationSystem(GetWorld());
+		for (TActorIterator<ANavMeshBoundsVolume> ActorIterator(GetWorld()); ActorIterator; ++ActorIterator)
+		{
+			ANavMeshBoundsVolume* NavMeshBoundsVolume = *ActorIterator;
+
+			NavMeshBoundsVolume->RebuildNavigationData();
+			NavigationSystemV1->OnNavigationBoundsUpdated(NavMeshBoundsVolume);
+		}
+
+		for (TActorIterator<ATacticBaseCharacter> ActorIterator(GetWorld()); ActorIterator; ++ActorIterator)
+		{
+			ATacticBaseCharacter* NavigationInvoker = *ActorIterator;
+			//NavigationInvoker->enablenavigation();
+		}
+	}
+	else
+	{
+		{
+			FString TempStr = FString::Printf(TEXT("WorldSetting"));
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
 		}
 	}
 }
@@ -454,8 +504,7 @@ void UTacticSubsystem::CheckGlobalPotentialTargetsOutline()
 	{
 		if (!GlobalPotentialTargets.Contains(CharactersInOrder))
 		{
-			CharactersInOrder->GetInteractionComp()->
-			                   UnSetAsSkillTarget();
+			CharactersInOrder->GetInteractionComp()->UnSetAsSkillTarget();
 		}
 	}
 	for (ATacticBaseCharacter* Target : GlobalPotentialTargets)

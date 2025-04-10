@@ -127,7 +127,7 @@ bool ATacticHUD::CheckResourceForAttribute(ATacticBaseCharacter* Character, UBas
 	float CurrentValue = (AttributeSet->*GetterFunc)();
 	{
 		FString TempStr = FString::Printf(
-			TEXT("current %s ,%f,Need %f"), *Attribute.AttributeName, CurrentValue, OutCost);
+			TEXT("Current %s has %f	, The Skill Need %f"), *Attribute.AttributeName, CurrentValue, OutCost);
 		if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
 		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
 	}

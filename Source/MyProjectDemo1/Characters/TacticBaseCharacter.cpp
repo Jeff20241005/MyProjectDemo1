@@ -93,6 +93,16 @@ void ATacticBaseCharacter::NotifyActorEndCursorOver()
 }
 
 
+void ATacticBaseCharacter::Destroyed()
+{
+	StopHeadIndicatorRotation();
+	Super::Destroyed();
+	if (TacticSubsystem)
+	{
+		TacticSubsystem->RemoveCharacterFromTeamByType(this);
+	}
+}
+
 void ATacticBaseCharacter::ShowMoveRange()
 {
 	if (MoveRangeStaticMeshComponent)
@@ -111,37 +121,6 @@ void ATacticBaseCharacter::CloseMoveRange()
 	}
 }
 
-template <typename T>
-bool ATacticBaseCharacter::FindMyObject(T*& YourObject, const TCHAR* Path)
-{
-	if (ConstructorHelpers::FObjectFinder<T> ObjectFinder(Path); ObjectFinder.Succeeded())
-	{
-		YourObject = ObjectFinder.Object;
-		return true;
-	}
-	else
-	{
-		FString TempStr = FString::Printf(TEXT("Not Found! : %s"), Path);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(3, 3));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		return false;
-	}
-}
-
-template <typename T>
-void ATacticBaseCharacter::FindMyClass(TSubclassOf<T>& YourSubClass, const TCHAR* Path)
-{
-	if (ConstructorHelpers::FClassFinder<T> ClassFinder(Path); ClassFinder.Succeeded())
-	{
-		YourSubClass = ClassFinder.Class;
-	}
-	else
-	{
-		FString TempStr = FString::Printf(TEXT("Not Found! : %s"), Path);
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(3, 3));
-		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-	}
-}
 
 ATacticBaseCharacter::ATacticBaseCharacter()
 {
@@ -153,7 +132,7 @@ ATacticBaseCharacter::ATacticBaseCharacter()
 	HealthWidgetComp = CreateComponent<UWidgetComponent>();
 	HealthWidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HealthWidgetComp->SetVisibility(true); // 设置为可见
-	HealthWidgetComp->SetRelativeLocation(FVector(0, 0, 130.0f)); // 位置放在角色上方
+	HealthWidgetComp->SetRelativeLocation(FVector(0, 0, 115.0f)); // 位置放在角色上方
 	HealthWidgetComp->SetWidgetSpace(EWidgetSpace::Screen); // 使用屏幕空间渲染
 
 	// 查找并设置血条Widget蓝图类
@@ -168,11 +147,31 @@ ATacticBaseCharacter::ATacticBaseCharacter()
 	MoveRangeStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 	MoveRangeStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MoveRangeStaticMeshComponent->SetVisibility(false);
-	MoveRangeStaticMeshComponent->SetRelativeLocation(FVector(0, 0, CharacterDefaultZHeight_FloatValue));
+	MoveRangeStaticMeshComponent->SetRelativeLocation(FVector(0, 0, CharacterDefaultZHeight_FloatValue+5.f));
 	UStaticMesh* ShowUpSM;
 	if (FindMyObject(ShowUpSM, *MoveRangeCircleStaticMeshVisualFeedback_Path))
 	{
 		MoveRangeStaticMeshComponent->SetStaticMesh(ShowUpSM);
+	}
+
+	// 创建头顶图标组件
+	HeadIndicatorMeshComponent = CreateComponent<UStaticMeshComponent>();
+	HeadIndicatorMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HeadIndicatorMeshComponent->SetVisibility(false);
+	HeadIndicatorMeshComponent->SetRelativeLocation(FVector(0, 0, 180.0f)); // 放在角色头顶
+	HeadIndicatorMeshComponent->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f)); // 缩小一些
+
+	// 使用FindMyObject加载静态网格资源
+	UStaticMesh* RotationHandleMesh = nullptr;
+	UStaticMesh* StartRotationHandleMesh = nullptr;
+
+	if (FindMyObject(RotationHandleMesh, *RotationHandleIndicator_Path))
+	{
+		RotationHandleIndicatorMesh = RotationHandleMesh;
+	}
+	if (FindMyObject(StartRotationHandleMesh, *StartRotationHandleIndicator_Path))
+	{
+		StartRotationHandleIndicatorMesh = StartRotationHandleMesh;
 	}
 }
 
@@ -185,4 +184,66 @@ void ATacticBaseCharacter::BeginPlay()
 void ATacticBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+}
+
+void ATacticBaseCharacter::ShowRotationHandleIndicator()
+{
+	if (HeadIndicatorMeshComponent && RotationHandleIndicatorMesh.Get())
+	{
+		HeadIndicatorMeshComponent->SetStaticMesh(RotationHandleIndicatorMesh.Get());
+		HeadIndicatorMeshComponent->SetVisibility(true);
+		StartHeadIndicatorRotation(); // 启动旋转
+	}
+}
+
+void ATacticBaseCharacter::ShowStartRotationHandleIndicator()
+{
+	if (HeadIndicatorMeshComponent && StartRotationHandleIndicatorMesh.Get())
+	{
+		HeadIndicatorMeshComponent->SetStaticMesh(StartRotationHandleIndicatorMesh.Get());
+		HeadIndicatorMeshComponent->SetVisibility(true);
+		StartHeadIndicatorRotation(); // 启动旋转
+	}
+}
+
+void ATacticBaseCharacter::HideHeadIndicator()
+{
+	if (HeadIndicatorMeshComponent)
+	{
+		HeadIndicatorMeshComponent->SetVisibility(false);
+		StopHeadIndicatorRotation();
+	}
+}
+
+// 添加旋转函数实现
+void ATacticBaseCharacter::StartHeadIndicatorRotation()
+{
+	if (HeadIndicatorMeshComponent && HeadIndicatorMeshComponent->IsVisible())
+	{
+		// 设置定时器，每帧调用旋转函数
+		GetWorld()->GetTimerManager().SetTimer(
+			HeadIndicatorRotationTimerHandle,
+			this,
+			&ATacticBaseCharacter::RotateHeadIndicator,
+			0.016f, // 
+			true); // 
+	}
+}
+
+void ATacticBaseCharacter::StopHeadIndicatorRotation()
+{
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(HeadIndicatorRotationTimerHandle);
+	}
+}
+
+void ATacticBaseCharacter::RotateHeadIndicator()
+{
+	if (HeadIndicatorMeshComponent)
+	{
+		FRotator CurrentRotation = HeadIndicatorMeshComponent->GetRelativeRotation();
+		float NewYaw = CurrentRotation.Yaw + (HeadIndicatorRotationSpeed * 0.016f);
+		HeadIndicatorMeshComponent->SetRelativeRotation(FRotator(0, NewYaw, 0));
+	}
 }

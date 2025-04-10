@@ -49,6 +49,7 @@ void ABaseAIController::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+
 void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickLocation, bool IsFreeToMove,
                                                       float RangeToMove)
 {
@@ -151,7 +152,10 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 		}
 	}
 	*/
+
+	
 }
+
 
 void ABaseAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {

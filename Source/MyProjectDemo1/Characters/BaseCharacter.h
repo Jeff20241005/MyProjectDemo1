@@ -61,7 +61,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	UInteractionComp* InteractionComp;
-
+	virtual void Destroyed() override;
+	// 导航辅助立方体组件
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
+	//UStaticMeshComponent* NavCubeComponent;
 
 	//todo move to parent
 	// default Setting默认//
@@ -93,6 +96,10 @@ protected:
 protected:
 
 	ABaseCharacter();
+	template <class T>
+	void FindMyClass(TSubclassOf<T>& YourSubClass, const TCHAR* Path);
+	template <class T>
+	bool FindMyObject(T*& YourObject, const TCHAR* Path);
 	virtual void BeginPlay() override;
 
 	template <class Comp>

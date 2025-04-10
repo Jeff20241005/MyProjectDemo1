@@ -15,3 +15,11 @@ inline const FString WBP_HealthWidget_Path = TEXT(
 	"/Game/A1_zhStuffs/ATacticMode/UMG/Healthbar/WBP_Healthbar");
 
 inline const FString Charm_Path = TEXT("CharmTest");
+
+inline const FString RotationHandleIndicator_Path = TEXT(
+    "/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/RotationHandleIndicator.RotationHandleIndicator'");
+
+inline const FString StartRotationHandleIndicator_Path = TEXT(
+    "/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/StartRotationHandleIndicator.StartRotationHandleIndicator'");
+
+inline const FString NavCube_Path = TEXT("/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/Cube.Cube'");

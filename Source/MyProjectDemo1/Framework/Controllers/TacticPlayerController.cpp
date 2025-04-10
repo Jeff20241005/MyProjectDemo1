@@ -14,6 +14,8 @@
 void ATacticPlayerController::MoveForward(float Value)
 {
 	Super::MoveForward(Value);
+
+	if (Value == 0.0f)return;
 	PlayerInputMovement(Value, EAxis::X);
 }
 
@@ -31,7 +33,8 @@ void ATacticPlayerController::ZoomCameraTick(float DeltaTime)
 	// Calculate forward offset for curved path
 	// More offset as we zoom in (lower to the ground)
 
-	//float ForwardOffset = ZoomFactor * 200.0f; // Adjust this value for more/less curve
+	//float ForwardOffset = ZoomFactor * 200.0f;
+	// Adjust this value for more/less curve
 
 	// Get forward vector (ignoring pitch) for offset calculation
 	// Calculate target position with height and forward offset
@@ -77,9 +80,10 @@ void ATacticPlayerController::ZoomCamera(float Value)
 
 void ATacticPlayerController::RefocusToCurrentActionCharacter()
 {
-	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter)
+	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter && IsWASDMoved)
 	{
 		SetViewTarget(TacticSubsystem->CurrentActionBaseCharacter);
+		IsWASDMoved = false;
 	}
 }
 
@@ -163,8 +167,7 @@ void ATacticPlayerController::BeginPlay()
 
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 
-	TempSwitchCharacterActionDelegate = TacticSubsystem->OnSwitchToNextCharacterAction.AddUObject(
-		this, &ThisClass::SwitchToNextCharacterAction);
+	TacticSubsystem->OnSwitchToNextCharacterAction.AddUObject(this, &ThisClass::SwitchToNextCharacterAction);
 
 	// Create and possess the spectator pawn
 	ASpectatorPawn* SpecPawn = GetMySpectatorPawn();
@@ -203,6 +206,8 @@ void ATacticPlayerController::BeginPlay()
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
 {
 	Super::PlayerInputMovement(Value, Axis);
+
+	IsWASDMoved = true;
 
 	// Use a rotator that only includes yaw for movement direction
 	FRotator DirectionWithOutZ(0, GetControlRotation().Yaw, 0);
@@ -279,7 +284,7 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 		RotationInterpSpeed
 	);
 	// Apply the interpolated rotation
-	SetControlRotation(CurrentCameraRotation);
+	SetControlRotation(FRotator(CurrentCameraRotation.Pitch, TargetCameraRotation.Yaw, CurrentCameraRotation.Roll));
 
 	ZoomCameraTick(DeltaSeconds);
 }
@@ -289,12 +294,18 @@ void ATacticPlayerController::CancelSkill()
 	CurrentObjectQueryParams = DefaultObjectQueryParams;
 }
 
-void ATacticPlayerController::SwitchToNextCharacterAction()
+void ATacticPlayerController::SwitchToNextCharacterActionDelay()
 {
 	if (TacticSubsystem->CurrentActionBaseCharacter)
 	{
 		SetViewTarget(TacticSubsystem->CurrentActionBaseCharacter);
 	}
+}
+
+void ATacticPlayerController::SwitchToNextCharacterAction()
+{
+	FTimerHandle TempHandle;
+	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::SwitchToNextCharacterActionDelay, 0.2f);
 }
 
 
@@ -319,6 +330,7 @@ void ATacticPlayerController::CancelMove()
 void ATacticPlayerController::MoveRight(float Value)
 {
 	Super::MoveRight(Value);
+	if (Value == 0.0f)return;
 	PlayerInputMovement(Value, EAxis::Y);
 }
 

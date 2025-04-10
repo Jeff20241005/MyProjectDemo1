@@ -31,7 +31,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Appearance)
 	FVector UnselectableColorValueOfSphereSM = FVector(7, 1, 1);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Appearance")
-	float In_Radius = 0.96f;
+	float In_Radius = 0.99f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Appearance)
 	FName MaterialName_Angle = FName("Angle");
@@ -41,7 +41,7 @@ public:
 	FName MaterialName_Radius = FName("Radius");
 
 	void ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility, const FVector& AbilityCenter, bool bIsValid,
-	                               const FVector& SourceCharacterLocation, const FVector& ForwardVector);
+	                               ATacticBaseCharacter* OwnerCharacter, const FVector& ForwardVector, const bool& bAutomaticMoveBySkill);
 
 	float DrawAttackRange(ATacticBaseCharacter* BaseCharacter);
 

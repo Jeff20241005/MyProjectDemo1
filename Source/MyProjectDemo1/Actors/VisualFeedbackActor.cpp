@@ -3,6 +3,7 @@
 
 #include "VisualFeedbackActor.h"
 
+#include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
 #include "MyProjectDemo1/Characters/TacticBaseCharacter.h"
 #include "MyProjectDemo1/Components/PathTracerComp.h"
 #include "MyProjectDemo1/FilePaths/DefaultPropertyValue.h"
@@ -22,7 +23,7 @@ void AVisualFeedbackActor::CancelSkill_SetAllVisibilitiesToFalse()
 
 void AVisualFeedbackActor::CancelMove()
 {
-	PathTracerComp->Deactivate();
+	GetPathTracerComp()->Deactivate();
 }
 
 void AVisualFeedbackActor::ResetCircleStaticMeshComponentWithVariables(bool InbHasValidTargets,
@@ -84,6 +85,7 @@ AVisualFeedbackActor::AVisualFeedbackActor()
 	SetRootComponent(SceneComponent);
 
 	SkillPlacementRadiusStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
+
 	CircleStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 
 	UStaticMesh* ShowUpSM;
@@ -101,16 +103,22 @@ AVisualFeedbackActor::AVisualFeedbackActor()
 
 void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility,
                                                      const FVector& AbilityCenter,
-                                                     bool bIsValid, const FVector& SourceCharacterLocation,
-                                                     const FVector& ForwardVector)
+                                                     bool bIsValid, ATacticBaseCharacter* OwnerCharacter,
+                                                     const FVector& ForwardVector, const bool& bAutomaticMoveBySkill)
 {
-	SetActorLocation(AbilityCenter);
-	GetSkillPlacementRadiusStaticMeshComponent()->SetWorldLocation(SourceCharacterLocation);
+	FVector AdjustAbilityCenter= AbilityCenter;
+	UThisProjectFunctionLibrary::FVectorZToGround(AdjustAbilityCenter);
+	SetActorLocation(AdjustAbilityCenter);
+	
+	FVector TempVector = OwnerCharacter->GetActorLocation();
+	SkillPlacementRadiusStaticMeshComponent->
+		SetWorldLocation(UThisProjectFunctionLibrary::FVectorZToGround(TempVector));
 
 	//	if (InBaseAbility->bAimWithMouse)
-
-	ShowStaticMesh(SkillPlacementRadiusStaticMeshComponent,
-	               FVector(InBaseAbility->GetSkillPlacementRadiusByAimWithMouse()));
+	float Range = (InBaseAbility->GetSkillPlacementRadiusByAimWithMouse() +
+		(bAutomaticMoveBySkill?OwnerCharacter->GetBaseCharacterAttributeSet()->GetMoveRange():0)+
+		InBaseAbility->CircleOrSectorTargetingRange);
+	ShowStaticMesh(SkillPlacementRadiusStaticMeshComponent, FVector(Range));
 
 	switch (InBaseAbility->SkillRangeType)
 	{
@@ -128,7 +136,6 @@ void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility
 	// 将 ForwardVector 转换为旋转并应用
 		if (InBaseAbility->bSkillLookAtMouseHoveringLocation)
 		{
-			
 		}
 
 		FRotator NewRotation = ForwardVector.Rotation();
@@ -149,7 +156,10 @@ void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility
 void AVisualFeedbackActor::ShowStaticMesh(UStaticMeshComponent* InStaticMeshComponent, FVector InScale)
 {
 	InStaticMeshComponent->SetVisibility(true);
-	InStaticMeshComponent->SetWorldScale3D(InScale * CircleRangeAdjustmentValue_FloatValue);
+	//FVector Location = InStaticMeshComponent->GetComponentLocation();
+	//UThisProjectFunctionLibrary::FVectorZToGround(Location);
+	InStaticMeshComponent->SetWorldScale3D(FVector(InScale * CircleRangeAdjustmentValue_FloatValue));
+	//InStaticMeshComponent->SetWorldLocation(Location);
 }
 
 void AVisualFeedbackActor::BeginPlay()

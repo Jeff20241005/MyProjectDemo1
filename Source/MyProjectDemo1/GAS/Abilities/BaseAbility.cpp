@@ -161,7 +161,7 @@ bool UBaseAbility::GetPotentialTargets(
 		                                     : (InTacticSubsystem
 			                                        ? InTacticSubsystem->CurrentActionBaseCharacter
 			                                        : nullptr);
-
+	
 	if (!Owner_Caster)
 	{
 		FString TempStr = FString::Printf(TEXT("if (!Owner_Caster || !InTacticSubsystem)"));
@@ -246,7 +246,6 @@ bool UBaseAbility::GetPotentialTargets(
 
 	if (bIsSingleTarget)
 	{
-		//todo
 		InTacticSubsystem->HoveredTacticBaseCharacter;
 	}
 
@@ -309,7 +308,7 @@ bool UBaseAbility::GetPotentialTargets(
 	}
 
 	VisualFeedbackActor->ShowVisualFeedbackBySkill(this, AbilityCenter, !OutTargets.IsEmpty(),
-	                                               AdjustOwnerSourceLocation, ForwardVector);
+	                                               Owner_Caster, ForwardVector, bAutomaticMoveBySkill);
 	return true;
 }
 

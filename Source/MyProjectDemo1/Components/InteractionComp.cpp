@@ -32,6 +32,7 @@ void UInteractionComp::SetAsSkillTarget()
 
 void UInteractionComp::UnSetAsSkillTarget()
 {
+	
 	SetDepth(false);
 }
 

@@ -35,6 +35,7 @@ public:
 	float OrthoWidth = 2000.0f;
 
 protected:
+	bool IsWASDMoved;
 	virtual void OnLeftMouseButtonDown() override;
 
 	// Camera zoom properties
@@ -85,9 +86,6 @@ protected:
 	// Method to disable vertical movement
 	void DisableVerticalMovement(float Value);
 
-	FDelegateHandle TempSwitchCharacterActionDelegate;
-
-
 	virtual void MoveRight(float Value) override;
 	virtual void MoveForward(float Value) override;
 	void ZoomCameraTick(float DeltaTime);
@@ -109,6 +107,7 @@ protected:
 
 	virtual void Tick(float DeltaSeconds) override;
 	void CancelSkill();
+	void SwitchToNextCharacterActionDelay();
 	void SwitchToNextCharacterAction();
 	void PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void SkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
