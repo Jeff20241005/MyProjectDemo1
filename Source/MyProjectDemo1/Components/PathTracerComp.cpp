@@ -493,7 +493,7 @@ void UPathTracerComp::UpdateEndPointMarker()
 	EndPointMarkerMesh->SetWorldRotation(LookRotation);
 
 	// 确保可见
-	EndPointMarkerMesh->SetVisibility(false/*todo bug*/);
+	EndPointMarkerMesh->SetVisibility(true);
 }
 
 /*

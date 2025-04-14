@@ -284,8 +284,9 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 		DeltaSeconds,
 		RotationInterpSpeed
 	);
+	
 	// Apply the interpolated rotation
-	SetControlRotation(TargetCameraRotation
+	SetControlRotation(CurrentCameraRotation
 		/*todo bug FRotator(CurrentCameraRotation.Pitch, TargetCameraRotation.Yaw, CurrentCameraRotation.Roll)*/);
 
 	ZoomCameraTick(DeltaSeconds);

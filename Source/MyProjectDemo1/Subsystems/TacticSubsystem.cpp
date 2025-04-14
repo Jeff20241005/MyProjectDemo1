@@ -422,7 +422,7 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		// 如果距离小于胶囊体半径，认为是重叠
 		if (Dist2D < CapsuleRadius + PlusOverlappingWithCharacterEdge_FloatValue) // 添加一些边距
 		{
-			bIsOverlappingWithCharacter = /*todo bug*/false;
+			bIsOverlappingWithCharacter = true;
 			break;
 		}
 	}
