@@ -56,7 +56,7 @@ void UCharacterActionUI::ActionButton_MoveOnClick()
 
 void UCharacterActionUI::ActionCheckBoxUI_CheckBoxOnCheckStateChange(bool bIsChecked)
 {
-	TacticSubsystem->OnChangeAutomaticMoveBySkill.Broadcast(bIsChecked);
+	//TacticSubsystem->OnChangeAutomaticMoveBySkill.Broadcast(bIsChecked);
 }
 
 void UCharacterActionUI::NativeConstruct()

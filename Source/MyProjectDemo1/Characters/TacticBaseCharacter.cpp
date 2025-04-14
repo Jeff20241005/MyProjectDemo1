@@ -4,6 +4,7 @@
 #include "TacticBaseCharacter.h"
 
 #include "Components/WidgetComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "MyProjectDemo1/AI/AIControllers/BaseAIController.h"
 #include "MyProjectDemo1/FilePaths/DefaultPropertyValue.h"
 #include "MyProjectDemo1/FilePaths/FilePaths.h"
@@ -63,8 +64,12 @@ void ATacticBaseCharacter::SetWidgetHealth(float Health, float MaxHealth)
 void ATacticBaseCharacter::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	MoveRangeStaticMeshComponent->SetScalarParameterValueOnMaterials(MaterialName_Radius, In_Radius);
-	MoveRangeStaticMeshComponent->SetVectorParameterValueOnMaterials(MaterialName_Color, DefaultColorValueOfSphereSM);
+	if (MoveRangeStaticMeshComponent)
+	{
+		MoveRangeStaticMeshComponent->SetScalarParameterValueOnMaterials(MaterialName_Radius, In_Radius);
+		MoveRangeStaticMeshComponent->SetVectorParameterValueOnMaterials(
+			MaterialName_Color, DefaultColorValueOfSphereSM);
+	}
 }
 
 void ATacticBaseCharacter::NotifyActorOnClicked(FKey ButtonPressed)
@@ -147,7 +152,7 @@ ATacticBaseCharacter::ATacticBaseCharacter()
 	MoveRangeStaticMeshComponent = CreateComponent<UStaticMeshComponent>();
 	MoveRangeStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MoveRangeStaticMeshComponent->SetVisibility(false);
-	MoveRangeStaticMeshComponent->SetRelativeLocation(FVector(0, 0, CharacterDefaultZHeight_FloatValue+5.f));
+	MoveRangeStaticMeshComponent->SetRelativeLocation(FVector(0, 0, CharacterDefaultZHeight_FloatValue + 10.f));
 	UStaticMesh* ShowUpSM;
 	if (FindMyObject(ShowUpSM, *MoveRangeCircleStaticMeshVisualFeedback_Path))
 	{
@@ -179,6 +184,19 @@ void ATacticBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+
+	
+	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
+	{
+		// 设置极高的旋转速率，实现"瞬时"转向
+		MovementComp->RotationRate = FRotator(0.0f, 300.0f, 0.0f);  // 极高的Yaw旋转速度
+		
+		// 确保角色朝向移动方向
+		//MovementComp->bOrientRotationToMovement = true;
+		
+		// 禁用控制器旋转影响角色旋转
+		//bUseControllerRotationYaw = false;
+	}
 }
 
 void ATacticBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -191,7 +209,7 @@ void ATacticBaseCharacter::ShowRotationHandleIndicator()
 	if (HeadIndicatorMeshComponent && RotationHandleIndicatorMesh.Get())
 	{
 		HeadIndicatorMeshComponent->SetStaticMesh(RotationHandleIndicatorMesh.Get());
-		HeadIndicatorMeshComponent->SetVisibility(true);
+		HeadIndicatorMeshComponent->SetVisibility(false/*todo bug*/);
 		StartHeadIndicatorRotation(); // 启动旋转
 	}
 }
@@ -201,7 +219,7 @@ void ATacticBaseCharacter::ShowStartRotationHandleIndicator()
 	if (HeadIndicatorMeshComponent && StartRotationHandleIndicatorMesh.Get())
 	{
 		HeadIndicatorMeshComponent->SetStaticMesh(StartRotationHandleIndicatorMesh.Get());
-		HeadIndicatorMeshComponent->SetVisibility(true);
+		HeadIndicatorMeshComponent->SetVisibility(false/*todo bug*/);
 		StartHeadIndicatorRotation(); // 启动旋转
 	}
 }

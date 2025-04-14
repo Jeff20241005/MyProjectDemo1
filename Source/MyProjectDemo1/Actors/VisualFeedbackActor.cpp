@@ -117,19 +117,19 @@ void AVisualFeedbackActor::ShowVisualFeedbackBySkill(UBaseAbility* InBaseAbility
 	//	if (InBaseAbility->bAimWithMouse)
 	float Range = (InBaseAbility->GetSkillPlacementRadiusByAimWithMouse() +
 		(bAutomaticMoveBySkill?OwnerCharacter->GetBaseCharacterAttributeSet()->GetMoveRange():0)+
-		InBaseAbility->CircleOrSectorTargetingRange);
+		InBaseAbility->GetCircleOrSectorTargetingRangeBybIsSingleTarget());
 	ShowStaticMesh(SkillPlacementRadiusStaticMeshComponent, FVector(Range));
 
 	switch (InBaseAbility->SkillRangeType)
 	{
 	case EAR_Circle:
-		ShowStaticMesh(CircleStaticMeshComponent, FVector(InBaseAbility->CircleOrSectorTargetingRange));
+		ShowStaticMesh(CircleStaticMeshComponent, FVector(InBaseAbility->GetCircleOrSectorTargetingRangeBybIsSingleTarget()));
 		ResetCircleStaticMeshComponentWithVariables(bIsValid, 1.f);
 		break;
 	case EAR_Box:
 		break;
 	case EAR_Sector:
-		ShowStaticMesh(CircleStaticMeshComponent, FVector(InBaseAbility->CircleOrSectorTargetingRange));
+		ShowStaticMesh(CircleStaticMeshComponent, FVector(InBaseAbility->GetCircleOrSectorTargetingRangeBybIsSingleTarget()));
 		ResetCircleStaticMeshComponentWithVariables(bIsValid, InBaseAbility->SectorAngle / 360.f);
 
 

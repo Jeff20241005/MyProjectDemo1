@@ -79,8 +79,10 @@ public:
 		meta=(ToolTip="是否使用鼠标位置来确定技能释放点，而不是直接以施法者为中心"))
 	bool bAimWithMouse;
 
+
 	//防止其他类直接获取，但是蓝图可编辑（AllowPrivateAccess）
 private:
+	
 	/** 技能释放位置调整半径 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
 		AllowPrivateAccess=true,
@@ -118,14 +120,6 @@ public:
 		meta=(ToolTip="药水不分敌我，全部生效", AdvancedDisplay))
 	bool bIsPotion;
 
-	/** 技能作用范围 */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
-		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围",
-			EditCondition=
-			"!bIsSingleTarget && (SkillRangeType == EAttackRangeType::EAR_Circle || SkillRangeType == EAttackRangeType::EAR_Sector)"
-			,
-			EditConditionHides))
-	float CircleOrSectorTargetingRange = 300.0f;
 
 	/** 扇形技能的角度 */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup", meta=(
@@ -180,6 +174,11 @@ public:
 	))
 	float CrossLength = 500.0f;
 
+	UFUNCTION(BlueprintCallable, Category="Ability|Targeting")
+	float GetCircleOrSectorTargetingRangeBybIsSingleTarget() const
+	{
+		return bIsSingleTarget ? 5.0f : CircleOrSectorTargetingRange;
+	}
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo,
@@ -189,6 +188,15 @@ protected:
 	                        bool bWasCancelled) override;
 
 
+	/** 技能作用范围 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="AbilitySetup",
+		meta=(AllowPrivateAccess=true, ToolTip="技能生效的范围大小（单位：厘米），影响攻击/治疗/Buff等效果的作用范围",
+			EditCondition=
+			"!bIsSingleTarget && (SkillRangeType == EAttackRangeType::EAR_Circle || SkillRangeType == EAttackRangeType::EAR_Sector)"
+			,
+			EditConditionHides))
+	float CircleOrSectorTargetingRange = 300.0f;
+	
 	UPROPERTY(BlueprintReadOnly, Category = AbilitySetup)
 	ATacticBaseCharacter* BaseCharacterOwner;
 
@@ -223,11 +231,7 @@ protected:
 	FVector CalculateAdjustedCheckLocation(const FVector& CharacterLocation, const FVector& AbilityCenter,
 	                                       float CapsuleRadius) const;
 
-	UFUNCTION(BlueprintCallable, Category="Ability|Targeting")
-	float GetEffectiveTargetingRange() const
-	{
-		return bIsSingleTarget ? 5.0f : CircleOrSectorTargetingRange;
-	}
+	
 
 	GENERATED_BODY()
 };

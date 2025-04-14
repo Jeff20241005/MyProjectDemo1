@@ -81,6 +81,11 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 		bIsTacticModMove = true;
 		UThisProjectFunctionLibrary::ClampMoveRange2D(CurrentLocation, RangeToMove, TargetLocation);
 	}
+	if (bIsTacticModMove)
+	{
+		UTacticSubsystem* TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
+		TacticSubsystem->CachedMovePoints;
+	}
 		
 
 	// 在目标点周围找一个可到达的点
@@ -101,7 +106,7 @@ void ABaseAIController::MoveToLocationWithPathFinding(const FVector& MouseClickL
 	// 配置移动请求
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalLocation(TargetLocation/*ProjectedLocation.Location*/);
-	MoveRequest.SetAcceptanceRadius(5.0f); //todo AIMoveTo Bug / ShowVisualFeedback (it might cause)
+	//MoveRequest.SetAcceptanceRadius(5.0f); //todo AIMoveTo Bug / ShowVisualFeedback (it might cause)
 	MoveRequest.SetUsePathfinding(true);
 	MoveRequest.SetAllowPartialPath(true);
 

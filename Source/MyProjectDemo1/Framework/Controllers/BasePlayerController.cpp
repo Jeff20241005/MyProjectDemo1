@@ -46,7 +46,6 @@ ASpectatorPawn* ABasePlayerController::GetMySpectatorPawn()
 			Movement->Acceleration = 2000.0f;
 			Movement->Deceleration = 2000.0f;
 		}
-		
 	}
 
 	return MySpectatorPawn;
@@ -86,9 +85,23 @@ void ABasePlayerController::BeginPlay()
 	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
 	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2);
 
-	CurrentObjectQueryParams = DefaultObjectQueryParams;
+	SetDefaultObjectQueryParams();
 }
 
+void ABasePlayerController::SetGroundObjectQueryParams()
+{
+	CustomObjectQueryParams = GroundObjectQueryParams;
+}
+
+void ABasePlayerController::SetDefaultObjectQueryParams()
+{
+	CustomObjectQueryParams = DefaultObjectQueryParams;
+}
+
+void ABasePlayerController::SetGroundPlusBaseCharcterObjectQueryParams()
+{
+	CustomObjectQueryParams = GroundPlusBaseCharcterObjectQueryParams;
+}
 
 void ABasePlayerController::SetupInputComponent()
 {
@@ -113,16 +126,21 @@ void ABasePlayerController::PerformTraceTimer()
 {
 	PerformLineTrace([&](const FHitResult& HitResult)
 	{
-		HoveredLocation = HitResult.Location;
+		CustomHoveredLocation = HitResult.Location;
+	}, CustomObjectQueryParams);
+
+	PerformLineTrace([&](const FHitResult& HitResult)
+	{
+		DefaultHoveredLocation = HitResult.Location;
 		if (ABaseCharacter* BaseCharacter = Cast<ABaseCharacter>(HitResult.GetActor()))
 		{
-			HoveredBaseCharacter = BaseCharacter;
+			DefaultHoveredBaseCharacter = BaseCharacter;
 		}
 		else
 		{
-			HoveredBaseCharacter = nullptr;
+			DefaultHoveredBaseCharacter = nullptr;
 		}
-	});
+	}, DefaultObjectQueryParams);
 }
 
 void ABasePlayerController::OnLeftMouseButtonDown()
@@ -140,7 +158,7 @@ void ABasePlayerController::OnLeftMouseButtonDown()
 		}
 		FVector AdjustedLocation = HitResult.Location; //+ FVector(0, 0, 20.0f);
 		//LastClickLocation = AdjustedLocation;
-	});
+	}, CustomObjectQueryParams);
 }
 
 

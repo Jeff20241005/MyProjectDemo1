@@ -161,7 +161,7 @@ bool UBaseAbility::GetPotentialTargets(
 		                                     : (InTacticSubsystem
 			                                        ? InTacticSubsystem->CurrentActionBaseCharacter
 			                                        : nullptr);
-	
+
 	if (!Owner_Caster)
 	{
 		FString TempStr = FString::Printf(TEXT("if (!Owner_Caster || !InTacticSubsystem)"));
@@ -194,6 +194,7 @@ bool UBaseAbility::GetPotentialTargets(
 			   : 0);
 
 	const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
+
 	// 如果使用鼠标指向，检查鼠标位置是否在有效范围内
 	if (!bInfiniteRange && DistanceToMouse > TotalRange && SkillRangeType != EAR_Sector)
 	{
@@ -225,71 +226,102 @@ bool UBaseAbility::GetPotentialTargets(
 		else
 		{
 			// 使用施法者当前朝向
-			ForwardVector = Owner_Caster->GetActorForwardVector();
+			ForwardVector = Owner_Caster->GetActorLocation();
 		}
 	}
 
-
 	// 如果是单目标选择，通知PlayerController更改射线检测参数
-	/*todo
-	if (bIsSingleTarget && InTacticSubsystem->GetTacticPlayerController())
-	{
-		InTacticSubsystem->GetTacticPlayerController()->CurrentObjectQueryParams =
-			InTacticSubsystem->GetTacticPlayerController()->GroundPlusBaseCharcterObjectQueryParams;
-	}
-	*/
 
 	// Get subsystem instead of game state
 	TEnumAsByte<EAttackRangeType> EffectType = bIsSingleTarget
 		                                           ? TEnumAsByte<EAttackRangeType>(EAR_Circle)
 		                                           : SkillRangeType;
 
-	if (bIsSingleTarget)
-	{
-		InTacticSubsystem->HoveredTacticBaseCharacter;
-	}
 
 	TArray<ATacticBaseCharacter*> PotentialTargets;
 	SelectTargetsByTeamAndProperties(InTacticSubsystem, Owner_Caster, PotentialTargets);
 
 	// 根据技能范围类型筛选目标
-	for (ATacticBaseCharacter* Character : PotentialTargets)
+	for (ATacticBaseCharacter* CheckCharacter : PotentialTargets)
 	{
-		if (!Character) continue;
+		if (!CheckCharacter) continue;
 
 		bool bInRange = false;
 
 		// 获取角色的位置
-		FVector CharacterLocation = Character->GetActorLocation();
+		FVector CheckCharacterLocation = UThisProjectFunctionLibrary::FVectorZToGround(
+			CheckCharacter->GetActorLocation());
+
+		/*if (!IsLocationInCircleRange(AdjustOwnerSourceLocation, CheckCharacterLocation, TotalRange))
+		{
+			continue;
+		}*/
 
 		// 获取角色胶囊体半径，用于调整检测距离
-		float CapsuleRadius = Character->GetCapsuleComponent()->GetScaledCapsuleRadius();
+		float CapsuleRadius = CheckCharacter->GetCapsuleComponent()->GetScaledCapsuleRadius();
 
 		// 使用辅助函数计算调整后的检测位置
-		FVector AdjustedCheckLocation = CalculateAdjustedCheckLocation(CharacterLocation, AbilityCenter, CapsuleRadius);
+		FVector CalcLocaitonWithCapsuleComp = CalculateAdjustedCheckLocation(
+			CheckCharacterLocation, AbilityCenter, CapsuleRadius);
 
 		switch (EffectType)
 		{
 		case EAR_Circle:
-			bInRange = IsLocationInCircleRange(AbilityCenter, AdjustedCheckLocation, GetEffectiveTargetingRange());
+			if (bIsSingleTarget)
+			{
+				//InTacticSubsystem->CachedSingleAbilitySelectedTarget = nullptr;
+			}
+			if (bIsSingleTarget && InTacticSubsystem->HoveredTacticBaseCharacter == CheckCharacter)
+			{
+				InTacticSubsystem->CachedSingleAbilitySelectedTarget = nullptr;
+				bInRange = IsLocationInCircleRange(AdjustOwnerSourceLocation, CheckCharacterLocation,
+				                                   GetSkillPlacementRadiusByAimWithMouse()
+				                                   + (InTacticSubsystem->bCanMove
+					                                      ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange()
+					                                      : 0));
+				{
+					FString TempStr = FString::Printf(TEXT("Oth"));
+					if (GEngine)
+						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true,
+						                                 FVector2D(2, 2));
+					UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+				}
+				if (bInRange)
+				{
+					//todo bug 一直执行这个。一旦执行InTacticSubsystem->SingleAbilitySelectedTarget = CheckCharacter;
+					InTacticSubsystem->CachedSingleAbilitySelectedTarget = CheckCharacter;
+					AbilityCenter = CheckCharacterLocation;
+				}
+				else
+				{
+					InTacticSubsystem->CachedSingleAbilitySelectedTarget = nullptr;
+				}
+			}
+			else
+			{
+				bInRange = IsLocationInCircleRange(AbilityCenter, CalcLocaitonWithCapsuleComp,
+				                                   GetCircleOrSectorTargetingRangeBybIsSingleTarget());
+			}
 			break;
 		case EAR_Box:
-			bInRange = IsLocationInBoxRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
+			bInRange = IsLocationInBoxRange(AbilityCenter, ForwardVector, CalcLocaitonWithCapsuleComp);
 			break;
 		case EAR_Sector:
-			bInRange = IsLocationInSectorRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
+			bInRange = IsLocationInSectorRange(AbilityCenter, ForwardVector, CalcLocaitonWithCapsuleComp);
 			break;
 		case EAR_Cross:
-			bInRange = IsLocationInCrossRange(AbilityCenter, ForwardVector, AdjustedCheckLocation);
+			bInRange = IsLocationInCrossRange(AbilityCenter, ForwardVector, CalcLocaitonWithCapsuleComp);
 			break;
 		default: ;
 		}
 
+
 		if (bInRange)
 		{
-			OutTargets.AddUnique(Character);
+			OutTargets.AddUnique(CheckCharacter);
 		}
 	}
+
 
 	if (bSkillLookAtMouseHoveringLocation)
 	{
@@ -354,7 +386,7 @@ TArray<ATacticBaseCharacter*> UBaseAbility::GetTargetsInMaxRange(ATacticBaseChar
 		{
 		case EAR_Circle:
 		case EAR_Sector:
-			SelectDistanceByType = CircleOrSectorTargetingRange + DistanceByProperty;
+			SelectDistanceByType = GetCircleOrSectorTargetingRangeBybIsSingleTarget() + DistanceByProperty;
 			bInRange = IsLocationInCircleRange(Owner_Caster->GetActorLocation(), AdjustedCheckLocation,
 			                                   SelectDistanceByType);
 			break;
@@ -389,7 +421,7 @@ bool UBaseAbility::IsLocationInCircleRange(const FVector& Center, const FVector&
 	float Distance = FVector::Dist2D(Center, CheckedLocation);
 
 	// 使用的半径：如果 UseCustomRadius 大于 0，则使用它，否则使用 CircleTargetingRange
-	float RadiusToUse = (UseCustomRadius > 0.0f) ? UseCustomRadius : CircleOrSectorTargetingRange;
+	float RadiusToUse = (UseCustomRadius > 0.0f) ? UseCustomRadius : GetCircleOrSectorTargetingRangeBybIsSingleTarget();
 
 	// 检查是否在圆形范围内
 	return bInfiniteRange || Distance <= RadiusToUse;
@@ -425,7 +457,7 @@ bool UBaseAbility::IsLocationInSectorRange(const FVector& Center, const FVector&
 	float Distance = RelativeLocation.Size2D();
 
 	// 检查距离
-	if (!bInfiniteRange && Distance > CircleOrSectorTargetingRange)
+	if (!bInfiniteRange && Distance > GetCircleOrSectorTargetingRangeBybIsSingleTarget())
 	{
 		return false;
 	}

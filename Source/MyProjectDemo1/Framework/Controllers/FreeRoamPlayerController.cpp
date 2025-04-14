@@ -42,10 +42,10 @@ void AFreeRoamPlayerController::OnLeftMouseButtonDown()
 			// 暂时取消玩家控制
 			UnPossess();
 			FreeRoamCurrentControlPlayer->BaseAIController->Possess(FreeRoamCurrentControlPlayer);
-			FreeRoamCurrentControlPlayer->BaseAIController->MoveToLocationWithPathFinding(HoveredLocation);
+			FreeRoamCurrentControlPlayer->BaseAIController->MoveToLocationWithPathFinding(CustomHoveredLocation);
 			PossesSpawnedSpectatorPawn();
 		}
-	});
+	}, CustomObjectQueryParams);
 }
 
 void AFreeRoamPlayerController::ZoomCamera(float Value)

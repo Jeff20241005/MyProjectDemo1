@@ -28,7 +28,7 @@ void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResu
 
 void ABaseCharacter::Destroyed()
 {
-	GetCapsuleComponent()->SetCanEverAffectNavigation(false);
+	//GetCapsuleComponent()->SetCanEverAffectNavigation(false);
 	Super::Destroyed();
 }
 
@@ -115,34 +115,36 @@ ABaseCharacter::ABaseCharacter()
 	CameraComponent = CreateComponent<UCameraComponent>();
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
-	GetCapsuleComponent()->SetCanEverAffectNavigation(true);
+	//GetCapsuleComponent()->SetCanEverAffectNavigation(true);
 
 	//todo 去ProjectSetting设置
 	//GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Overlap);
 	//GetMesh()->SetNotifyRigidBodyCollision(true);
 	//GetMesh()->SetGenerateOverlapEvents(true);
-	/*
-		// 创建导航辅助立方体组件
-		NavCubeComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("NavCubeComponent"));
-		NavCubeComponent->SetupAttachment(RootComponent);
-		
-		// 设置位置、旋转和缩放
-		NavCubeComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
-		NavCubeComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
-		NavCubeComponent->SetRelativeScale3D(FVector(0.2f, 0.2f, 0.2f));
-		NavCubeComponent->SetMobility(EComponentMobility::Movable);
-		
-		// 在构造函数中加载静态网格
-		UStaticMesh* CubeMesh = nullptr;
-		if (FindMyObject(CubeMesh, TEXT("/Game/A1_zhStuffs/OtherAssets/Cube.Cube")))
-		{
-			NavCubeComponent->SetStaticMesh(CubeMesh);
-		}
-		
-		// 使立方体透明但启用碰撞
-		NavCubeComponent->SetVisibility(false);
-		NavCubeComponent->SetCollisionProfileName(TEXT("BlockAll"));
-		*/
+
+	// 创建导航辅助立方体组件
+	NavCubeComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("NavCubeComponent"));
+	NavCubeComponent->SetupAttachment(RootComponent);
+
+	// 设置位置、旋转和缩放
+	NavCubeComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
+	NavCubeComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+	NavCubeComponent->SetRelativeScale3D(FVector(0.12f));
+	NavCubeComponent->SetMobility(EComponentMobility::Movable);
+
+	// 在构造函数中加载静态网格
+	UStaticMesh* CubeMesh = nullptr;
+	if (FindMyObject(CubeMesh, *NavCube_Path))
+	{
+		NavCubeComponent->SetStaticMesh(CubeMesh);
+	}
+
+	// 使立方体透明但启用碰撞
+	NavCubeComponent->SetVisibility(false);
+	//NavCubeComponent->SetCollisionProfileName(TEXT("BlockAll"));
+	NavCubeComponent->SetCollisionProfileName(TEXT("NoCollision"));
+
+	GetCapsuleComponent()->SetCollisionProfileName("TacticCharacter");
 }
 
 template <typename T>

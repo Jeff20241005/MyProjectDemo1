@@ -17,9 +17,16 @@ inline const FString WBP_HealthWidget_Path = TEXT(
 inline const FString Charm_Path = TEXT("CharmTest");
 
 inline const FString RotationHandleIndicator_Path = TEXT(
-    "/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/RotationHandleIndicator.RotationHandleIndicator'");
+	"/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/RotationHandleIndicator.RotationHandleIndicator'");
 
 inline const FString StartRotationHandleIndicator_Path = TEXT(
-    "/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/StartRotationHandleIndicator.StartRotationHandleIndicator'");
+	"/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/StartRotationHandleIndicator.StartRotationHandleIndicator'");
 
-inline const FString NavCube_Path = TEXT("/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/Cube.Cube'");
+inline const FString NavCube_Path = TEXT("/Game/A1_zhStuffs/OtherAssets/Cube.Cube");
+
+inline const FString SharingBlue_Path = TEXT(
+	"/Script/Engine.MaterialInstanceConstant'/Game/A1_zhStuffs/OtherAssets/VisualPath/AnimSharingRed.AnimSharingRed'");
+inline const FString SharingRed_Path = TEXT(
+	"/Script/Engine.MaterialInstanceConstant'/Game/A1_zhStuffs/OtherAssets/VisualPath/AnimSharingBlue.AnimSharingBlue'");
+inline const FString CharacterSilhousette_Path = TEXT(
+	"/Script/Engine.StaticMesh'/Game/A1_zhStuffs/OtherAssets/TeleportDirectionMesh.TeleportDirectionMesh'");

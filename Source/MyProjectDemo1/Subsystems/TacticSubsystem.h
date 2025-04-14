@@ -39,9 +39,6 @@ class MYPROJECTDEMO1_API UTacticSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
-	//切换智能移动
-	FOnSettingChange OnChangeAutomaticMoveBySkill;
-
 	//切换到另一个角色行动时
 	FOnCharacterStateChange OnSwitchToNextCharacterAction;
 	//一个角色回合结束的时候
@@ -82,9 +79,9 @@ public:
 	bool bEnableAutomaticMoveBySkill = true;
 
 	TArray<ATacticBaseCharacter*> Cached_GlobalPotentialTargets_SkillReleased;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
-	ATacticBaseCharacter* HoveredTacticBaseCharacter;
+	TObjectPtr<ATacticBaseCharacter> HoveredTacticBaseCharacter;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance",
 		meta=(ToolTip="每回合只能移动一次，换角色的时候自动为True"))
@@ -93,6 +90,11 @@ public:
 	UMyAbilityComp* CachedMyAbilityComp;
 	UPROPERTY()
 	UBaseAbility* CachedBaseAbility;
+	TArray<FVector> CachedMovePoints;
+	
+	UPROPERTY()
+	ATacticBaseCharacter* CachedSingleAbilitySelectedTarget;
+
 	//Data of Team
 	// Character team management functions
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
@@ -134,7 +136,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Team Management")
 	void CheckAllCharacterIsDeath();
-	
+
 	UFUNCTION(BlueprintCallable)
 	AVisualFeedbackActor* GetVisualFeedbackActor();
 	void CancelMoveAndSkill();
@@ -144,10 +146,13 @@ public:
 	bool bIsAttemptToMove = false;
 
 	ATacticPlayerCharacter* TryGetActionPlayer() const;
-	
+
 	void ReleaseSkillActiveAbility(UMyAbilityComp* MyAbilityComp, UBaseAbility* BaseAbility);
+
 protected:
 	FVector CachedPremoveFinalLocation;
+	bool bIsOverlappingWithCharacter = false;
+
 	//float CachedActualPathLength;
 	UPROPERTY()
 	UBaseAbility* CurrentSelectedBaseAbility = nullptr;
@@ -159,7 +164,7 @@ protected:
 	void UpdateNavigationMesh();
 
 
-	FTimerHandle VisualFeedBackTimeHandle;
+	FTimerHandle PreMoveTimerTimeHandle;
 
 	UTacticSubsystem();
 	UPROPERTY()
@@ -175,10 +180,9 @@ protected:
 	void PreMove(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
 	void SkillRelease(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void DoSkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
-	void SkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* InBaseAbility);
+	void SkillSelected(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility);
 	void PreSkillSelection(UBaseAbility* BaseAbility);
 	void CancelMove();
-	void ChangeAutomaticMoveBySkill(bool bNew);
 	void CheckHasEnoughResourceToReleseSkill(UBaseAbility* BaseAbility, bool& CanRelease);
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -212,7 +216,6 @@ private:
 	UPROPERTY()
 	TArray<ATacticBaseCharacter*> AllCharactersInOrder;
 };
-
 
 
 template <typename T>

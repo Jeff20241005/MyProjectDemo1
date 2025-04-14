@@ -6,6 +6,7 @@
 #include "EngineUtils.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -39,6 +40,7 @@ void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* TacticBaseChar
 void UTacticSubsystem::MyMouseBeginCursorOver(ATacticBaseCharacter* TacticBaseCharacter)
 {
 	HoveredTacticBaseCharacter = TacticBaseCharacter;
+
 	if (!CurrentSelectedBaseAbility && !bIsAttemptToMove)
 	{
 		TacticBaseCharacter->ShowMoveRange();
@@ -64,17 +66,21 @@ void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
 	{
 		if (bCanMove)
 		{
-			CurrentActionBaseCharacter->Move(CachedPremoveFinalLocation);
-			SetbCanMove(false);
-		}
-		else
-		{
+			if (!bIsOverlappingWithCharacter)
 			{
-				FString TempStr = FString::Printf(TEXT("回合已经移动：TODO UI display"));
-				if (GEngine)
-					GEngine->
-						AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+				CurrentActionBaseCharacter->Move(CachedPremoveFinalLocation);
+				SetbCanMove(false);
+				CancelMoveAndSkill();
+			}
+			else
+			{
+				{
+					FString TempStr = FString::Printf(TEXT("角色不能移动到此位置"));
+					if (GEngine)
+						GEngine->
+							AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+					UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+				}
 			}
 		}
 	}
@@ -101,11 +107,11 @@ void UTacticSubsystem::PreMove(ATacticPlayerController* InTacticPlayerController
 	{
 		ShowVisualFeedbackActor->GetPathTracerComp()->Activate();
 
-		GetWorld()->GetTimerManager().ClearTimer(VisualFeedBackTimeHandle);
+		GetWorld()->GetTimerManager().ClearTimer(PreMoveTimerTimeHandle);
 
 		FTimerDelegate TimerDelegate;
 		TimerDelegate.BindUObject(this, &UTacticSubsystem::PreMoveTimer, InTacticPlayerController, InBaseAbility);
-		GetWorld()->GetTimerManager().SetTimer(VisualFeedBackTimeHandle, TimerDelegate, 0.04f, true);
+		GetWorld()->GetTimerManager().SetTimer(PreMoveTimerTimeHandle, TimerDelegate, 0.04f, true);
 	}
 }
 
@@ -158,7 +164,7 @@ void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerControl
 		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Orange, TempStr, true, FVector2D(1.5, 1.5));
 		return;
 	}
-	else if (bIsAttemptToMove)
+	else if (bIsAttemptToMove && bCanMove)
 	{
 		OnMove.Broadcast(TacticPlayerController);
 		/*
@@ -175,9 +181,8 @@ void UTacticSubsystem::SkillRelease(ATacticPlayerController* TacticPlayerControl
 	else
 	{
 		TryReleaseSkillAfterMove();
+		CancelMoveAndSkill();
 	}
-
-	CancelMoveAndSkill();
 }
 
 void UTacticSubsystem::TryReleaseSkillAfterMove()
@@ -188,13 +193,14 @@ void UTacticSubsystem::TryReleaseSkillAfterMove()
 	}
 }
 
+
 void UTacticSubsystem::DoSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
                                             UBaseAbility* BaseAbility)
 {
 	OnSkillSelectedTimer.Broadcast(TacticPlayerController, BaseAbility);
 }
 
-void UTacticSubsystem::SkillSelected(ATacticPlayerController* TacticPlayerController, UBaseAbility* InBaseAbility)
+void UTacticSubsystem::SkillSelected(ATacticPlayerController* InTacticPlayerController, UBaseAbility* InBaseAbility)
 {
 	if (!CurrentActionBaseCharacter) { return; }
 
@@ -205,8 +211,13 @@ void UTacticSubsystem::SkillSelected(ATacticPlayerController* TacticPlayerContro
 	{
 		GetWorld()->GetTimerManager().ClearTimer(SelectedSkillTimerHandle);
 
+		if (bEnableAutomaticMoveBySkill)
+		{
+			OnPreMove.Broadcast(InTacticPlayerController, InBaseAbility);
+		}
+
 		FTimerDelegate TimerDelegate;
-		TimerDelegate.BindUObject(this, &UTacticSubsystem::DoSkillSelectedTimer, TacticPlayerController,
+		TimerDelegate.BindUObject(this, &UTacticSubsystem::DoSkillSelectedTimer, InTacticPlayerController,
 		                          InBaseAbility);
 		GetWorld()->GetTimerManager().SetTimer(SelectedSkillTimerHandle, TimerDelegate, 0.02f, true);
 	}
@@ -217,9 +228,10 @@ void UTacticSubsystem::PreSkillSelection(UBaseAbility* BaseAbility)
 	if (!CurrentActionBaseCharacter) { return; }
 	//todo bIsSkill = true;如果UI移出去preSkill。。那就是False
 
+	FVector TempLocation = CurrentActionBaseCharacter->GetActorLocation();
 	//一次性的，可以不用SetTimer。。
 	if (BaseAbility && BaseAbility->GetPotentialTargets(
-		this, CurrentActionBaseCharacter->GetActorLocation()))
+		this, TempLocation))
 	{
 	}
 	CheckGlobalPotentialTargetsOutline();
@@ -228,6 +240,7 @@ void UTacticSubsystem::PreSkillSelection(UBaseAbility* BaseAbility)
 void UTacticSubsystem::CancelMove()
 {
 	if (!CurrentActionBaseCharacter) { return; }
+	GetWorld()->GetTimerManager().ClearTimer(PreMoveTimerTimeHandle);
 	bIsAttemptToMove = false;
 	if (CurrentActionBaseCharacter && !CurrentSelectedBaseAbility)
 	{
@@ -235,15 +248,6 @@ void UTacticSubsystem::CancelMove()
 	}
 }
 
-void UTacticSubsystem::ChangeAutomaticMoveBySkill(bool bNew)
-{
-	if (!CurrentActionBaseCharacter) { return; }
-	bEnableAutomaticMoveBySkill = bNew;
-	if (!bEnableAutomaticMoveBySkill)
-	{
-		OnCancelMove.Broadcast();
-	}
-}
 
 void UTacticSubsystem::CheckHasEnoughResourceToReleseSkill(UBaseAbility* BaseAbility, bool& CanRelease)
 {
@@ -263,7 +267,6 @@ void UTacticSubsystem::CheckHasEnoughResourceToReleseSkill(UBaseAbility* BaseAbi
 void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	OnChangeAutomaticMoveBySkill.AddUObject(this, &ThisClass::ChangeAutomaticMoveBySkill);
 
 	OnSwitchToNextCharacterAction.AddUObject(this, &ThisClass::SwitchToNextCharacterAction);
 	OnRoundFinish.AddUObject(this, &ThisClass::RoundFinish);
@@ -320,7 +323,13 @@ void UTacticSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 void UTacticSubsystem::SetbCanMove(bool bNewValue)
 {
 	bCanMove = bNewValue;
-	ChangeAutomaticMoveBySkill(bCanMove);
+
+	if (!CurrentActionBaseCharacter) { return; }
+	bEnableAutomaticMoveBySkill = bCanMove;
+	if (!bEnableAutomaticMoveBySkill && !bIsAttemptToMove && !bIsOverlappingWithCharacter)
+	{
+		OnCancelMove.Broadcast();
+	}
 }
 
 void UTacticSubsystem::SwitchToNextCharacterAction()
@@ -351,50 +360,108 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 {
 	if (!CurrentActionBaseCharacter) { return; }
 	FVector projectedLoc;
-	//---角色移动范围---
 
+	//---角色移动范围---
 	FVector PlayerLocation = CurrentActionBaseCharacter->GetActorLocation();
 	float RangeToMove = CurrentActionBaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange();
-	FVector TargetLocation = InTacticPlayerController->HoveredLocation;
+	FVector MoveFinalLocation = InTacticPlayerController->CustomHoveredLocation;
+
+	if (CurrentSelectedBaseAbility && CurrentSelectedBaseAbility->bIsSingleTarget &&
+		CachedSingleAbilitySelectedTarget)
+	{
+		MoveFinalLocation = UThisProjectFunctionLibrary::FVectorZToGround(
+			CachedSingleAbilitySelectedTarget->GetActorLocation());
+	}
+	else
+	{
+		MoveFinalLocation = InTacticPlayerController->CustomHoveredLocation;
+	}
+	if (CurrentSelectedBaseAbility && CurrentSelectedBaseAbility->bIsSingleTarget && !CachedSingleAbilitySelectedTarget)
+	{
+		{
+			FString TempStr = FString::Printf(TEXT("Nice"));
+			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		}
+		return;
+	}
+
 	if (SkillPlacementRadius)
 	{
-		FVector AdjustTargetLocation = UThisProjectFunctionLibrary::FVectorZToGround(TargetLocation);
+		FVector AdjustTargetLocation = UThisProjectFunctionLibrary::FVectorZToGround(MoveFinalLocation);
 		FVector AdjustOwnerSourceLocation = UThisProjectFunctionLibrary::FVectorZToGround(PlayerLocation);
 		const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
 		float AdjustMoveDistance = DistanceToMouse - SkillPlacementRadius;
 		RangeToMove = RangeToMove < AdjustMoveDistance ? RangeToMove : AdjustMoveDistance;
 	}
-	UThisProjectFunctionLibrary::ClampMoveRange2D(PlayerLocation, RangeToMove, TargetLocation);
+
+	UThisProjectFunctionLibrary::ClampMoveRange2D(PlayerLocation, RangeToMove, MoveFinalLocation);
+
+	CachedPremoveFinalLocation = MoveFinalLocation;
+
+	// 检查目标位置是否在任何角色的胶囊体内
+	bIsOverlappingWithCharacter = false;
+	for (ATacticBaseCharacter* CharactersInOrder : AllCharactersInOrder)
+	{
+		// 跳过当前行动的角色
+		if (CharactersInOrder == CurrentActionBaseCharacter)
+			continue;
+
+		// 获取角色胶囊体信息
+		UCapsuleComponent* CapsuleComp = CharactersInOrder->GetCapsuleComponent();
+		if (!CapsuleComp)
+			continue;
+
+		float CapsuleRadius = CapsuleComp->GetScaledCapsuleRadius();
+		float CapsuleHalfHeight = CapsuleComp->GetScaledCapsuleHalfHeight();
+		FVector CharacterLoc = CharactersInOrder->GetActorLocation();
+
+		// 简单的2D距离检查
+		float Dist2D = FVector::Dist2D(MoveFinalLocation, CharacterLoc);
+
+		// 如果距离小于胶囊体半径，认为是重叠
+		if (Dist2D < CapsuleRadius + PlusOverlappingWithCharacterEdge_FloatValue) // 添加一些边距
+		{
+			bIsOverlappingWithCharacter = /*todo bug*/false;
+			break;
+		}
+	}
+
+	// 根据重叠状态设置是否可移动
+	//SetbCanMove(!bIsOverlappingWithCharacter);
+
+	// 如果不可移动，隐藏路径
+	if (bIsOverlappingWithCharacter)
+	{
+		if (ShowVisualFeedbackActor && !ShowVisualFeedbackActor->GetPathTracerComp()->IsPathClear())
+		{
+			ShowVisualFeedbackActor->GetPathTracerComp()->ClearThePath();
+			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerValid();
+		}
+		return;
+	}
+	else
+	{
+		if (ShowVisualFeedbackActor && ShowVisualFeedbackActor->GetPathTracerComp()->IsPathClear())
+		{
+			ShowVisualFeedbackActor->GetPathTracerComp()->RegeneratePath();
+			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerInvalid();
+		}
+	}
 
 
-	FVector FinalLocation = UKismetMathLibrary::ClampVectorSize(
-		TargetLocation - PlayerLocation,
-		0.0f,
-		1000.0f) + PlayerLocation;
-	CachedPremoveFinalLocation = FinalLocation;
-	//CachedActualPathLength = RangeToMove;
-
-	if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), FinalLocation, projectedLoc, nullptr,
+	// 正常情况下生成并显示路径
+	if (UNavigationSystemV1::K2_ProjectPointToNavigation(GetWorld(), MoveFinalLocation, projectedLoc, nullptr,
 	                                                     UNavigationQueryFilter::StaticClass(),
 	                                                     FVector(1000, 1000, 1000)))
 	{
 		UNavigationPath* NaviValue = UNavigationSystemV1::FindPathToLocationSynchronously(
 			GetWorld(), PlayerLocation, projectedLoc);
 
-
 		if (NaviValue != nullptr)
 		{
-			TArray<FVector> MovePoints = NaviValue->PathPoints;
-			GetVisualFeedbackActor()->GetPathTracerComp()->DrawPath(MovePoints);
-
-			/*if (MovePoints.Num() > 1)
-			{
-				for (int i = 0; i < MovePoints.Num() - 1; i++)
-				{
-					CachedActualPathLength += FVector::Dist(MovePoints[i], MovePoints[i + 1]);
-				}
-			}
-			*/
+			CachedMovePoints = NaviValue->PathPoints;
+			GetVisualFeedbackActor()->GetPathTracerComp()->DrawPath(CachedMovePoints);
 		}
 	}
 }
@@ -485,7 +552,20 @@ void UTacticSubsystem::TryReleaseSkillOrMove(ATacticPlayerController* InTacticPl
 	}
 	else if (bIsAttemptToMove)
 	{
-		OnMove.Broadcast(InTacticPlayerController);
+		if (bCanMove)
+		{
+			OnMove.Broadcast(InTacticPlayerController);
+		}
+		else
+		{
+			{
+				FString TempStr = FString::Printf(TEXT("回合已经移动"));
+				if (GEngine)
+					GEngine->
+						AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
+				UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+			}
+		}
 	}
 }
 
@@ -521,7 +601,7 @@ void UTacticSubsystem::SkillSelectedTimer(ATacticPlayerController* InTacticPlaye
 {
 	if (InTacticPlayerController && BaseAbility && CurrentActionBaseCharacter)
 	{
-		FVector MouseLocation = InTacticPlayerController->HoveredLocation;
+		FVector MouseLocation = InTacticPlayerController->CustomHoveredLocation;
 		if (bEnableAutomaticMoveBySkill)
 		{
 			if (BaseAbility->GetPotentialTargets(this, MouseLocation))
@@ -530,8 +610,8 @@ void UTacticSubsystem::SkillSelectedTimer(ATacticPlayerController* InTacticPlaye
 			}
 			else
 			{
-				BaseAbility->GetPotentialTargets(this, MouseLocation, true);
 				OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
+				BaseAbility->GetPotentialTargets(this, MouseLocation, true);
 			}
 		}
 		else

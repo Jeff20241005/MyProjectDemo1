@@ -7,17 +7,37 @@
 #include "Components/SplineComponent.h"
 #include "Components/SplineMeshComponent.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
+#include "MyProjectDemo1/FilePaths/FilePaths.h"
+
+template <typename T>
+bool UPathTracerComp::FindMyObject(T*& YourObject, const TCHAR* Path)
+{
+	if (ConstructorHelpers::FObjectFinder<T> ObjectFinder(Path); ObjectFinder.Succeeded())
+	{
+		YourObject = ObjectFinder.Object;
+		return true;
+	}
+	else
+	{
+		FString TempStr = FString::Printf(TEXT("Not Found! : %s"), Path);
+		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TempStr, true, FVector2D(3, 3));
+		UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
+		return false;
+	}
+}
 
 // Sets default values for this component's properties
 UPathTracerComp::UPathTracerComp()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	
+	FindMyObject(ValidMarkerMaterial, *SharingBlue_Path);
+	FindMyObject(InvalidMarkerMaterial, *SharingRed_Path);
+	FindMyObject(CharacterSilhouetteMesh, *CharacterSilhousette_Path);
+	
 	// 在构造函数中设置默认值而不是在UPROPERTY声明中
 	DotterAnimSpeed = -0.6f;
-	
-	//MarkerMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PathMeshComponent"));
-	//MarkerMeshComponent->SetCollisionProfileName("NoCollision");
 }
 
 
@@ -28,6 +48,15 @@ void UPathTracerComp::DrawPath(TArray<FVector> PathPoints_p)
 	{
 		PathPoints = PathPoints_p;
 		GeneratePaths();
+
+		// 确保虚影组件已初始化
+		if (!EndPointMarkerMesh)
+		{
+			SetupEndPointMarker();
+		}
+
+		// 更新虚影位置
+		UpdateEndPointMarker();
 	}
 }
 
@@ -139,6 +168,7 @@ void UPathTracerComp::GenerateRoundCornersPath()
 		FVector SegmentsEnd = curPoint + (curSegment * (curSegmentLength - (curIndex == lastIndex
 			                                                                    ? 0
 			                                                                    : CalculateIndent(curSegmentLength))));
+		
 		SetupPathSegments(SegmentsStart, SegmentsEnd, true, curSegment, curSegment);
 
 		if (curIndex != lastIndex)
@@ -182,26 +212,27 @@ void UPathTracerComp::SetupMaterials()
 	}
 }
 
-/*
-void UActorComponent_PathTracer::SetupMarkers()
+
+void UPathTracerComp::SetupMarkers()
 {
+	/*
 	if (IsValid(TargetPointMarkerClass))
 	{
 		if (!IsValid(TargetPointMarker))
 		{
-
-		/todo
-		SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
+			
+			SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
 			SupporterSpline->RegisterComponentWithWorld(GetWorld());
-			SupporterSpline->AttachToComponent(VisualFeedbackActor,
+			SupporterSpline->AttachToComponent(VisualFeedbackActor->GetRootComponent(),
 			                                   FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			SupporterSpline->SetCollisionProfileName("NoCollision");
-
 			
-			//TargetPointMarker = CreateDefaultSubobject<UChildActorComponent>(TEXT("TargetPointMarker"));
+
+			TargetPointMarker = CreateDefaultSubobject<UChildActorComponent>(TEXT("TargetPointMarker"));
 			TargetPointMarker = NewObject<UChildActorComponent>();
 			TargetPointMarker->SetChildActorClass(TargetPointMarkerClass);
 			TargetPointMarker->RegisterComponentWithWorld(GetWorld());
+			
 			//TargetPointMarker->CreateChildActor();
 		}
 
@@ -213,13 +244,12 @@ void UActorComponent_PathTracer::SetupMarkers()
 	{
 		if (!IsValid(CharacterMarker))
 		{
-//todo
-SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
+			SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
 			SupporterSpline->RegisterComponentWithWorld(GetWorld());
 			SupporterSpline->AttachToComponent(VisualFeedbackActor,
-											   FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			                                   FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			SupporterSpline->SetCollisionProfileName("NoCollision");
-		
+
 			//CharacterMarker = CreateDefaultSubobject<UChildActorComponent>(TEXT("CharacterMarker"));
 			CharacterMarker = NewObject<UChildActorComponent>();
 			CharacterMarker->SetCactorClass(CharacterMarkerClass);
@@ -231,8 +261,9 @@ SupporterSpline = NewObject<USplineComponent>(VisualFeedbackActor);
 		CharacterMarker->SetVisibility(true);
 
 	}
+	*/
 }
-*/
+
 float UPathTracerComp::CalculateIndent(float Length_p)
 {
 	return (Length_p < SegmentIndent * 2.0f) ? Length_p * 0.5f : SegmentIndent;
@@ -251,6 +282,7 @@ void UPathTracerComp::SetupPathSegments(FVector Start_P, FVector End_P, bool IsS
 	else
 	{
 		// Create a new spline mesh component
+		if (VisualFeedbackActor)
 		{
 			tempSplineMesh = NewObject<USplineMeshComponent>(VisualFeedbackActor);
 			tempSplineMesh->RegisterComponentWithWorld(GetWorld());
@@ -297,9 +329,11 @@ void UPathTracerComp::SetSegmentsDotted(FVector Start_P, FVector End_P, bool IsS
 		SupporterSpline->UpdateSpline();
 		segmentLength = SupporterSpline->GetSplineLength();
 	}
-
-	PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfScaleUV, segmentLength / DashLineFrequency);
-	PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOffset, OffsetUV);
+	if (PathDynamicMaterial)
+	{
+		PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfScaleUV, segmentLength / DashLineFrequency);
+		PathDynamicMaterial->SetScalarParameterValue(DynamicMaterial_NameOfOffset, OffsetUV);
+	}
 
 	double clampValue;
 	UKismetMathLibrary::FMod(segmentLength, DashLineFrequency, clampValue);
@@ -366,6 +400,13 @@ void UPathTracerComp::Deactivate()
 	}
 
 	bCanDraw = false;
+
+	// 隐藏虚影
+	if (EndPointMarkerMesh)
+	{
+		EndPointMarkerMesh->SetVisibility(false);
+	}
+
 	Super::Deactivate();
 }
 
@@ -373,6 +414,86 @@ void UPathTracerComp::Activate(bool bReset)
 {
 	Super::Activate(bReset);
 	bCanDraw = true;
+}
+
+// 添加虚影设置函数实现
+void UPathTracerComp::SetupEndPointMarker()
+{
+	// 确保父组件存在
+	if (!VisualFeedbackActor)
+	{
+		VisualFeedbackActor = Cast<AVisualFeedbackActor>(GetOwner());
+		if (!VisualFeedbackActor)
+		{
+			return;
+		}
+	}
+
+	// 创建终点虚影网格组件
+	if (!EndPointMarkerMesh)
+	{
+		EndPointMarkerMesh = NewObject<UStaticMeshComponent>(VisualFeedbackActor, UStaticMeshComponent::StaticClass(),
+		                                                     TEXT("EndPointMarkerMesh"));
+		EndPointMarkerMesh->RegisterComponent();
+		EndPointMarkerMesh->AttachToComponent(VisualFeedbackActor->GetRootComponent(),
+		                                      FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+		// 设置网格和材质
+		if (CharacterSilhouetteMesh)
+		{
+			EndPointMarkerMesh->SetStaticMesh(CharacterSilhouetteMesh);
+		}
+
+		// 默认设置为有效材质
+		if (ValidMarkerMaterial)
+		{
+			EndPointMarkerMesh->SetMaterial(0, ValidMarkerMaterial);
+		}
+
+		// 设置为不可碰撞
+		EndPointMarkerMesh->SetCollisionProfileName(TEXT("NoCollision"));
+
+		// 初始设置为隐藏
+		EndPointMarkerMesh->SetVisibility(false);
+	}
+}
+
+// 状态切换函数实现
+void UPathTracerComp::SetMarkerValid()
+{
+	if (EndPointMarkerMesh && ValidMarkerMaterial)
+	{
+		EndPointMarkerMesh->SetMaterial(0, ValidMarkerMaterial);
+	}
+}
+
+void UPathTracerComp::SetMarkerInvalid()
+{
+	if (EndPointMarkerMesh && InvalidMarkerMaterial)
+	{
+		EndPointMarkerMesh->SetMaterial(0, InvalidMarkerMaterial);
+	}
+}
+
+// 更新虚影位置和旋转
+void UPathTracerComp::UpdateEndPointMarker()
+{
+	if (!EndPointMarkerMesh || PathPoints.Num() < 2)
+	{
+		return;
+	}
+
+	// 设置终点位置
+	FVector EndLocation = PathPoints[PathPoints.Num() - 1];
+	EndPointMarkerMesh->SetWorldLocation(EndLocation);
+
+	// 计算朝向 - 朝向路径的前一个点
+	FVector PrevPoint = PathPoints[PathPoints.Num() - 2];
+	FRotator LookRotation = (EndLocation - PrevPoint).Rotation();
+	EndPointMarkerMesh->SetWorldRotation(LookRotation);
+
+	// 确保可见
+	EndPointMarkerMesh->SetVisibility(false/*todo bug*/);
 }
 
 /*
@@ -398,3 +519,49 @@ void UPathTracerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	}
 }
 */
+
+// 实现检查路径是否已清除的函数
+bool UPathTracerComp::IsPathClear() const
+{
+	// 如果路径点数组为空，或只有一个点，则认为路径已清除
+	return PathPoints.Num() <= 1;
+}
+
+// 实现清除路径的函数
+void UPathTracerComp::ClearThePath()
+{
+	// 清空路径点
+	PathPoints.Empty();
+	
+	// 清理路径的可视化元素
+	ResetSegments();
+	
+	/*
+	if (EndPointMarkerMesh)
+	{
+		EndPointMarkerMesh->SetVisibility(false);
+	}
+	*/
+	
+	// 可以在此处添加其他需要清理的元素
+	bCanDraw = true; // 确保下次可以重新绘制
+}
+
+// 实现重新生成路径的函数
+void UPathTracerComp::RegeneratePath()
+{
+	// 只有在有有效路径点的情况下才重新生成
+	if (PathPoints.Num() > 1 && bCanDraw)
+	{
+		GeneratePaths();
+		
+		// 确保虚影组件已初始化
+		if (!EndPointMarkerMesh)
+		{
+			SetupEndPointMarker();
+		}
+		
+		// 更新虚影位置和材质
+		UpdateEndPointMarker();
+	}
+}

@@ -20,7 +20,7 @@ class MYPROJECTDEMO1_API ATacticPlayerController : public ABasePlayerController
 public:
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
-	
+
 
 	// 暴露摄像机组件给蓝图
 	UPROPERTY(BlueprintReadWrite, Category = "Camera")
@@ -109,6 +109,7 @@ protected:
 	void CancelSkill();
 	void SwitchToNextCharacterActionDelay();
 	void SwitchToNextCharacterAction();
+	void SetObjectQueryParamBySkill(UBaseAbility* BaseAbility);
 	void PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void SkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void CancelMove();

@@ -26,8 +26,8 @@ class MYPROJECTDEMO1_API ABasePlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
-	FVector HoveredLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
+	FVector CustomHoveredLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* HoveredActor;
@@ -36,17 +36,25 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
 	AActor* ClickedItem;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MouseAction")
-	ABaseCharacter* HoveredBaseCharacter;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
+	FVector DefaultHoveredLocation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=MouseAction)
+	ABaseCharacter* DefaultHoveredBaseCharacter;
+
 
 	virtual void SetViewTarget(class AActor* NewViewTarget,
 	                           FViewTargetTransitionParams TransitionParams = FViewTargetTransitionParams()) override;
 
 
-	FCollisionObjectQueryParams CurrentObjectQueryParams;
+	FCollisionObjectQueryParams CustomObjectQueryParams;
 	FCollisionObjectQueryParams DefaultObjectQueryParams;
 	FCollisionObjectQueryParams GroundObjectQueryParams;
 	FCollisionObjectQueryParams GroundPlusBaseCharcterObjectQueryParams;
+
+	void SetGroundObjectQueryParams();
+	void SetDefaultObjectQueryParams();
+	void SetGroundPlusBaseCharcterObjectQueryParams();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
@@ -74,6 +82,7 @@ protected:
 	void PerformTraceTimer();
 	virtual void BeginPlay() override;
 
+
 	ABasePlayerController();
 
 	// WASD移动相关
@@ -90,11 +99,12 @@ protected:
 	ASpectatorPawn* MySpectatorPawn;
 
 	template <class TMemberFunc>
-	void PerformLineTrace(TMemberFunc Function);
+	void PerformLineTrace(TMemberFunc Function, FCollisionObjectQueryParams InCollisionObjectQueryParams);
 };
 
 template <class TLambdaFunc>
-void ABasePlayerController::PerformLineTrace(TLambdaFunc Function)
+void ABasePlayerController::PerformLineTrace(TLambdaFunc Function,
+                                             FCollisionObjectQueryParams InCollisionObjectQueryParams)
 {
 	float MouseX, MouseY;
 	if (GetMousePosition(MouseX, MouseY))
@@ -116,7 +126,7 @@ void ABasePlayerController::PerformLineTrace(TLambdaFunc Function)
 				HitResult,
 				TraceStart,
 				TraceEnd,
-				CurrentObjectQueryParams/*变量，可调整*/,
+				InCollisionObjectQueryParams,
 				QueryParams
 			);
 			/*

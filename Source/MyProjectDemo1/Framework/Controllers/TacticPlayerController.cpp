@@ -9,6 +9,7 @@
 #include "MyProjectDemo1/Characters/TacticPlayerCharacter.h"
 #include "MyProjectDemo1/Framework/HUD/BaseHUD.h"
 #include "MyProjectDemo1/Framework/HUD/TacticHUD.h"
+#include "MyProjectDemo1/GAS/Abilities/BaseAbility.h"
 #include "MyProjectDemo1/Subsystems/TacticSubsystem.h"
 
 void ATacticPlayerController::MoveForward(float Value)
@@ -80,7 +81,7 @@ void ATacticPlayerController::ZoomCamera(float Value)
 
 void ATacticPlayerController::RefocusToCurrentActionCharacter()
 {
-	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter && IsWASDMoved)
+	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter/*todo bug && IsWASDMoved*/)
 	{
 		SetViewTarget(TacticSubsystem->CurrentActionBaseCharacter);
 		IsWASDMoved = false;
@@ -284,14 +285,15 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 		RotationInterpSpeed
 	);
 	// Apply the interpolated rotation
-	SetControlRotation(FRotator(CurrentCameraRotation.Pitch, TargetCameraRotation.Yaw, CurrentCameraRotation.Roll));
+	SetControlRotation(TargetCameraRotation
+		/*todo bug FRotator(CurrentCameraRotation.Pitch, TargetCameraRotation.Yaw, CurrentCameraRotation.Roll)*/);
 
 	ZoomCameraTick(DeltaSeconds);
 }
 
 void ATacticPlayerController::CancelSkill()
 {
-	CurrentObjectQueryParams = DefaultObjectQueryParams;
+	SetDefaultObjectQueryParams();
 }
 
 void ATacticPlayerController::SwitchToNextCharacterActionDelay()
@@ -309,16 +311,27 @@ void ATacticPlayerController::SwitchToNextCharacterAction()
 }
 
 
+void ATacticPlayerController::SetObjectQueryParamBySkill(UBaseAbility* BaseAbility)
+{
+	if (false && BaseAbility && BaseAbility->bIsSingleTarget)
+	{
+		SetGroundPlusBaseCharcterObjectQueryParams();
+	}
+	else
+	{
+		SetGroundObjectQueryParams();
+	}
+}
+
 void ATacticPlayerController::PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
 {
-	CurrentObjectQueryParams = GroundObjectQueryParams;
+	SetObjectQueryParamBySkill(BaseAbility);
 }
 
 void ATacticPlayerController::SkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
                                                  UBaseAbility* BaseAbility)
 {
-	//todo if BaseAbility->bIsSingleTarget
-	CurrentObjectQueryParams = GroundObjectQueryParams;
+	SetObjectQueryParamBySkill(BaseAbility);
 }
 
 void ATacticPlayerController::CancelMove()

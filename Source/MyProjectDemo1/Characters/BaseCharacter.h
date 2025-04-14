@@ -63,8 +63,8 @@ protected:
 	UInteractionComp* InteractionComp;
 	virtual void Destroyed() override;
 	// 导航辅助立方体组件
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
-	//UStaticMeshComponent* NavCubeComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Navigation")
+	UStaticMeshComponent* NavCubeComponent;
 
 	//todo move to parent
 	// default Setting默认//

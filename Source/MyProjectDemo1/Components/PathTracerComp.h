@@ -21,6 +21,8 @@ public:
 	UPathTracerComp();
 
 protected:
+	template <class T>
+	bool FindMyObject(T*& YourObject, const TCHAR* Path);
 	UPROPERTY()
 	TArray<FVector> PathPoints;
 
@@ -93,24 +95,41 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Setup|Dynamic")
 	FName DynamicMaterial_NameOfAnimSpeed = "AnimSpeed";
-	
+
 	UPROPERTY(EditDefaultsOnly, Category="Setup|Dynamic", meta=(ClampMin="-10.0", ClampMax="10.0"))
 	float DotterAnimSpeed;
-	/*	
-		//---寻路系统图标类
-		UPROPERTY(EditDefaultsOnly,Category="Setup|Marker")
-		TSubclassOf<APathMarkerBase> CharacterMarkerClass;
-	
-		UPROPERTY(EditDefaultsOnly,Category="Setup|Marker")
-		TSubclassOf<APathMarkerBase> TargetPointMarkerClass;
-	*/
-	UPROPERTY(EditDefaultsOnly, Category="Setup|Marker")
-	float MarkerSizeScale = 1.0f;
 	UPROPERTY()
 	AVisualFeedbackActor* VisualFeedbackActor;
 	bool bCanDraw = true;
 
+
+	UPROPERTY(EditDefaultsOnly, Category="Setup|Marker")
+	float MarkerSizeScale = 1.0f;
+	void SetupMarkers();
+	
 public:
+	//---寻路系统图标类
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
+	USkeletalMesh* CharacterMarkerClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance")
+	USkeletalMesh* TargetPointMarkerClass;
+
+	UPROPERTY()
+	UStaticMeshComponent* EndPointMarkerMesh;
+	
+	// 虚影材质 - 有效状态(红色)
+	UPROPERTY(EditDefaultsOnly, Category="Setup|Marker")
+	UMaterialInterface* ValidMarkerMaterial;
+	
+	// 虚影材质 - 无效状态(蓝色)
+	UPROPERTY(EditDefaultsOnly, Category="Setup|Marker")
+	UMaterialInterface* InvalidMarkerMaterial;
+	
+	// 虚影角色网格
+	UPROPERTY(EditDefaultsOnly, Category="Setup|Marker")
+	UStaticMesh* CharacterSilhouetteMesh;
+
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetLastPathPoint() { return PathPoints[PathPoints.Num() - 1]; }
 
@@ -123,6 +142,30 @@ public:
 
 	virtual void Deactivate() override;
 	virtual void Activate(bool bReset = false) override;
+
+	// 设置虚影为有效状态
+	UFUNCTION(BlueprintCallable, Category="Path|Marker")
+	void SetMarkerValid();
+	
+	// 设置虚影为无效状态
+	UFUNCTION(BlueprintCallable, Category="Path|Marker")
+	void SetMarkerInvalid();
+	
+	// 更新虚影位置和旋转
+	UFUNCTION()
+	void UpdateEndPointMarker();
+
+	// 检查路径是否已清除
+	UFUNCTION(BlueprintCallable, Category = "Path")
+	bool IsPathClear() const;
+	
+	// 清除路径
+	UFUNCTION(BlueprintCallable, Category = "Path")
+	void ClearThePath();
+	
+	// 重新生成路径
+	UFUNCTION(BlueprintCallable, Category = "Path")
+	void RegeneratePath();
 
 private:
 	bool bIsSetupParameter = false;
@@ -158,7 +201,6 @@ private:
 	virtual void BeginPlay() override;
 	//---Setup Parameters Functions
 	void SetupMaterials();
-	//void SetupMarkers();
 	//---Setup Path Segment
 	UPROPERTY()
 	TArray<UMaterialInstanceDynamic*> DottedLineDynamicMaterials;
@@ -170,4 +212,7 @@ private:
 	void SetupSplineMesh(USplineMeshComponent* SplineMeshComp_P, bool IsSegmentStraight_P);
 	float CalculateIndent(float Length_p);
 	UMaterialInstanceDynamic* GetDottedMaterialInstance();
+
+	// 初始化虚影组件
+	void SetupEndPointMarker();
 };
