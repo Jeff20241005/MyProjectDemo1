@@ -3,8 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MyProjectDemo1/Components/MyAbilityComp.h"
-#include "MyProjectDemo1/UMG/TacticUMG/SkillUI.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TacticSubsystem.generated.h"
 

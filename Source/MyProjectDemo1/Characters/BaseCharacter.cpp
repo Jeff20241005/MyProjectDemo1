@@ -141,8 +141,11 @@ ABaseCharacter::ABaseCharacter()
 
 	// 使立方体透明但启用碰撞
 	NavCubeComponent->SetVisibility(false);
-	//NavCubeComponent->SetCollisionProfileName(TEXT("BlockAll"));
-	NavCubeComponent->SetCollisionProfileName(TEXT("NoCollision"));
+	NavCubeComponent->SetCollisionProfileName(TEXT("BlockAll"));
+	//NavCubeComponent->SetCollisionProfileName(TEXT("NoCollision"));
+	//NavCubeComponent->DestroyComponent();
+	
+	//GetCapsuleComponent()->SetCanEverAffectNavigation(true);
 
 	GetCapsuleComponent()->SetCollisionProfileName("TacticCharacter");
 }

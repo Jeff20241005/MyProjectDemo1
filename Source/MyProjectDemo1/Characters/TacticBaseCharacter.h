@@ -15,7 +15,7 @@ public:
 	void ShowMoveRange();
 	void CloseMoveRange();
 
-	void Move(FVector MoveLocation);
+	void TacticMove(FVector MoveLocation);
 	bool CanMove();
 	
 

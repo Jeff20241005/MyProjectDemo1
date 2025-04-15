@@ -68,7 +68,7 @@ void UTacticSubsystem::Move(ATacticPlayerController* InTacticPlayerController)
 		{
 			if (!bIsOverlappingWithCharacter)
 			{
-				CurrentActionBaseCharacter->Move(CachedPremoveFinalLocation);
+				CurrentActionBaseCharacter->TacticMove(CachedPremoveFinalLocation);
 				SetbCanMove(false);
 				CancelMoveAndSkill();
 			}

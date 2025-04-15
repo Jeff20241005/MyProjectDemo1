@@ -13,13 +13,13 @@
 #include "MyProjectDemo1/UMG/TacticUMG/HealthUI.h"
 
 
-void ATacticBaseCharacter::Move(FVector MoveLocation)
+void ATacticBaseCharacter::TacticMove(FVector MoveLocation)
 {
 	if (GetMyAbilityComp() && CanMove())
 	{
 		float MoveRange = BaseCharacterAttributeSet->GetMoveRange();
-		BaseAIController->MoveToLocationWithPathFinding(
-			MoveLocation, false, MoveRange);
+		BaseAIController->MoveToLocationInTacticMode(
+			MoveRange);
 
 		// 修改ActionValues属性值
 		BaseCharacterAttributeSet->SetActionValues(BaseCharacterAttributeSet->GetActionValues() - 1.0f);
@@ -185,15 +185,15 @@ void ATacticBaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
 
-	
+
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
 	{
 		// 设置极高的旋转速率，实现"瞬时"转向
-		MovementComp->RotationRate = FRotator(0.0f, 300.0f, 0.0f);  // 极高的Yaw旋转速度
-		
+		MovementComp->RotationRate = FRotator(0.0f, 300.0f, 0.0f); // 极高的Yaw旋转速度
+
 		// 确保角色朝向移动方向
 		//MovementComp->bOrientRotationToMovement = true;
-		
+
 		// 禁用控制器旋转影响角色旋转
 		//bUseControllerRotationYaw = false;
 	}

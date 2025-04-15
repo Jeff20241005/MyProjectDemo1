@@ -12,6 +12,7 @@
 UCLASS()
 class MYPROJECTDEMO1_API UBaseDamageExecution : public UGameplayEffectExecutionCalculation
 {
+	
 	UBaseDamageExecution();
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 	

@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "BaseAIController.generated.h"
 
+
 UCLASS()
 class MYPROJECTDEMO1_API ABaseAIController : public AAIController
 {
@@ -14,8 +15,36 @@ class MYPROJECTDEMO1_API ABaseAIController : public AAIController
 public:
 	// 可以添加自定义的移动函数
 	UFUNCTION(BlueprintCallable, Category = "Navigation")
-	virtual void MoveToLocationWithPathFinding(const FVector& MouseClickLocation, bool IsFreeToMove = true,
-	                                           float RangeToMove = 0);
+	virtual void MoveToLocationWithPathFinding(const FVector& MouseClickLocation);
+
+private:
+	friend ATacticBaseCharacter;
+	void MoveToLocationInTacticMode(float RangeToMove);
+private:
+	// 当前移动目标点的索引
+	int32 CurrentPathPointIndex = 0;
+
+	// 路径点数组缓存
+	TArray<FVector> CurrentPathPoints;
+	
+	// 移动相关变量
+	FVector StartLocation;
+	FVector TargetLocation;
+	float CurrentMovementAlpha = 0.0f;
+	float MovementDuration = 0.0f;
+	float MovementSpeed = 600.0f;
+
+	// 移动定时器
+	FTimerHandle MoveTimerHandle;
+
+	// 开始移动到下一个点
+	void StartMovingToNextPoint();
+
+	// 更新移动位置
+	void UpdateMovement();
+
+	// 处理移动完成
+	void HandleMoveCompleted(bool bSuccess);
 
 protected:
 	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
@@ -34,7 +63,6 @@ protected:
 
 	virtual void Tick(float DeltaTime) override;
 	float DebugLifeTime = 1.5f;
-	bool bIsTacticModMove = false;
 };
 
 //记得包含头文件在C++文件
