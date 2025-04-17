@@ -81,7 +81,7 @@ void ATacticPlayerController::ZoomCamera(float Value)
 
 void ATacticPlayerController::RefocusToCurrentActionCharacter()
 {
-	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter/*todo bug && IsWASDMoved*/)
+	if (TacticSubsystem && TacticSubsystem->CurrentActionBaseCharacter && IsWASDMoved)
 	{
 		SetViewTarget(TacticSubsystem->CurrentActionBaseCharacter);
 		IsWASDMoved = false;
@@ -284,10 +284,9 @@ void ATacticPlayerController::Tick(float DeltaSeconds)
 		DeltaSeconds,
 		RotationInterpSpeed
 	);
-	
+
 	// Apply the interpolated rotation
-	SetControlRotation(CurrentCameraRotation
-		/*todo bug FRotator(CurrentCameraRotation.Pitch, TargetCameraRotation.Yaw, CurrentCameraRotation.Roll)*/);
+	SetControlRotation(FRotator(CurrentCameraRotation.Pitch, TargetCameraRotation.Yaw, CurrentCameraRotation.Roll));
 
 	ZoomCameraTick(DeltaSeconds);
 }
@@ -311,28 +310,15 @@ void ATacticPlayerController::SwitchToNextCharacterAction()
 	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::SwitchToNextCharacterActionDelay, 0.2f);
 }
 
-
-void ATacticPlayerController::SetObjectQueryParamBySkill(UBaseAbility* BaseAbility)
-{
-	if (false && BaseAbility && BaseAbility->bIsSingleTarget)
-	{
-		SetGroundPlusBaseCharcterObjectQueryParams();
-	}
-	else
-	{
-		SetGroundObjectQueryParams();
-	}
-}
-
 void ATacticPlayerController::PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
 {
-	SetObjectQueryParamBySkill(BaseAbility);
+	SetGroundObjectQueryParams();
 }
 
 void ATacticPlayerController::SkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
                                                  UBaseAbility* BaseAbility)
 {
-	SetObjectQueryParamBySkill(BaseAbility);
+	SetGroundObjectQueryParams();
 }
 
 void ATacticPlayerController::CancelMove()

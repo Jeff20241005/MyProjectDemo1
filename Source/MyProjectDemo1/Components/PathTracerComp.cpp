@@ -31,10 +31,10 @@ UPathTracerComp::UPathTracerComp()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	
-	FindMyObject(ValidMarkerMaterial, *SharingBlue_Path);
 	FindMyObject(InvalidMarkerMaterial, *SharingRed_Path);
+	FindMyObject(ValidMarkerMaterial, *SharingBlue_Path);
 	FindMyObject(CharacterSilhouetteMesh, *CharacterSilhousette_Path);
+	// 默认设置为有效材质
 	
 	// 在构造函数中设置默认值而不是在UPROPERTY声明中
 	DotterAnimSpeed = -0.6f;
@@ -168,7 +168,7 @@ void UPathTracerComp::GenerateRoundCornersPath()
 		FVector SegmentsEnd = curPoint + (curSegment * (curSegmentLength - (curIndex == lastIndex
 			                                                                    ? 0
 			                                                                    : CalculateIndent(curSegmentLength))));
-		
+
 		SetupPathSegments(SegmentsStart, SegmentsEnd, true, curSegment, curSegment);
 
 		if (curIndex != lastIndex)
@@ -193,6 +193,7 @@ void UPathTracerComp::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("PathTracerComponent: Invalid owner or root component"));
 	}
+	SetMarkerValid();
 }
 
 void UPathTracerComp::SetupMaterials()
@@ -463,6 +464,7 @@ void UPathTracerComp::SetMarkerValid()
 {
 	if (EndPointMarkerMesh && ValidMarkerMaterial)
 	{
+		EndPointMarkerMesh->SetVisibility(true);
 		EndPointMarkerMesh->SetMaterial(0, ValidMarkerMaterial);
 	}
 }
@@ -471,6 +473,8 @@ void UPathTracerComp::SetMarkerInvalid()
 {
 	if (EndPointMarkerMesh && InvalidMarkerMaterial)
 	{
+		EndPointMarkerMesh->SetVisibility(false);
+		/*todo bug*/
 		EndPointMarkerMesh->SetMaterial(0, InvalidMarkerMaterial);
 	}
 }
@@ -532,17 +536,17 @@ void UPathTracerComp::ClearThePath()
 {
 	// 清空路径点
 	PathPoints.Empty();
-	
+
 	// 清理路径的可视化元素
 	ResetSegments();
-	
+
 	/*
 	if (EndPointMarkerMesh)
 	{
 		EndPointMarkerMesh->SetVisibility(false);
 	}
 	*/
-	
+
 	// 可以在此处添加其他需要清理的元素
 	bCanDraw = true; // 确保下次可以重新绘制
 }
@@ -554,13 +558,13 @@ void UPathTracerComp::RegeneratePath()
 	if (PathPoints.Num() > 1 && bCanDraw)
 	{
 		GeneratePaths();
-		
+
 		// 确保虚影组件已初始化
 		if (!EndPointMarkerMesh)
 		{
 			SetupEndPointMarker();
 		}
-		
+
 		// 更新虚影位置和材质
 		UpdateEndPointMarker();
 	}

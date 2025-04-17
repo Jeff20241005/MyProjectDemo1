@@ -48,6 +48,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=JFSetting)
 	USpringArmComponent* SpringArmComponent;
 
+	void SetNavCubeCompScaleToActive();
+	void SetNavCubeCompScaleToZero();
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = JFSetting)
 	UCameraComponent* CameraComponent;
@@ -94,7 +96,6 @@ protected:
 	virtual void NotifyActorEndCursorOver() override;
 
 protected:
-
 	ABaseCharacter();
 	template <class T>
 	void FindMyClass(TSubclassOf<T>& YourSubClass, const TCHAR* Path);

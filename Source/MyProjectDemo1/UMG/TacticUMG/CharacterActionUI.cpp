@@ -26,8 +26,7 @@ void UCharacterActionUI::TestSwitchCharac()
 {
 	TacticSubsystem->SortCharactersByActionValues();
 
-	auto FirstCharacter = TacticSubsystem->GetAllCharactersInOrder()[0];
-	if (FirstCharacter)
+	if (ATacticBaseCharacter* FirstCharacter = TacticSubsystem->GetAllCharactersInOrder()[0])
 	{
 		TacticSubsystem->OnSwitchToNextCharacterAction.Broadcast();
 		//直接设置ActionValue，代表执行完毕Action。
@@ -49,8 +48,7 @@ void UCharacterActionUI::ActionButton_MoveOnClick()
 {
 	TacticSubsystem->OnCancelSkill.Broadcast();
 
-	ATacticPlayerController* TacticPlayerController =
-		GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
+	ATacticPlayerController* TacticPlayerController = GetWorld()->GetFirstPlayerController<ATacticPlayerController>();
 	TacticSubsystem->OnPreMove.Broadcast(TacticPlayerController, nullptr);
 }
 

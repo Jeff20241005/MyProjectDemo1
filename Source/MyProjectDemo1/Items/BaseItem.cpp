@@ -11,7 +11,6 @@
 void ABaseItem::NotifyActorBeginCursorOver()
 {
 	Super::NotifyActorBeginCursorOver();
-
 	// 当鼠标开始悬停在物品上时
 	if (InteractionComp)
 	{
@@ -27,7 +26,6 @@ void ABaseItem::NotifyActorBeginCursorOver()
 void ABaseItem::NotifyActorEndCursorOver()
 {
 	Super::NotifyActorEndCursorOver();
-	
 	if (InteractionComp)
 	{
 		InteractionComp->UnHoveredActor();

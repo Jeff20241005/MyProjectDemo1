@@ -26,6 +26,17 @@ void ABaseCharacter::OnDamaged_Implementation(float DamageAmount, const FHitResu
 {
 }
 
+void ABaseCharacter::SetNavCubeCompScaleToActive()
+{
+	NavCubeComponent->SetRelativeScale3D(FVector(NavCubeComponentDefaultScale_FloatValue,
+	                                             NavCubeComponentDefaultScale_FloatValue, 10));
+}
+
+void ABaseCharacter::SetNavCubeCompScaleToZero()
+{
+	NavCubeComponent->SetRelativeScale3D(FVector(0, 0, 0));
+}
+
 void ABaseCharacter::Destroyed()
 {
 	//GetCapsuleComponent()->SetCanEverAffectNavigation(false);
@@ -129,7 +140,7 @@ ABaseCharacter::ABaseCharacter()
 	// 设置位置、旋转和缩放
 	NavCubeComponent->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
 	NavCubeComponent->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
-	NavCubeComponent->SetRelativeScale3D(FVector(0.12f));
+	SetNavCubeCompScaleToActive();
 	NavCubeComponent->SetMobility(EComponentMobility::Movable);
 
 	// 在构造函数中加载静态网格
@@ -144,7 +155,7 @@ ABaseCharacter::ABaseCharacter()
 	NavCubeComponent->SetCollisionProfileName(TEXT("BlockAll"));
 	//NavCubeComponent->SetCollisionProfileName(TEXT("NoCollision"));
 	//NavCubeComponent->DestroyComponent();
-	
+
 	//GetCapsuleComponent()->SetCanEverAffectNavigation(true);
 
 	GetCapsuleComponent()->SetCollisionProfileName("TacticCharacter");

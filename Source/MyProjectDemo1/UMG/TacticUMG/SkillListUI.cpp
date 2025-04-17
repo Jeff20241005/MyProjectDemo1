@@ -15,6 +15,7 @@ void USkillListUI::GenerateList(ATacticPlayerCharacter* PlayerCharacter)
 	ScrollBox->ClearChildren();
 	TArray<FGameplayAbilitySpecHandle> OutAbilityHandles;
 	TArray<FGameplayAbilitySpec> AllAbilities = PlayerCharacter->GetMyAbilityComp()->GetActivatableAbilities();
+	
 	for (FGameplayAbilitySpec
 	     AbilitySpec : AllAbilities)
 	{
@@ -22,7 +23,7 @@ void USkillListUI::GenerateList(ATacticPlayerCharacter* PlayerCharacter)
 		{
 			USkillUI* SkillUI = CreateWidget<USkillUI>(this, SkillUIClass);
 			SkillUI->BaseAbility = Ability;
-			
+
 			ScrollBox->AddChild(SkillUI); //this have to be executed after pass the ability param
 		}
 	}

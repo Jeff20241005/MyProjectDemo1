@@ -109,7 +109,6 @@ protected:
 	void CancelSkill();
 	void SwitchToNextCharacterActionDelay();
 	void SwitchToNextCharacterAction();
-	void SetObjectQueryParamBySkill(UBaseAbility* BaseAbility);
 	void PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void SkillSelectedTimer(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility);
 	void CancelMove();

@@ -20,6 +20,7 @@ void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	BaseCharacterOwner = Cast<ATacticBaseCharacter>(ActorInfo->OwnerActor);
 
+	
 	if (!BaseCharacterOwner || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
@@ -153,7 +154,6 @@ bool UBaseAbility::GetPotentialTargets(
 {
 	//最后。。还是需要和TacticSubsystem交互。
 	//总的来说，避免不了和他们耦合，不可能0耦合，但至少分工明确了
-
 	TArray<ATacticBaseCharacter*>& OutTargets = InTacticSubsystem->GlobalPotentialTargets;
 
 	ATacticBaseCharacter* Owner_Caster = BaseCharacterOwner
@@ -279,13 +279,6 @@ bool UBaseAbility::GetPotentialTargets(
 				                                   + (InTacticSubsystem->bCanMove
 					                                      ? Owner_Caster->GetBaseCharacterAttributeSet()->GetMoveRange()
 					                                      : 0));
-				{
-					FString TempStr = FString::Printf(TEXT("Oth"));
-					if (GEngine)
-						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true,
-						                                 FVector2D(2, 2));
-					UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-				}
 				if (bInRange)
 				{
 					//todo bug 一直执行这个。一旦执行InTacticSubsystem->SingleAbilitySelectedTarget = CheckCharacter;
@@ -319,6 +312,10 @@ bool UBaseAbility::GetPotentialTargets(
 		if (bInRange)
 		{
 			OutTargets.AddUnique(CheckCharacter);
+			if (bIsSingleTarget)
+			{
+				break;
+			}
 		}
 	}
 

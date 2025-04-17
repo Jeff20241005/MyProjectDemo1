@@ -13,7 +13,6 @@ UBaseCharacterAttributeSet::UBaseCharacterAttributeSet()
 {
 }
 
-
 bool UBaseCharacterAttributeSet::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
 {
 	//buff or debuff detection

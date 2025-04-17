@@ -25,12 +25,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="mock:///dummy.cpp" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/Source/MyProjectDemo1.Target.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.h" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://D:/MyWorkSpace/Main/MainProgram/MyProjectDemo1/Source/MyProjectDemo1/Subsystems/TacticSubsystem.h" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Abilities/GameplayAbility.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Abilities/GameplayAbility_CharacterJump.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Plugins/Runtime/GameplayAbilities/Source/GameplayAbilities/Private/Abilities/GameplayAbility_Montage.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -98,6 +93,7 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MassEntityTestSuite/Private/MassSystemRequirementTest.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MassEntityTestSuite/Public/MassEntityTestFarmPlot.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MassEntityTestSuite/Public/MassEntityTestTypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MaterialBaking/Private/MaterialBakingHelpers.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MaterialUtilities/Private/ProxyMaterialUtilities.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MeshMergeUtilities/Private/MeshMergeHelpers.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Developer/MeshMergeUtilities/Public/MeshMergeDataTracker.h" root0="FORCE_HIGHLIGHTING" />
@@ -134,6 +130,7 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/InternationalizationSettings/Private/InternationalizationSettingsModule.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Kismet/Private/BlueprintDebugger.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Kismet/Private/Blueprints/JsonObjectGraphFunctionLibrary.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/Kismet/Private/SCSEditorViewportClient.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/LandscapeEditor/Private/LandscapeEdModeXYOffset.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/LandscapeEditor/Private/LandscapeEditorDetailCustomization_ImportExport.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Editor/LandscapeEditor/Private/LandscapeEditorDetailCustomization_NewLandscape.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -201,6 +198,7 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/AssemblyUtils.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/AsyncThreadPoolWorkQueue.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/AsyncUtils.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/BinaryArchive.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/BinaryArchiveAttributes.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/ByteArrayBuilder.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Programs/Shared/EpicGames.Core/CertificateUtils.cs" root0="FORCE_HIGHLIGHTING" />
@@ -422,6 +420,7 @@
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/GameplayTags/Classes/GameplayTagContainer.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/GameplayTags/Private/GameplayTagContainer.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/GeometryCore/Public/Spatial/MeshWindingNumberGrid.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/GeometryCore/Public/Spatial/SparseGrid2.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/NavigationSystem/Private/NavigationSystem.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/NavigationSystem/Public/NavigationPath.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../../../../UE_5.5/Engine/Source/Runtime/NavigationSystem/Public/NavigationSystem.h" root0="FORCE_HIGHLIGHTING" />
@@ -639,7 +638,9 @@
       <workItem from="1744248811587" duration="27968000" />
       <workItem from="1744335097204" duration="9893000" />
       <workItem from="1744350306434" duration="26269000" />
-      <workItem from="1744679912520" duration="10409000" />
+      <workItem from="1744679912520" duration="21924000" />
+      <workItem from="1744766133857" duration="3777000" />
+      <workItem from="1744877413102" duration="4534000" />
     </task>
     <servers />
   </component>

@@ -184,8 +184,7 @@ void ATacticBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	TacticSubsystem = GetWorld()->GetSubsystem<UTacticSubsystem>();
-
-
+	
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
 	{
 		// 设置极高的旋转速率，实现"瞬时"转向
@@ -209,7 +208,7 @@ void ATacticBaseCharacter::ShowRotationHandleIndicator()
 	if (HeadIndicatorMeshComponent && RotationHandleIndicatorMesh.Get())
 	{
 		HeadIndicatorMeshComponent->SetStaticMesh(RotationHandleIndicatorMesh.Get());
-		HeadIndicatorMeshComponent->SetVisibility(false/*todo bug*/);
+		HeadIndicatorMeshComponent->SetVisibility(true);
 		StartHeadIndicatorRotation(); // 启动旋转
 	}
 }
@@ -219,7 +218,7 @@ void ATacticBaseCharacter::ShowStartRotationHandleIndicator()
 	if (HeadIndicatorMeshComponent && StartRotationHandleIndicatorMesh.Get())
 	{
 		HeadIndicatorMeshComponent->SetStaticMesh(StartRotationHandleIndicatorMesh.Get());
-		HeadIndicatorMeshComponent->SetVisibility(false/*todo bug*/);
+		HeadIndicatorMeshComponent->SetVisibility(true);
 		StartHeadIndicatorRotation(); // 启动旋转
 	}
 }

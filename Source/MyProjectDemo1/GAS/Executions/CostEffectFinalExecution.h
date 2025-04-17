@@ -15,7 +15,6 @@ class MYPROJECTDEMO1_API UCostEffectFinalExecution : public UGameplayEffectExecu
 	GENERATED_BODY()
 
 public:
-	
 
 protected:
 };

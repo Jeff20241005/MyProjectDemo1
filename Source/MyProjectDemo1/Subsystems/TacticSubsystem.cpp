@@ -290,7 +290,6 @@ void UTacticSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UTacticSubsystem::Deinitialize()
 {
-	// Clean up path visualization components
 	Super::Deinitialize();
 }
 
@@ -334,8 +333,9 @@ void UTacticSubsystem::SetbCanMove(bool bNewValue)
 
 void UTacticSubsystem::SwitchToNextCharacterAction()
 {
-	if (CurrentActionBaseCharacter)
+	if (CurrentActionBaseCharacter /*重置一些属性*/)
 	{
+		CurrentActionBaseCharacter->SetNavCubeCompScaleToActive();
 		CurrentActionBaseCharacter->HideHeadIndicator();
 	}
 
@@ -344,6 +344,8 @@ void UTacticSubsystem::SwitchToNextCharacterAction()
 	SetbCanMove(true);
 
 	CurrentActionBaseCharacter->ShowRotationHandleIndicator();
+
+	CurrentActionBaseCharacter->SetNavCubeCompScaleToZero();
 }
 
 ATacticPlayerCharacter* UTacticSubsystem::TryGetActionPlayer() const
@@ -359,13 +361,24 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
                                                 float SkillPlacementRadius)
 {
 	if (!CurrentActionBaseCharacter) { return; }
+
+	if (GlobalPotentialTargets.IsEmpty()&&SkillPlacementRadius>0)
+	{
+		if (ShowVisualFeedbackActor && !ShowVisualFeedbackActor->GetPathTracerComp()->IsPathClear())
+		{
+			ShowVisualFeedbackActor->GetPathTracerComp()->ClearThePath();
+			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerInvalid();
+		}
+		return;
+	}
+	
 	FVector projectedLoc;
 
 	//---角色移动范围---
 	FVector PlayerLocation = CurrentActionBaseCharacter->GetActorLocation();
 	float RangeToMove = CurrentActionBaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange();
 	FVector MoveFinalLocation = InTacticPlayerController->CustomHoveredLocation;
-
+	
 	if (CurrentSelectedBaseAbility && CurrentSelectedBaseAbility->bIsSingleTarget &&
 		CachedSingleAbilitySelectedTarget)
 	{
@@ -436,7 +449,7 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		if (ShowVisualFeedbackActor && !ShowVisualFeedbackActor->GetPathTracerComp()->IsPathClear())
 		{
 			ShowVisualFeedbackActor->GetPathTracerComp()->ClearThePath();
-			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerValid();
+			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerInvalid();
 		}
 		return;
 	}
@@ -445,7 +458,7 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		if (ShowVisualFeedbackActor && ShowVisualFeedbackActor->GetPathTracerComp()->IsPathClear())
 		{
 			ShowVisualFeedbackActor->GetPathTracerComp()->RegeneratePath();
-			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerInvalid();
+			ShowVisualFeedbackActor->GetPathTracerComp()->SetMarkerValid();
 		}
 	}
 
