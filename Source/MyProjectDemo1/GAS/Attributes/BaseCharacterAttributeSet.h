@@ -97,6 +97,7 @@ public:
 	ATTRIBUTE_ACCESSORS(ThisClass, Intelligence)
 
 protected:
+	float PreHealth;
 	UPROPERTY()
 	ABaseCharacter* OwnerCharacter;
 };

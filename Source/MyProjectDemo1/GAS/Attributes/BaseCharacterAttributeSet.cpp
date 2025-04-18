@@ -17,6 +17,10 @@ bool UBaseCharacterAttributeSet::PreGameplayEffectExecute(struct FGameplayEffect
 {
 	//buff or debuff detection
 	//check if we can trigger the effect from skill
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		PreHealth = GetHealth();
+	}
 	return Super::PreGameplayEffectExecute(Data);
 }
 
@@ -36,42 +40,18 @@ void UBaseCharacterAttributeSet::PostGameplayEffectExecute(const FGameplayEffect
 		TargetActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
 		TargetCharacter = Cast<ABaseCharacter>(TargetActor);
 	}
+	//float Magnitude = Data.EvaluatedData.Magnitude;
 
 	//handle health change
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		float CurrentHealth = GetHealth(); // 已经修改后的值
-		float Magnitude = Data.EvaluatedData.Magnitude;
-		float OriginalHealth = 0.0f;
-		float ActualDelta = 0.0f;
-
-		// 根据不同的修改类型计算原始值和变化值
-		switch (Data.EvaluatedData.ModifierOp)
-		{
-		case EGameplayModOp::AddBase:
-		case EGameplayModOp::AddFinal:
-			OriginalHealth = CurrentHealth - Magnitude;
-			ActualDelta = Magnitude;
-			break;
-		case EGameplayModOp::MultiplyAdditive:
-		case EGameplayModOp::MultiplyCompound:
-			OriginalHealth = CurrentHealth / Magnitude;
-			ActualDelta = CurrentHealth - OriginalHealth;
-			break;
-		case EGameplayModOp::DivideAdditive:
-			OriginalHealth = CurrentHealth * Magnitude;
-			ActualDelta = CurrentHealth - OriginalHealth;
-			break;
-		case EGameplayModOp::Override:
-			break;
-		default: ;
-		}
+		float CurrentHealth = GetHealth();
+		float ActualDelta = CurrentHealth - PreHealth;
 
 		if (TargetCharacter)
 		{
-			// Debug输出
 			FString DebugMsg = FString::Printf(TEXT("Health Changed: Original=%.1f, Current=%.1f, Delta=%.1f, Op=%d"),
-			                                   OriginalHealth, CurrentHealth, ActualDelta,
+			                                   PreHealth, CurrentHealth, ActualDelta,
 			                                   static_cast<int>(Data.EvaluatedData.ModifierOp));
 			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, DebugMsg);
 
