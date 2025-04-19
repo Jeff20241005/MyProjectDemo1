@@ -22,7 +22,7 @@ void UInteractionComp::UnHoveredActor()
 
 void UInteractionComp::OnClickedActor()
 {
-	SetDepth(true);
+	//SetDepth(true);
 }
 
 void UInteractionComp::SetAsSkillTarget()
@@ -32,7 +32,6 @@ void UInteractionComp::SetAsSkillTarget()
 
 void UInteractionComp::UnSetAsSkillTarget()
 {
-	
 	SetDepth(false);
 }
 

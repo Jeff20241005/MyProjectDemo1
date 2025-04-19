@@ -80,10 +80,10 @@ void ABasePlayerController::BeginPlay()
 	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1); // 检测地面（虚幻自带自定义
 	DefaultObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2); // 检测角色（虚幻自带自定义
 
-	GroundObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	GroundObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);// 检测地面（虚幻自带自定义
 
-	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1);
-	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2);
+	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel1); // 检测地面（虚幻自带自定义
+	GroundPlusBaseCharcterObjectQueryParams.AddObjectTypesToQuery(ECC_GameTraceChannel2); // 检测角色（虚幻自带自定义
 
 	SetDefaultObjectQueryParams();
 }

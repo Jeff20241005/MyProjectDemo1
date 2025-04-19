@@ -20,7 +20,7 @@ void UBaseAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	BaseCharacterOwner = Cast<ATacticBaseCharacter>(ActorInfo->OwnerActor);
 
-	
+
 	if (!BaseCharacterOwner || !CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, true);
@@ -193,6 +193,12 @@ bool UBaseAbility::GetPotentialTargets(
 			   ? Owner_Caster->GetCapsuleComponent()->GetScaledCapsuleRadius()
 			   : 0);
 
+	
+	/*if (InTacticSubsystem->CachedSingleAbilitySelectedTarget)
+	{
+		AdjustTargetLocation = InTacticSubsystem->CachedSingleAbilitySelectedTarget->GetActorLocation();
+	}*/
+	
 	const float DistanceToMouse = FVector::Dist2D(AdjustOwnerSourceLocation, AdjustTargetLocation);
 
 	// 如果使用鼠标指向，检查鼠标位置是否在有效范围内

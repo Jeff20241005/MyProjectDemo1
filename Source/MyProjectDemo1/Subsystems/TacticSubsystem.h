@@ -148,6 +148,19 @@ public:
 	void ReleaseSkillActiveAbility(UMyAbilityComp* MyAbilityComp, UBaseAbility* BaseAbility);
 
 protected:
+	
+	/**
+	 * 当目标位置与角色重叠时，寻找附近可用的替代位置
+	 * @param AllCharacters 场景中的所有角色
+	 * @param CustomHoveredLocation
+	 * @param SkillPlacementRadius
+	 * @param CurrentCharacterLocation 原始目标位置
+	 * @return 找到的替代位置，如果没有找到返回FVector::ZeroVector
+	 */
+	FVector FindAlternativeLocation(const TArray<ATacticBaseCharacter*>& AllCharacters,
+	                                const FVector& CustomHoveredLocation, float SkillPlacementRadius
+	                                , const FVector& CurrentCharacterLocation, float RangeToMove);
+	
 	FVector CachedPremoveFinalLocation;
 	bool bIsOverlappingWithCharacter = false;
 
@@ -158,7 +171,7 @@ protected:
 
 	void SetbCanMove(bool bNewValue);
 	void SwitchToNextCharacterAction();
-	void PreMove_IfHasSkillRadius(ATacticPlayerController* InTacticPlayerController, float SkillPlacementRadius = 0);
+	void PreMove_WithCheckSkillRadius(ATacticPlayerController* InTacticPlayerController, float SkillPlacementRadius = 0);
 	void UpdateNavigationMesh();
 
 

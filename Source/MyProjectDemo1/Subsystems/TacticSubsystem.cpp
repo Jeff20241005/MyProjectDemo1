@@ -7,8 +7,6 @@
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "MyProjectDemo1/Actors/VisualFeedbackActor.h"
 #include "MyProjectDemo1/BlueprintFunctionLibrary/ThisProjectFunctionLibrary.h"
@@ -31,6 +29,8 @@
 void UTacticSubsystem::MyMouseEndCursorOver(ATacticBaseCharacter* TacticBaseCharacter)
 {
 	HoveredTacticBaseCharacter = nullptr;
+	CachedSingleAbilitySelectedTarget = nullptr;
+
 	if (!CurrentSelectedBaseAbility && !bIsAttemptToMove)
 	{
 		TacticBaseCharacter->CloseMoveRange();
@@ -357,12 +357,12 @@ ATacticPlayerCharacter* UTacticSubsystem::TryGetActionPlayer() const
 	return nullptr;
 }
 
-void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacticPlayerController,
-                                                float SkillPlacementRadius)
+void UTacticSubsystem::PreMove_WithCheckSkillRadius(ATacticPlayerController* InTacticPlayerController,
+                                                    float SkillPlacementRadius)
 {
 	if (!CurrentActionBaseCharacter) { return; }
 
-	if (GlobalPotentialTargets.IsEmpty()&&SkillPlacementRadius>0)
+	if (GlobalPotentialTargets.IsEmpty() && SkillPlacementRadius > 0)
 	{
 		if (ShowVisualFeedbackActor && !ShowVisualFeedbackActor->GetPathTracerComp()->IsPathClear())
 		{
@@ -371,31 +371,25 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		}
 		return;
 	}
-	
+
 	FVector projectedLoc;
 
 	//---角色移动范围---
 	FVector PlayerLocation = CurrentActionBaseCharacter->GetActorLocation();
 	float RangeToMove = CurrentActionBaseCharacter->GetBaseCharacterAttributeSet()->GetMoveRange();
-	FVector MoveFinalLocation = InTacticPlayerController->CustomHoveredLocation;
-	
+	FVector ToGroundCustomHoveredLocation = UThisProjectFunctionLibrary::FVectorZToGround(
+		InTacticPlayerController->CustomHoveredLocation);
+	FVector MoveFinalLocation = ToGroundCustomHoveredLocation;
+
 	if (CurrentSelectedBaseAbility && CurrentSelectedBaseAbility->bIsSingleTarget &&
 		CachedSingleAbilitySelectedTarget)
 	{
 		MoveFinalLocation = UThisProjectFunctionLibrary::FVectorZToGround(
 			CachedSingleAbilitySelectedTarget->GetActorLocation());
 	}
-	else
-	{
-		MoveFinalLocation = InTacticPlayerController->CustomHoveredLocation;
-	}
+
 	if (CurrentSelectedBaseAbility && CurrentSelectedBaseAbility->bIsSingleTarget && !CachedSingleAbilitySelectedTarget)
 	{
-		{
-			FString TempStr = FString::Printf(TEXT("Nice"));
-			if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Turquoise, TempStr, true, FVector2D(2, 2));
-			UE_LOG(LogTemp, Error, TEXT("%s"), *TempStr);
-		}
 		return;
 	}
 
@@ -433,10 +427,51 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 		float Dist2D = FVector::Dist2D(MoveFinalLocation, CharacterLoc);
 
 		// 如果距离小于胶囊体半径，认为是重叠
-		if (Dist2D < CapsuleRadius + PlusOverlappingWithCharacterEdge_FloatValue) // 添加一些边距
+		if (Dist2D < CapsuleRadius + PlusOverlappingWithCharacterEdge_FloatValue)
 		{
-			bIsOverlappingWithCharacter = true;
-			break;
+			if (SkillPlacementRadius)
+			{
+				// 使用更新后的函数，传入所有必要参数
+				FVector AlternativeLocation = FindAlternativeLocation(
+					AllCharactersInOrder,
+					ToGroundCustomHoveredLocation,
+					SkillPlacementRadius,
+					CurrentActionBaseCharacter->GetActorLocation(),
+					RangeToMove
+				);
+				
+				// 如果找到了替代位置
+				if (!AlternativeLocation.IsZero())
+				{
+					MoveFinalLocation = AlternativeLocation;
+					CachedPremoveFinalLocation = MoveFinalLocation;
+					bIsOverlappingWithCharacter = false;
+					
+					if (GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, 
+							TEXT("找到合适的替代位置！"), 
+							true, FVector2D(1.5, 1.5));
+					}
+				}
+				else
+				{
+					bIsOverlappingWithCharacter = true;
+					if (GEngine)
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, 
+							FString::Printf(TEXT("无法找到替代位置，与角色 %s 重叠"), 
+										   *CharactersInOrder->GetName()),
+							true, FVector2D(1.5, 1.5));
+					}
+					break;
+				}
+			}
+			else
+			{
+				bIsOverlappingWithCharacter = true;
+				break;
+			}
 		}
 	}
 
@@ -477,6 +512,146 @@ void UTacticSubsystem::PreMove_IfHasSkillRadius(ATacticPlayerController* InTacti
 			GetVisualFeedbackActor()->GetPathTracerComp()->DrawPath(CachedMovePoints);
 		}
 	}
+}
+
+FVector UTacticSubsystem::FindAlternativeLocation(const TArray<ATacticBaseCharacter*>& AllCharacters,
+                                               const FVector& CustomHoveredLocation, 
+                                               float SkillPlacementRadius,
+                                               const FVector& CurrentCharacterLocation, 
+                                               float RangeToMove)
+{
+    // 调试信息
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, 
+            TEXT("寻找替代位置..."), true, FVector2D(1.5, 1.5));
+    }
+    
+    // 获取导航系统
+    UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld());
+    if (!NavSys)
+    {
+        return FVector::ZeroVector;
+    }
+    
+    // 计算角色碰撞安全距离
+    float SafeDistance = 70.0f;
+    
+    // 存储有效位置
+    TArray<FVector> ValidLocations;
+    
+    // 从角色位置指向目标位置的向量
+    FVector DirectionToTarget = CustomHoveredLocation - CurrentCharacterLocation;
+    DirectionToTarget.Z = 0;  // 保持在同一平面
+    
+    // 如果方向向量接近零，选择一个随机方向
+    if (DirectionToTarget.IsNearlyZero())
+    {
+        DirectionToTarget = FVector(1.0f, 0.0f, 0.0f);
+    }
+    
+    DirectionToTarget.Normalize();
+    
+    // 在角色移动圆周上采样多个点 (使用更多采样点提高成功率)
+    const int32 NumTestPoints = 16;
+    for (int32 i = 0; i < NumTestPoints; ++i)
+    {
+        // 计算在圆周上的角度
+        float Angle = (2.0f * PI * i) / NumTestPoints;
+        
+        // 计算方向
+        FVector Direction(FMath::Cos(Angle), FMath::Sin(Angle), 0.0f);
+        
+        // 生成候选位置 (在移动范围边缘)
+        FVector CandidateLocation = CurrentCharacterLocation + Direction * RangeToMove;
+        
+        // 检查是否在技能范围内
+        float DistToTarget = FVector::Dist2D(CandidateLocation, CustomHoveredLocation);
+        if (DistToTarget > SkillPlacementRadius)
+        {
+            // 不在技能范围内，尝试将点拉向技能圆心
+            FVector TowardSkillCenter = CustomHoveredLocation - CandidateLocation;
+            TowardSkillCenter.Z = 0;
+            TowardSkillCenter.Normalize();
+            
+            // 调整位置使其刚好在技能范围内
+            CandidateLocation = CustomHoveredLocation - TowardSkillCenter * SkillPlacementRadius;
+            
+            // 确保仍在移动范围内
+            float DistToChar = FVector::Dist2D(CandidateLocation, CurrentCharacterLocation);
+            if (DistToChar > RangeToMove)
+            {
+                // 超出移动范围，找不到交点，尝试下一个方向
+                continue;
+            }
+        }
+        
+        // 检查是否与其他角色重叠
+        bool bOverlapsWithCharacter = false;
+        for (ATacticBaseCharacter* Character : AllCharacters)
+        {
+            if (!Character) continue;
+            
+            float Dist = FVector::Dist2D(CandidateLocation, Character->GetActorLocation());
+            if (Dist < SafeDistance)
+            {
+                bOverlapsWithCharacter = true;
+                break;
+            }
+        }
+        
+        if (bOverlapsWithCharacter)
+        {
+            continue; // 与角色重叠，跳过
+        }
+        
+        // 检查位置是否可导航
+        FNavLocation NavLocation;
+        if (NavSys->ProjectPointToNavigation(CandidateLocation, NavLocation, FVector(500, 500, 500)))
+        {
+            // 添加到有效位置列表
+            ValidLocations.Add(NavLocation.Location);
+            
+            // 调试显示
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 0.5f, FColor::Cyan, 
+                    FString::Printf(TEXT("找到有效位置: %s"), *NavLocation.Location.ToString()), 
+                    false);
+            }
+        }
+    }
+    
+    // 如果找到有效位置，选择离原角色最近的
+    if (ValidLocations.Num() > 0)
+    {
+        // 根据与角色的距离排序
+        ValidLocations.Sort([CurrentCharacterLocation](const FVector& A, const FVector& B) {
+            return FVector::DistSquared(A, CurrentCharacterLocation) < 
+                   FVector::DistSquared(B, CurrentCharacterLocation);
+        });
+        
+        // 取最近的位置
+        FVector BestLocation = ValidLocations[0];
+        
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, 
+                FString::Printf(TEXT("选择位置: %s"), *BestLocation.ToString()), 
+                true, FVector2D(1.5, 1.5));
+        }
+        
+        return BestLocation;
+    }
+    
+    // 未找到有效位置，返回零向量
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, 
+            TEXT("未找到有效的替代位置"), true, FVector2D(1.5, 1.5));
+    }
+    
+    return FVector::ZeroVector;
 }
 
 void UTacticSubsystem::UpdateNavigationMesh()
@@ -523,12 +698,12 @@ void UTacticSubsystem::PreMoveTimer(ATacticPlayerController* InTacticPlayerContr
 {
 	if (InBaseAbility)
 	{
-		PreMove_IfHasSkillRadius(InTacticPlayerController,
-		                         InBaseAbility->GetSkillPlacementRadiusByAimWithMouse());
+		PreMove_WithCheckSkillRadius(InTacticPlayerController,
+		                             InBaseAbility->GetSkillPlacementRadiusByAimWithMouse());
 	}
 	else
 	{
-		PreMove_IfHasSkillRadius(InTacticPlayerController);
+		PreMove_WithCheckSkillRadius(InTacticPlayerController);
 	}
 }
 
@@ -617,14 +792,21 @@ void UTacticSubsystem::SkillSelectedTimer(ATacticPlayerController* InTacticPlaye
 		FVector MouseLocation = InTacticPlayerController->CustomHoveredLocation;
 		if (bEnableAutomaticMoveBySkill)
 		{
+			//if () todo 可能有了这个，就暂时不判断这个了。。然后移开。没有Potentialtarget再刷新判断
 			if (BaseAbility->GetPotentialTargets(this, MouseLocation))
 			{
 				OnCancelMove.Broadcast();
 			}
 			else
 			{
-				OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
+				if (BaseAbility->bIsSingleTarget && CachedSingleAbilitySelectedTarget)
+				{
+				}
+				else
+				{
+				}
 				BaseAbility->GetPotentialTargets(this, MouseLocation, true);
+				OnPreMove.Broadcast(InTacticPlayerController, BaseAbility);
 			}
 		}
 		else

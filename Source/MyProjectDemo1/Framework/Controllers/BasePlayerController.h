@@ -57,6 +57,11 @@ public:
 	void SetGroundPlusBaseCharcterObjectQueryParams();
 
 protected:
+	UPROPERTY()
+	UInteractionComp* MyHitActorInteractionComp;
+	UPROPERTY()
+	AActor* MyHitActor;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera")
 	float TraceDistance = 100000;
 

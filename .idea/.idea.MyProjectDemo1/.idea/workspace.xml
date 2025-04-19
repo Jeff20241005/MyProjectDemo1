@@ -26,12 +26,21 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/Source/MyProjectDemo1.Target.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/26070/Desktop/TheTest/Source/MyProjectDemo1/Framework/HUD/TacticHUD.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/26070/Desktop/TheTest/Source/MyProjectDemo1/Framework/HUD/TacticHUD.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/26070/Desktop/TheTest/Source/MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/26070/Desktop/TheTest/Source/MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/26070/Desktop/TheTest/Source/MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.cpp" root0="SKIP_HIGHLIGHTING" />
-    <setting file="mock://C:/Users/26070/Desktop/TheTest/Source/MyProjectDemo1/GAS/Attributes/BaseCharacterAttributeSet.cpp" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Editor/EditorFramework/Public/Elements/Interfaces/TypedElementDetailsInterface.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Editor/UnrealEd/Classes/Factories/BlueprintFactory.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Editor/UnrealEd/Classes/Factories/BlueprintInterfaceFactory.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Editor/UnrealEd/Classes/Factories/Factory.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Editor/UnrealEd/Public/Elements/Actor/ActorElementDetailsInterface.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Programs/AutomationTool/IOS/ExportIPAFromArchive.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Programs/AutomationTool/Turnkey/LocalCache.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/AIModule/Classes/AITypes.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/AIModule/Private/AIController.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/AIModule/Private/AITypes.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/Core/Public/Math/Vector.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/Actor.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/Engine/Classes/GameFramework/PlayerController.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/Engine/Private/Actor.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://D:/UE_5.5/Engine/Source/Runtime/Engine/Private/PlayerController.cpp" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="JsbtTreeLayoutManager">
     <layout place="tools.popupGrunt">
@@ -224,7 +233,8 @@
       <workItem from="1744766133857" duration="3777000" />
       <workItem from="1744877413102" duration="4534000" />
       <workItem from="1744942340168" duration="2237000" />
-      <workItem from="1744976168320" duration="2194000" />
+      <workItem from="1744976168320" duration="4290000" />
+      <workItem from="1745026304309" duration="17657000" />
     </task>
     <servers />
   </component>

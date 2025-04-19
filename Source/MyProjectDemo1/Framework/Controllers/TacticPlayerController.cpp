@@ -197,11 +197,11 @@ void ATacticPlayerController::BeginPlay()
 	SetControlRotation(TargetCameraRotation);
 
 	// 绑定委托到子系统
-	TacticSubsystem->OnPreMove.AddUObject(this, &ATacticPlayerController::PreMove);
+	TacticSubsystem->OnPreMove.AddUObject(this, &ATacticPlayerController::PreMoveAndSkillSelectedTimer);
+	TacticSubsystem->OnSkillSelectedTimer.AddUObject(this, &ATacticPlayerController::PreMoveAndSkillSelectedTimer);
 
 	TacticSubsystem->OnCancelSkill.AddUObject(this, &ATacticPlayerController::CancelSkill);
 	TacticSubsystem->OnCancelMove.AddUObject(this, &ATacticPlayerController::CancelMove);
-	TacticSubsystem->OnSkillSelectedTimer.AddUObject(this, &ATacticPlayerController::SkillSelectedTimer);
 }
 
 void ATacticPlayerController::PlayerInputMovement(float Value, EAxis::Type Axis)
@@ -310,15 +310,17 @@ void ATacticPlayerController::SwitchToNextCharacterAction()
 	GetWorld()->GetTimerManager().SetTimer(TempHandle, this, &ThisClass::SwitchToNextCharacterActionDelay, 0.2f);
 }
 
-void ATacticPlayerController::PreMove(ATacticPlayerController* TacticPlayerController, UBaseAbility* BaseAbility)
+void ATacticPlayerController::PreMoveAndSkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
+                                                           UBaseAbility* BaseAbility)
 {
-	SetGroundObjectQueryParams();
-}
-
-void ATacticPlayerController::SkillSelectedTimer(ATacticPlayerController* TacticPlayerController,
-                                                 UBaseAbility* BaseAbility)
-{
-	SetGroundObjectQueryParams();
+	if (BaseAbility && BaseAbility->bIsSingleTarget)
+	{
+		SetGroundPlusBaseCharcterObjectQueryParams();
+	}
+	else
+	{
+		SetGroundObjectQueryParams();
+	}
 }
 
 void ATacticPlayerController::CancelMove()
